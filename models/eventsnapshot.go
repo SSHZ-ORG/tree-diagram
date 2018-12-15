@@ -17,8 +17,17 @@ type EventSnapshot struct {
 
 const eventSnapshotKind = "EventSnapshot"
 
+// Is a snapshot needed?
+func needSnapshot(old, new *Event) bool {
+	if old.LastNoteCount != new.LastNoteCount {
+		return true
+	}
+
+	return !areKeysSetsEqual(old.Actors, new.Actors)
+}
+
 // Take a snapshot of the event. Can be called in a transaction.
-func TakeSnapshot(ctx context.Context, ek *datastore.Key, e *Event) error {
+func takeSnapshot(ctx context.Context, ek *datastore.Key, e *Event) error {
 	key := datastore.NewIncompleteKey(ctx, eventSnapshotKind, ek)
 	s := &EventSnapshot{
 		Timestamp: e.LastUpdateTime,
