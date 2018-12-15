@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/civil"
@@ -29,6 +30,8 @@ func CrawlDateOnePage(ctx context.Context, date civil.Date) error {
 }
 
 func crawlEventSearchPage(ctx context.Context, url string) error {
+	log.Infof(ctx, "Crawling event search page %v", url)
+
 	client := urlfetch.Client(ctx)
 	res, err := client.Get(url)
 	if err != nil {
@@ -147,6 +150,9 @@ func crawlEventSearchPage(ctx context.Context, url string) error {
 	}
 
 	var insertErrMsgs []string
+	wg := sync.WaitGroup{}
+	wg.Add(len(es))
+
 	for i, e := range es {
 		if eventPs[i] != "" {
 			e.Place = pKeys[eventPs[i]]
@@ -155,14 +161,21 @@ func crawlEventSearchPage(ctx context.Context, url string) error {
 		for _, aID := range eventAs[i] {
 			e.Actors = append(e.Actors, aKeys[aID])
 		}
-		if err := models.InsertOrUpdateEvent(ctx, e); err != nil {
-			insertErrMsgs = append(insertErrMsgs, err.Error())
-		}
+
+		go func() {
+			if err := models.InsertOrUpdateEvent(ctx, e); err != nil {
+				insertErrMsgs = append(insertErrMsgs, err.Error())
+			}
+			wg.Done()
+		}()
 	}
 
+	wg.Wait()
 	if len(insertErrMsgs) > 0 {
 		return errors.New(strings.Join(insertErrMsgs, "\n"))
 	}
+
+	log.Infof(ctx, "Updated %d events.", len(es))
 	return nil
 }
 
