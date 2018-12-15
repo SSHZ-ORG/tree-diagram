@@ -29,6 +29,8 @@ func CrawlDateOnePage(ctx context.Context, date civil.Date) error {
 }
 
 func crawlEventSearchPage(ctx context.Context, url string) error {
+	log.Infof(ctx, "Crawling event search page %v", url)
+
 	client := urlfetch.Client(ctx)
 	res, err := client.Get(url)
 	if err != nil {
@@ -163,6 +165,8 @@ func crawlEventSearchPage(ctx context.Context, url string) error {
 	if len(insertErrMsgs) > 0 {
 		return errors.New(strings.Join(insertErrMsgs, "\n"))
 	}
+
+	log.Infof(ctx, "Updated %d events.", len(es))
 	return nil
 }
 
