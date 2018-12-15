@@ -29,6 +29,8 @@ func CrawlDateOnePage(ctx context.Context, date civil.Date) error {
 }
 
 func crawlEventSearchPage(ctx context.Context, url string) error {
+	ts := time.Now()
+
 	log.Infof(ctx, "Crawling event search page %v", url)
 
 	client := urlfetch.Client(ctx)
@@ -129,7 +131,7 @@ func crawlEventSearchPage(ctx context.Context, url string) error {
 		}
 
 		// Won't fail.
-		e.LastUpdateTime = time.Now()
+		e.LastUpdateTime = ts
 
 		eventPs = append(eventPs, pID)
 		eventAs = append(eventAs, aIDs)
