@@ -7,7 +7,6 @@ import (
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
 )
 
 type Event struct {
@@ -48,19 +47,13 @@ func InsertOrUpdateEvent(ctx context.Context, e *Event) error {
 	}
 
 	// We always put the event even if nothing changed, to update the timestamp.
-	// But a snapshot is taken only if needSnapshot says so.
+	// But maybeTakeSnapshot will decide if a snapshot is required.
 	return nds.RunInTransaction(ctx, func(tc context.Context) error {
 		_, err := nds.Put(ctx, key, e)
 		if err != nil {
 			return err
 		}
 
-		if needSnapshot(oe, e) {
-			log.Debugf(ctx, "Taking snapshot for event %s.", e.debugName())
-			return takeSnapshot(ctx, key, e)
-		} else {
-			log.Debugf(ctx, "Snapshot skipped for event %s.", e.debugName())
-			return nil
-		}
+		return maybeTakeSnapshot(ctx, key, oe, e)
 	}, nil)
 }

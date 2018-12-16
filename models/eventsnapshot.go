@@ -6,35 +6,40 @@ import (
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
 )
 
 type EventSnapshot struct {
 	Timestamp time.Time
 
+	// Will only snapshot changed fields.
 	NoteCount int
 	Actors    []*datastore.Key
 }
 
 const eventSnapshotKind = "EventSnapshot"
 
-// Is a snapshot needed?
-func needSnapshot(old, new *Event) bool {
-	if old.LastNoteCount != new.LastNoteCount {
-		return true
+func maybeTakeSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event) error {
+	shouldTake := false
+	s := &EventSnapshot{Timestamp: ne.LastUpdateTime}
+
+	if oe.LastNoteCount != ne.LastNoteCount {
+		s.NoteCount = ne.LastNoteCount
+		shouldTake = true
 	}
 
-	return !areKeysSetsEqual(old.Actors, new.Actors)
-}
-
-// Take a snapshot of the event. Can be called in a transaction.
-func takeSnapshot(ctx context.Context, ek *datastore.Key, e *Event) error {
-	key := datastore.NewIncompleteKey(ctx, eventSnapshotKind, ek)
-	s := &EventSnapshot{
-		Timestamp: e.LastUpdateTime,
-		NoteCount: e.LastNoteCount,
-		Actors:    e.Actors,
+	if !areKeysSetsEqual(oe.Actors, ne.Actors) {
+		s.Actors = ne.Actors
+		shouldTake = true
 	}
 
-	_, err := nds.Put(ctx, key, s)
-	return err
+	if shouldTake {
+		log.Debugf(ctx, "Taking snapshot for event %s.", ne.debugName())
+		key := datastore.NewIncompleteKey(ctx, eventSnapshotKind, ek)
+		_, err := nds.Put(ctx, key, s)
+		return err
+	} else {
+		log.Debugf(ctx, "Snapshot skipped for event %s.", ne.debugName())
+		return nil
+	}
 }
