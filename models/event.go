@@ -47,40 +47,38 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 		keys = append(keys, datastore.NewKey(ctx, eventKind, e.ID, 0, nil))
 	}
 
-	return nds.RunInTransaction(ctx, func(ctx context.Context) error {
-		oes := make([]*Event, len(events))
-		err := nds.GetMulti(ctx, keys, oes)
-		if err != nil {
-			if me, ok := err.(appengine.MultiError); ok {
-				for _, e := range me {
-					if e != nil && e != datastore.ErrNoSuchEntity {
-						// Something else happened. Rethrow it.
-						return err
-					}
+	oes := make([]*Event, len(events))
+	err := nds.GetMulti(ctx, keys, oes)
+	if err != nil {
+		if me, ok := err.(appengine.MultiError); ok {
+			for _, e := range me {
+				if e != nil && e != datastore.ErrNoSuchEntity {
+					// Something else happened. Rethrow it.
+					return err
 				}
-			} else {
-				return err
 			}
-		}
-
-		var snapshotKeys []*datastore.Key
-		var snapshots []*EventSnapshot
-		for i, e := range events {
-			sk, s := maybeCreateSnapshot(ctx, keys[i], oes[i], e)
-			if sk != nil {
-				snapshotKeys = append(snapshotKeys, sk)
-				snapshots = append(snapshots, s)
-			}
-		}
-
-		// We always update events even if no change, to update the timestamp.
-		if _, err := nds.PutMulti(ctx, keys, events); err != nil {
+		} else {
 			return err
 		}
-		if _, err := nds.PutMulti(ctx, snapshotKeys, snapshots); err != nil {
-			return err
-		}
+	}
 
-		return nil
-	}, &datastore.TransactionOptions{XG: true})
+	var snapshotKeys []*datastore.Key
+	var snapshots []*EventSnapshot
+	for i, e := range events {
+		sk, s := maybeCreateSnapshot(ctx, keys[i], oes[i], e)
+		if sk != nil {
+			snapshotKeys = append(snapshotKeys, sk)
+			snapshots = append(snapshots, s)
+		}
+	}
+
+	// We always update events even if no change, to update the timestamp.
+	if _, err := nds.PutMulti(ctx, keys, events); err != nil {
+		return err
+	}
+	if _, err := nds.PutMulti(ctx, snapshotKeys, snapshots); err != nil {
+		return err
+	}
+
+	return nil
 }
