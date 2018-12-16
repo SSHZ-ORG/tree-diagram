@@ -43,7 +43,7 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 		keys = append(keys, datastore.NewKey(ctx, eventKind, e.ID, 0, nil))
 	}
 
-	return nds.RunInTransaction(ctx, func(tc context.Context) error {
+	return nds.RunInTransaction(ctx, func(ctx context.Context) error {
 		oes := make([]*Event, len(events))
 		err := nds.GetMulti(ctx, keys, oes)
 		if err != nil {
