@@ -22,6 +22,10 @@ func maybeCreateSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event) 
 	shouldTake := false
 	s := &EventSnapshot{Timestamp: ne.LastUpdateTime}
 
+	if oe == nil {
+		oe = &Event{}
+	}
+
 	if oe.LastNoteCount != ne.LastNoteCount {
 		s.NoteCount = ne.LastNoteCount
 		shouldTake = true
