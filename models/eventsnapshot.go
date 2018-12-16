@@ -3,7 +3,6 @@ package models
 import (
 	"time"
 
-	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
@@ -19,7 +18,7 @@ type EventSnapshot struct {
 
 const eventSnapshotKind = "EventSnapshot"
 
-func maybeTakeSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event) error {
+func maybeCreateSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event) (*datastore.Key, *EventSnapshot) {
 	shouldTake := false
 	s := &EventSnapshot{Timestamp: ne.LastUpdateTime}
 
@@ -35,11 +34,9 @@ func maybeTakeSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event) er
 
 	if shouldTake {
 		log.Debugf(ctx, "Taking snapshot for event %s.", ne.debugName())
-		key := datastore.NewIncompleteKey(ctx, eventSnapshotKind, ek)
-		_, err := nds.Put(ctx, key, s)
-		return err
+		return datastore.NewIncompleteKey(ctx, eventSnapshotKind, ek), s
 	} else {
 		log.Debugf(ctx, "Snapshot skipped for event %s.", ne.debugName())
-		return nil
+		return nil, nil
 	}
 }

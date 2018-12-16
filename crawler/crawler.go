@@ -150,7 +150,6 @@ func crawlEventSearchPage(ctx context.Context, url string) error {
 		return err
 	}
 
-	var insertErrMsgs []string
 	for i, e := range es {
 		if eventPs[i] != "" {
 			e.Place = pKeys[eventPs[i]]
@@ -159,13 +158,10 @@ func crawlEventSearchPage(ctx context.Context, url string) error {
 		for _, aID := range eventAs[i] {
 			e.Actors = append(e.Actors, aKeys[aID])
 		}
-		if err := models.InsertOrUpdateEvent(ctx, e); err != nil {
-			insertErrMsgs = append(insertErrMsgs, err.Error())
-		}
 	}
 
-	if len(insertErrMsgs) > 0 {
-		return errors.New(strings.Join(insertErrMsgs, "\n"))
+	if err := models.InsertOrUpdateEvents(ctx, es); err != nil {
+		return err
 	}
 
 	log.Infof(ctx, "Updated %d events.", len(es))
