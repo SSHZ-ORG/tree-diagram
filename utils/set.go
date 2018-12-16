@@ -38,7 +38,7 @@ func (set StringSet) Equals(other StringSet) bool {
 		return false
 	}
 
-	for e, _ := range set {
+	for e := range set {
 		if !other.Contains(e) {
 			return false
 		}

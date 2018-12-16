@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -65,7 +66,7 @@ func enqueue(w http.ResponseWriter, r *http.Request) {
 	}
 	enqueueCrawlDate(ctx, begin, end)
 
-	w.Write([]byte("OK"))
+	_, _ = w.Write([]byte(fmt.Sprintf("Enqueued %s to %s.", begin.String(), end.String())))
 }
 
 func crawlDate(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +88,7 @@ func crawlDate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	} else {
-		w.Write([]byte("OK"))
+		_, _ = w.Write([]byte("OK"))
 	}
 }
 
