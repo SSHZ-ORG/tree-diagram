@@ -11,36 +11,29 @@ import (
 type EventSnapshot struct {
 	Timestamp time.Time
 
-	// Will only snapshot changed fields.
+	// Recorded even if not changed.
 	NoteCount int
-	Actors    []*datastore.Key
+
+	// Recorded only if changed.
+	Actors []*datastore.Key
 }
 
 const eventSnapshotKind = "EventSnapshot"
 
 func maybeCreateSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event) (*datastore.Key, *EventSnapshot) {
-	shouldTake := false
-	s := &EventSnapshot{Timestamp: ne.LastUpdateTime}
+	s := &EventSnapshot{
+		Timestamp: ne.LastUpdateTime,
+		NoteCount: ne.LastNoteCount,
+	}
 
 	if oe == nil {
 		oe = &Event{}
 	}
 
-	if oe.LastNoteCount != ne.LastNoteCount {
-		s.NoteCount = ne.LastNoteCount
-		shouldTake = true
-	}
-
 	if !areKeysSetsEqual(oe.Actors, ne.Actors) {
 		s.Actors = ne.Actors
-		shouldTake = true
 	}
 
-	if shouldTake {
-		log.Debugf(ctx, "Taking snapshot for event %s.", ne.debugName())
-		return datastore.NewIncompleteKey(ctx, eventSnapshotKind, ek), s
-	} else {
-		log.Debugf(ctx, "Snapshot skipped for event %s.", ne.debugName())
-		return nil, nil
-	}
+	log.Debugf(ctx, "Taking snapshot for event %s. (%d -> %d)", ne.debugName(), oe.LastNoteCount, ne.LastNoteCount)
+	return datastore.NewIncompleteKey(ctx, eventSnapshotKind, ek), s
 }
