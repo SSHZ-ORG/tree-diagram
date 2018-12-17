@@ -20,15 +20,21 @@ const (
 	pageSize              = 30
 	minNoteCountThreshold = 10
 
-	eventListPageURLTemplate = "https://www.eventernote.com/events/search?year=%d&month=%d&day=%d&limit=%d"
+	datePageURLTemplate = "https://www.eventernote.com/events/search?year=%d&month=%d&day=%d&limit=%d&page=%d"
 )
 
-func CrawlDateOnePage(ctx context.Context, date civil.Date) error {
-	url := fmt.Sprintf(eventListPageURLTemplate, date.Year, date.Month, date.Day, pageSize)
-	return crawlEventSearchPage(ctx, url)
+// Crawls one page at the given date. pageNo is 1-index. Returns a boolean on whether should continue to next page.
+func CrawlDateOnePage(ctx context.Context, date civil.Date, pageNo int) (bool, error) {
+	url := fmt.Sprintf(datePageURLTemplate, date.Year, date.Month, date.Day, pageSize, pageNo)
+	n, err := crawlEventSearchPage(ctx, url)
+	if err != nil {
+		return false, err
+	}
+	return n >= pageSize, nil
 }
 
-func crawlEventSearchPage(ctx context.Context, url string) error {
+// Crawls the events at the given URL and returns the number of events that has NoteCount >= threshold.
+func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 	ts := time.Now()
 
 	log.Infof(ctx, "Crawling event search page %v", url)
@@ -36,16 +42,16 @@ func crawlEventSearchPage(ctx context.Context, url string) error {
 	client := urlfetch.Client(ctx)
 	res, err := client.Get(url)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return errors.New("Status Error: " + res.Status)
+		return 0, errors.New("Status Error: " + res.Status)
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	aMap := make(map[string]string)
@@ -55,6 +61,7 @@ func crawlEventSearchPage(ctx context.Context, url string) error {
 	var eventAs [][]string
 	var eventPs []string
 
+	count := 0
 	events := doc.Find(".gb_event_list").Children().Children()
 	events.Each(func(i int, s *goquery.Selection) {
 		e := &models.Event{}
@@ -68,6 +75,8 @@ func crawlEventSearchPage(ctx context.Context, url string) error {
 		if e.LastNoteCount < minNoteCountThreshold {
 			return
 		}
+
+		count++
 
 		// Critical. If fails skip the event.
 		e.ID, e.Name, err = parseLinkWithID(s.Find(".event h4 a"))
@@ -141,13 +150,13 @@ func crawlEventSearchPage(ctx context.Context, url string) error {
 	aKeys, err := models.EnsureActors(ctx, aMap)
 	if err != nil {
 		log.Errorf(ctx, "EnsureActors: %v", err)
-		return err
+		return 0, err
 	}
 
 	pKeys, err := models.EnsurePlaces(ctx, pMap)
 	if err != nil {
 		log.Errorf(ctx, "EnsurePlaces: %v", err)
-		return err
+		return 0, err
 	}
 
 	for i, e := range es {
@@ -161,11 +170,11 @@ func crawlEventSearchPage(ctx context.Context, url string) error {
 	}
 
 	if err := models.InsertOrUpdateEvents(ctx, es); err != nil {
-		return err
+		return 0, err
 	}
 
 	log.Infof(ctx, "Updated %d events.", len(es))
-	return nil
+	return count, nil
 }
 
 func logError(ctx context.Context, url string, i int, field string, err error) {

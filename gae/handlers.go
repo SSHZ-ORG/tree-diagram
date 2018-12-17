@@ -3,16 +3,16 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"net/url"
+	"strconv"
 	"time"
 
 	"cloud.google.com/go/civil"
 	"github.com/SSHZ-ORG/tree-diagram/crawler"
+	"github.com/SSHZ-ORG/tree-diagram/utils"
 	"github.com/gorilla/mux"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/taskqueue"
 )
 
 func main() {
@@ -32,7 +32,11 @@ func daily(w http.ResponseWriter, r *http.Request) {
 	l, _ := time.LoadLocation("Asia/Tokyo")
 	now := civil.DateOf(time.Now().In(l))
 
-	enqueueCrawlDate(ctx, now.AddDays(-30), now.AddDays(180))
+	if err := enqueueCrawlDate(ctx, now.AddDays(-30), now.AddDays(180)); err != nil {
+		log.Errorf(ctx, "enqueueCrawlDate: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func enqueue(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +68,12 @@ func enqueue(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "begin not before end", http.StatusBadRequest)
 		return
 	}
-	enqueueCrawlDate(ctx, begin, end)
+
+	if err := enqueueCrawlDate(ctx, begin, end); err != nil {
+		log.Errorf(ctx, "enqueueCrawlDate: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	_, _ = w.Write([]byte(fmt.Sprintf("Enqueued %s to %s.", begin.String(), end.String())))
 }
@@ -83,24 +92,40 @@ func crawlDate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := crawler.CrawlDateOnePage(ctx, date); err != nil {
+	pageArg := r.FormValue("page")
+	if pageArg == "" {
+		http.Error(w, "Missing arg page", http.StatusBadRequest)
+		return
+	}
+	page, err := strconv.Atoi(pageArg)
+	if err != nil {
+		http.Error(w, "Illegal arg page", http.StatusBadRequest)
+		return
+	}
+
+	shouldContinue, err := crawler.CrawlDateOnePage(ctx, date, page)
+	if err != nil {
 		log.Errorf(ctx, "crawler.CrawlDateOnePage: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	} else {
-		_, _ = w.Write([]byte("OK"))
 	}
-}
 
-func enqueueCrawlDate(ctx context.Context, begin, end civil.Date) {
-	for cur := begin; cur.Before(end); cur = cur.AddDays(1) {
-		t := taskqueue.NewPOSTTask("/admin/crawl/date", url.Values{
-			"date": []string{cur.String()},
-		})
-
-		_, err := taskqueue.Add(ctx, t, "normal-date-queue")
-		if err != nil {
-			log.Errorf(ctx, "Failed to enqueue: %v", err)
+	if shouldContinue {
+		if err := utils.ScheduleNormalQueue(ctx, date, page+1); err != nil {
+			log.Errorf(ctx, "enqueueCrawlDate: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	}
+
+	_, _ = w.Write([]byte("OK"))
+}
+
+func enqueueCrawlDate(ctx context.Context, begin, end civil.Date) error {
+	for cur := begin; cur.Before(end); cur = cur.AddDays(1) {
+		if err := utils.ScheduleNormalQueue(ctx, cur, 1); err != nil {
+			return err
+		}
+	}
+	return nil
 }
