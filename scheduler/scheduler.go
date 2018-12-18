@@ -41,6 +41,15 @@ func (q DateQueue) EnqueueDateRange(ctx context.Context, begin, end civil.Date) 
 	return nil
 }
 
+func (q DateQueue) CurrentTaskCount(ctx context.Context) (int, error) {
+	s, err := taskqueue.QueueStats(ctx, []string{string(q)})
+	if err != nil {
+		return 0, err
+	}
+
+	return s[0].Tasks, nil
+}
+
 func GetCurrentQueue(r *http.Request) DateQueue {
 	qn := r.Header.Get("X-AppEngine-QueueName")
 	if qn == "" {
