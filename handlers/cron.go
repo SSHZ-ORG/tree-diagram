@@ -22,8 +22,8 @@ func dailyCron(w http.ResponseWriter, r *http.Request) {
 	l, _ := time.LoadLocation("Asia/Tokyo")
 	now := civil.DateOf(time.Now().In(l))
 
-	if err := scheduler.EnqueueCrawlDateRange(ctx, now.AddDays(-30), now.AddDays(180)); err != nil {
-		log.Errorf(ctx, "EnqueueCrawlDateRange: %v", err)
+	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, now.AddDays(-30), now.AddDays(180)); err != nil {
+		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

@@ -50,8 +50,8 @@ func crawlDate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if shouldContinue {
-		if err := scheduler.ScheduleNormalQueue(ctx, date, page+1); err != nil {
-			log.Errorf(ctx, "ScheduleNormalQueue: %v", err)
+		if err := scheduler.GetCurrentQueue(r).Schedule(ctx, date, page+1); err != nil {
+			log.Errorf(ctx, "DateQueue.Schedule: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
