@@ -4,5 +4,5 @@ queue:
     bucket_size: 1
 
   - name: throttled-date-queue
-    rate: 2/m
+    rate: 40/h
     bucket_size: 1
