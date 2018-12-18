@@ -1,10 +1,11 @@
-package utils
+package scheduler
 
 import (
 	"net/url"
 	"strconv"
 
 	"cloud.google.com/go/civil"
+	"github.com/SSHZ-ORG/tree-diagram/paths"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/taskqueue"
@@ -15,7 +16,7 @@ const (
 )
 
 func ScheduleNormalQueue(ctx context.Context, date civil.Date, page int) error {
-	t := taskqueue.NewPOSTTask("/admin/crawl/date", url.Values{
+	t := taskqueue.NewPOSTTask(paths.CrawlDatePath, url.Values{
 		"date": []string{date.String()},
 		"page": []string{strconv.Itoa(page)},
 	})
@@ -25,4 +26,13 @@ func ScheduleNormalQueue(ctx context.Context, date civil.Date, page int) error {
 		log.Errorf(ctx, "Failed to enqueue: %v", err)
 	}
 	return err
+}
+
+func EnqueueCrawlDateRange(ctx context.Context, begin, end civil.Date) error {
+	for cur := begin; cur.Before(end); cur = cur.AddDays(1) {
+		if err := ScheduleNormalQueue(ctx, cur, 1); err != nil {
+			return err
+		}
+	}
+	return nil
 }
