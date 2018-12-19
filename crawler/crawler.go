@@ -11,6 +11,7 @@ import (
 	"cloud.google.com/go/civil"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/SSHZ-ORG/tree-diagram/models"
+	"github.com/SSHZ-ORG/tree-diagram/utils"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
@@ -203,6 +204,5 @@ func parseDetailedTime(s string, date civil.Date) (time.Time, error) {
 
 	civilTime := civil.TimeOf(t)
 
-	l, _ := time.LoadLocation("Asia/Tokyo")
-	return civil.DateTime{Date: date, Time: civilTime}.In(l), nil
+	return civil.DateTime{Date: date, Time: civilTime}.In(utils.JST()), nil
 }

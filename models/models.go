@@ -5,6 +5,8 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
+var AllKinds = []string{actorKind, placeKind, eventKind, eventSnapshotKind}
+
 func areKeysSetsEqual(a, b []*datastore.Key) bool {
 	as := utils.NewStringSet()
 	bs := utils.NewStringSet()
