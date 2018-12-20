@@ -11,7 +11,7 @@ import (
 )
 
 type Event struct {
-	ID   string
+	ID   string `datastore:",noindex"` // Use Key
 	Name string
 
 	// Used as civil date. Always at UTC midnight.

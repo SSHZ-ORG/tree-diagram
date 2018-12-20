@@ -8,7 +8,7 @@ import (
 )
 
 type Actor struct {
-	ID   string
+	ID   string `datastore:",noindex"` // Use Key
 	Name string
 }
 

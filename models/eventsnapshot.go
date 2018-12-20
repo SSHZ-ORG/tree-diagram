@@ -9,19 +9,21 @@ import (
 )
 
 type EventSnapshot struct {
+	EventID   string `datastore:",noindex"` // Use Key.Parent
 	Timestamp time.Time
 
 	// Recorded even if not changed.
 	NoteCount int
 
 	// Recorded only if changed.
-	Actors []*datastore.Key
+	Actors []*datastore.Key `datastore:",noindex"`
 }
 
 const eventSnapshotKind = "EventSnapshot"
 
 func maybeCreateSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event) (*datastore.Key, *EventSnapshot) {
 	s := &EventSnapshot{
+		EventID:   ne.ID,
 		Timestamp: ne.LastUpdateTime,
 		NoteCount: ne.LastNoteCount,
 	}

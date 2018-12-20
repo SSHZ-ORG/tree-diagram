@@ -8,7 +8,7 @@ import (
 )
 
 type Place struct {
-	ID   string
+	ID   string `datastore:",noindex"` // Use Key
 	Name string
 
 	ShouldIgnore    bool
