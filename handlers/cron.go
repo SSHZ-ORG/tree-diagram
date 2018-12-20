@@ -27,7 +27,7 @@ func dailyCron(w http.ResponseWriter, r *http.Request) {
 
 	now := civil.DateOf(time.Now().In(utils.JST()))
 
-	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, now.AddDays(-30), now.AddDays(180)); err != nil {
+	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, now.AddDays(-30), now.AddDays(360)); err != nil {
 		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
