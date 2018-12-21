@@ -7,8 +7,3 @@ cron:
   - description: "ReviveCron"
     url: /admin/cron/revive
     schedule: every 1 hours
-
-  - description: "ExportCron"
-    url: /admin/cron/export
-    schedule: every day 01:00
-    timezone: UTC
