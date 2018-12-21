@@ -13,7 +13,7 @@ type EventSnapshot struct {
 	Timestamp time.Time
 
 	// Recorded even if not changed.
-	NoteCount int
+	NoteCount int `datastore:",noindex"` // Don't query Snapshots directly.
 
 	// Recorded only if changed.
 	Actors []*datastore.Key `datastore:",noindex"`
