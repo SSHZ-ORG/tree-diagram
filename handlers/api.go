@@ -13,10 +13,13 @@ import (
 )
 
 func RegisterAPI(r *mux.Router) {
-	r.HandleFunc(paths.APIGetNoteCountHistoryPath, getNoteCountHistory)
+	r.HandleFunc(paths.APIGetNoteCountHistoryPath, getNoteCountHistory).Methods("GET", "OPTIONS")
 }
 
 func getNoteCountHistory(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
 	ctx := appengine.NewContext(r)
 
 	eid := r.FormValue("id")
