@@ -36,6 +36,10 @@ func (e Event) debugName() string {
 
 const eventKind = "Event"
 
+func getEventKey(ctx context.Context, id string) *datastore.Key {
+	return datastore.NewKey(ctx, eventKind, id, 0, nil)
+}
+
 // Insert or update events. This automatically takes snapshots if needed.
 func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 	if len(events) == 0 {
@@ -44,7 +48,7 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 
 	var keys []*datastore.Key
 	for _, e := range events {
-		keys = append(keys, datastore.NewKey(ctx, eventKind, e.ID, 0, nil))
+		keys = append(keys, getEventKey(ctx, e.ID))
 	}
 
 	oes := make([]*Event, len(events))

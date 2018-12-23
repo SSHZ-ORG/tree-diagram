@@ -1,6 +1,8 @@
 package paths
 
 const (
+	APIGetNoteCountHistoryPath = "/api/getNoteCountHistory"
+
 	CommandEnqueueDateRangePath = "/admin/command/enqueueDateRange"
 
 	CrawlDatePath = "/admin/crawl/date"

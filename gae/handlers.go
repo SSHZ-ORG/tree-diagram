@@ -11,6 +11,7 @@ import (
 func main() {
 	r := mux.NewRouter()
 
+	handlers.RegisterAPI(r)
 	handlers.RegisterCommand(r)
 	handlers.RegisterCrawl(r)
 	handlers.RegisterCron(r)
