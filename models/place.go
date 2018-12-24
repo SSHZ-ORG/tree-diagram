@@ -17,12 +17,16 @@ type Place struct {
 
 const placeKind = "Place"
 
+func getPlaceKey(ctx context.Context, id string) *datastore.Key {
+	return datastore.NewKey(ctx, placeKind, id, 0, nil)
+}
+
 func EnsurePlaces(ctx context.Context, places map[string]string) (map[string]*datastore.Key, error) {
 	var keys []*datastore.Key
 	var ps []*Place
 	keysMap := make(map[string]*datastore.Key)
 	for id, name := range places {
-		key := datastore.NewKey(ctx, placeKind, id, 0, nil)
+		key := getPlaceKey(ctx, id)
 		keys = append(keys, key)
 		ps = append(ps, &Place{ID: id, Name: name})
 		keysMap[id] = key

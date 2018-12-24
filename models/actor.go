@@ -14,12 +14,16 @@ type Actor struct {
 
 const actorKind = "Actor"
 
+func getActorKey(ctx context.Context, id string) *datastore.Key {
+	return datastore.NewKey(ctx, actorKind, id, 0, nil)
+}
+
 func EnsureActors(ctx context.Context, actors map[string]string) (map[string]*datastore.Key, error) {
 	var keys []*datastore.Key
 	var as []*Actor
 	keysMap := make(map[string]*datastore.Key)
 	for id, name := range actors {
-		key := datastore.NewKey(ctx, actorKind, id, 0, nil)
+		key := getActorKey(ctx, id)
 		keys = append(keys, key)
 		as = append(as, &Actor{ID: id, Name: name})
 		keysMap[id] = key

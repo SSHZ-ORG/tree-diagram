@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"cloud.google.com/go/civil"
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
@@ -30,11 +31,34 @@ type Event struct {
 	LastUpdateTime time.Time
 }
 
+type FrontendEvent struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+
+	Date string `json:"date"`
+
+	LastNoteCount int `json:"last_note_count"`
+}
+
 func (e Event) debugName() string {
 	return fmt.Sprintf("[%s] %s", e.ID, e.Name)
 }
 
-const eventKind = "Event"
+func (e Event) ToFrontendEvent() FrontendEvent {
+	return FrontendEvent{
+		ID:   e.ID,
+		Name: e.Name,
+
+		Date: civil.DateOf(e.Date).String(),
+
+		LastNoteCount: e.LastNoteCount,
+	}
+}
+
+const (
+	eventKind     = "Event"
+	queryPageSize = 30
+)
 
 func getEventKey(ctx context.Context, id string) *datastore.Key {
 	return datastore.NewKey(ctx, eventKind, id, 0, nil)
@@ -85,4 +109,30 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 	}
 
 	return nil
+}
+
+func QueryEvents(ctx context.Context, placeID string, actorIDs []string, page int) ([]*Event, error) {
+	query := datastore.NewQuery(eventKind).KeysOnly().Limit(queryPageSize).Order("-LastNoteCount")
+
+	if placeID != "" {
+		query = query.Filter("Place=", getPlaceKey(ctx, placeID))
+	}
+
+	for _, actorID := range actorIDs {
+		query = query.Filter("Actors=", getActorKey(ctx, actorID))
+	}
+
+	if page > 1 {
+		query = query.Offset(queryPageSize * (page - 1))
+	}
+
+	keys, err := query.GetAll(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	es := make([]*Event, len(keys))
+	err = nds.GetMulti(ctx, keys, es)
+
+	return es, err
 }
