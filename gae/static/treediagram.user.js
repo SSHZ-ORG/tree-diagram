@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1
+// @version      0.1.1
 // @description  Make EventerNote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -40,7 +40,7 @@
                 data: {
                     datasets: [{
                         label: 'NoteCount',
-                        data: data.map(function (i) {
+                        data: data.snapshots.map(function (i) {
                             return {
                                 x: new Date(i.timestamp),
                                 y: i.note_count,
@@ -65,7 +65,7 @@
             });
         });
 
-        xhr.open("GET", "https://treediagram.sshz.org/api/getNoteCountHistory?id=" + eventId, true);
+        xhr.open("GET", "https://treediagram.sshz.org/api/renderEvent?id=" + eventId, true);
         xhr.send();
     }
 })();

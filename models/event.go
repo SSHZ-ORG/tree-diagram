@@ -136,3 +136,35 @@ func QueryEvents(ctx context.Context, placeID string, actorIDs []string, page in
 
 	return es, err
 }
+
+type RenderEventResponse struct {
+	Date      string           `json:"date"`
+	Snapshots []*EventSnapshot `json:"snapshots"`
+}
+
+func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEventResponse, error) {
+	key := getEventKey(ctx, eventID)
+
+	response := &RenderEventResponse{
+		Snapshots: make([]*EventSnapshot, 0), // So json does not make it null.
+	}
+
+	e := &Event{}
+	if err := nds.Get(ctx, key, e); err != nil {
+		if err == datastore.ErrNoSuchEntity {
+			return response, nil // Don't care if we don't know about the event yet.
+		}
+		return nil, err
+	}
+	response.Date = civil.DateOf(e.Date).String()
+
+	snapshots, err := getSnapshotsForEvent(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	if len(snapshots) > 0 {
+		response.Snapshots = snapshots
+	}
+
+	return response, nil
+}

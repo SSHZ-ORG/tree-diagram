@@ -14,11 +14,11 @@ import (
 )
 
 func RegisterAPI(r *mux.Router) {
-	r.HandleFunc(paths.APIGetNoteCountHistoryPath, getNoteCountHistory).Methods("GET", "OPTIONS")
+	r.HandleFunc(paths.APIRenderEvent, renderEvent).Methods("GET", "OPTIONS")
 	r.HandleFunc(paths.APIQueryEventsPath, queryEvents)
 }
 
-func getNoteCountHistory(w http.ResponseWriter, r *http.Request) {
+func renderEvent(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
@@ -30,14 +30,14 @@ func getNoteCountHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	snapshots, err := models.GetSnapshotsForEvent(ctx, eid)
+	res, err := models.PrepareRenderEventResponse(ctx, eid)
 	if err != nil {
-		log.Errorf(ctx, "models.GetSnapshotsForEvent: %v", err)
+		log.Errorf(ctx, "models.PrepareRenderEventResponse: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	writeJSON(ctx, w, snapshots)
+	writeJSON(ctx, w, res)
 }
 
 func queryEvents(w http.ResponseWriter, r *http.Request) {

@@ -41,10 +41,8 @@ func maybeCreateSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event) 
 	return datastore.NewIncompleteKey(ctx, eventSnapshotKind, ek), s
 }
 
-func GetSnapshotsForEvent(ctx context.Context, eventID string) ([]*EventSnapshot, error) {
-	ek := getEventKey(ctx, eventID)
-
-	keys, err := datastore.NewQuery(eventSnapshotKind).Ancestor(ek).Order("Timestamp").KeysOnly().GetAll(ctx, nil)
+func getSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*EventSnapshot, error) {
+	keys, err := datastore.NewQuery(eventSnapshotKind).Ancestor(eventKey).Order("Timestamp").KeysOnly().GetAll(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
