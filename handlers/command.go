@@ -19,14 +19,14 @@ func RegisterCommand(r *mux.Router) {
 func enqueueDateRange(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
-	beginArg := r.FormValue("begin")
-	if beginArg == "" {
-		http.Error(w, "Missing arg begin", http.StatusBadRequest)
+	startArg := r.FormValue("start")
+	if startArg == "" {
+		http.Error(w, "Missing arg start", http.StatusBadRequest)
 		return
 	}
-	begin, err := civil.ParseDate(beginArg)
+	start, err := civil.ParseDate(startArg)
 	if err != nil {
-		http.Error(w, "Illegal arg begin", http.StatusBadRequest)
+		http.Error(w, "Illegal arg start", http.StatusBadRequest)
 		return
 	}
 
@@ -41,16 +41,16 @@ func enqueueDateRange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !begin.Before(end) {
-		http.Error(w, "begin not before end", http.StatusBadRequest)
+	if !start.Before(end) {
+		http.Error(w, "start not before end", http.StatusBadRequest)
 		return
 	}
 
-	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, begin, end); err != nil {
+	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, start, end); err != nil {
 		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	_, _ = w.Write([]byte(fmt.Sprintf("Enqueued %s to %s.", begin.String(), end.String())))
+	_, _ = w.Write([]byte(fmt.Sprintf("Enqueued %s to %s.", start.String(), end.String())))
 }

@@ -32,8 +32,8 @@ func (q DateQueue) Schedule(ctx context.Context, date civil.Date, page int) erro
 	return err
 }
 
-func (q DateQueue) EnqueueDateRange(ctx context.Context, begin, end civil.Date) error {
-	for cur := begin; cur.Before(end); cur = cur.AddDays(1) {
+func (q DateQueue) EnqueueDateRange(ctx context.Context, start, end civil.Date) error {
+	for cur := start; cur.Before(end); cur = cur.AddDays(1) {
 		if err := q.Schedule(ctx, cur, 1); err != nil {
 			return err
 		}
