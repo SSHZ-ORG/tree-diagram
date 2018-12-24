@@ -12,30 +12,30 @@
     'use strict';
 
     function htmlToElement(html) {
-        var template = document.createElement('template');
+        const template = document.createElement('template');
         html = html.trim();
         template.innerHTML = html;
         return template.content.firstChild;
     }
 
-    let url = document.URL;
+    const url = document.URL;
 
-    let eventPageRegex = /https:\/\/www.eventernote.com\/events\/(\d+)/g;
-    let eventPageMatch = eventPageRegex.exec(url);
+    const eventPageRegex = /https:\/\/www.eventernote.com\/events\/(\d+)/g;
+    const eventPageMatch = eventPageRegex.exec(url);
     if (eventPageMatch !== null) {
-        let canvasDom = htmlToElement('<canvas id="td_chart"></canvas>');
+        const canvasDom = htmlToElement('<canvas id="td_chart"></canvas>');
 
-        let entryAreaDom = document.getElementById('entry_area');
+        const entryAreaDom = document.getElementById('entry_area');
         entryAreaDom.parentNode.insertBefore(canvasDom, entryAreaDom.nextSibling);
 
-        let eventId = eventPageMatch[1];
+        const eventId = eventPageMatch[1];
 
-        let xhr = new XMLHttpRequest();
+        const xhr = new XMLHttpRequest();
         xhr.addEventListener("load", function (response) {
-            let data = JSON.parse(xhr.responseText);
-            let ctx = document.getElementById("td_chart");
+            const data = JSON.parse(xhr.responseText);
+            const ctx = document.getElementById("td_chart");
 
-            let tdChart = new Chart(ctx, {
+            const tdChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     datasets: [{
