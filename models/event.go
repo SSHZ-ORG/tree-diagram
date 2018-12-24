@@ -15,8 +15,8 @@ type Event struct {
 	ID   string `datastore:",noindex"` // Use Key
 	Name string
 
-	// Used as civil date. Always at UTC midnight.
-	Date time.Time
+	Date     time.Time // Used as civil date. Always at UTC midnight.
+	Finished bool      // Use this as Date < Now().
 
 	Place  *datastore.Key
 	Actors []*datastore.Key

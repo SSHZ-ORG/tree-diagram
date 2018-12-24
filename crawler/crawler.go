@@ -37,6 +37,7 @@ func CrawlDateOnePage(ctx context.Context, date civil.Date, pageNo int) (bool, e
 // Crawls the events at the given URL and returns the number of events that has NoteCount >= threshold.
 func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 	ts := time.Now()
+	today := civil.DateOf(ts.In(utils.JST()))
 
 	log.Infof(ctx, "Crawling event search page %v", url)
 
@@ -93,6 +94,7 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 			return
 		}
 		e.Date = date.In(time.UTC)
+		e.Finished = date.Before(today)
 
 		// Non-critical.
 		pElement := s.Find(".place a")
