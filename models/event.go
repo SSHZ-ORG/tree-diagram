@@ -115,11 +115,11 @@ func QueryEvents(ctx context.Context, placeID string, actorIDs []string, page in
 	query := datastore.NewQuery(eventKind).KeysOnly().Limit(queryPageSize).Order("-LastNoteCount")
 
 	if placeID != "" {
-		query = query.Filter("Place=", getPlaceKey(ctx, placeID))
+		query = query.Filter("Place =", getPlaceKey(ctx, placeID))
 	}
 
 	for _, actorID := range actorIDs {
-		query = query.Filter("Actors=", getActorKey(ctx, actorID))
+		query = query.Filter("Actors =", getActorKey(ctx, actorID))
 	}
 
 	if page > 1 {
@@ -137,9 +137,37 @@ func QueryEvents(ctx context.Context, placeID string, actorIDs []string, page in
 	return es, err
 }
 
+type PlaceNoteCountStats struct {
+	Total int `json:"total"`
+	Rank  int `json:"rank"`
+}
+
+func GetPlaceNoteCountStats(ctx context.Context, placeKey *datastore.Key, noteCount int) (total PlaceNoteCountStats, finished PlaceNoteCountStats, err error) {
+	baseQuery := datastore.NewQuery(eventKind).Filter("Place =", placeKey)
+	if total.Total, err = baseQuery.Count(ctx); err != nil {
+		return
+	}
+	if total.Rank, err = baseQuery.Filter("LastNoteCount >", noteCount).Count(ctx); err != nil {
+		return
+	}
+
+	finishedQuery := baseQuery.Filter("Finished =", true)
+	if finished.Total, err = finishedQuery.Count(ctx); err != nil {
+		return
+	}
+	if finished.Rank, err = finishedQuery.Filter("LastNoteCount >", noteCount).Count(ctx); err != nil {
+		return
+	}
+
+	return
+}
+
 type RenderEventResponse struct {
 	Date      string           `json:"date"`
 	Snapshots []*EventSnapshot `json:"snapshots"`
+
+	PlaceStatsTotal    PlaceNoteCountStats `json:"place_stats_total"`
+	PlaceStatsFinished PlaceNoteCountStats `json:"place_stats_finished"`
 }
 
 func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEventResponse, error) {
@@ -164,6 +192,10 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 	}
 	if len(snapshots) > 0 {
 		response.Snapshots = snapshots
+	}
+
+	if response.PlaceStatsTotal, response.PlaceStatsFinished, err = GetPlaceNoteCountStats(ctx, e.Place, e.LastNoteCount); err != nil {
+		return nil, err
 	}
 
 	return response, nil
