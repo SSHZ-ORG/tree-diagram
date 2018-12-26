@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.1
+// @version      0.1.2
 // @description  Make EventerNote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -23,7 +23,16 @@
     const eventPageRegex = /https:\/\/www.eventernote.com\/events\/(\d+)/g;
     const eventPageMatch = eventPageRegex.exec(url);
     if (eventPageMatch !== null) {
-        const canvasDom = htmlToElement('<canvas id="td_chart"></canvas>');
+        const canvasDom = htmlToElement(`
+            <div>
+                <canvas id="td_chart"></canvas>
+                <div class="ma10 alert alert-info">
+                    <span class="label">Total</span>
+                    <span id="td_place_stats_total"></span>
+                    <span class="label">Finished</span>
+                    <span id="td_place_stats_finished"></span>
+                </div>
+            </div>`);
 
         const entryAreaDom = document.getElementById('entry_area');
         entryAreaDom.parentNode.insertBefore(canvasDom, entryAreaDom.nextSibling);
@@ -33,8 +42,13 @@
         const xhr = new XMLHttpRequest();
         xhr.addEventListener("load", function (response) {
             const data = JSON.parse(xhr.responseText);
-            const ctx = document.getElementById("td_chart");
 
+            const totalStatsSpan = document.getElementById("td_place_stats_total");
+            totalStatsSpan.innerHTML = data.place_stats_total.rank + "/" + data.place_stats_total.total;
+            const finishedStatsSpan = document.getElementById("td_place_stats_finished");
+            finishedStatsSpan.innerHTML = data.place_stats_finished.rank + "/" + data.place_stats_finished.total;
+
+            const ctx = document.getElementById("td_chart");
             const tdChart = new Chart(ctx, {
                 type: 'line',
                 data: {
