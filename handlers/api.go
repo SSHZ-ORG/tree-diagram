@@ -16,6 +16,7 @@ import (
 
 func RegisterAPI(r *mux.Router) {
 	r.HandleFunc(paths.APIRenderEvent, renderEvent).Methods("GET", "OPTIONS")
+	r.HandleFunc(paths.APIRenderPlace, renderPlace).Methods("GET", "OPTIONS")
 	r.HandleFunc(paths.APIQueryEventsPath, queryEvents)
 }
 
@@ -47,6 +48,28 @@ func renderEvent(w http.ResponseWriter, r *http.Request) {
 		apicache.PutRenderEvent(ctx, eid, encoded)
 		writeEncodedJSON(ctx, w, encoded)
 	}
+}
+
+func renderPlace(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	ctx := appengine.NewContext(r)
+
+	pid := r.FormValue("id")
+	if pid == "" {
+		http.Error(w, "Missing arg id", http.StatusBadRequest)
+		return
+	}
+
+	res, err := models.PrepareRenderPlaceResponse(ctx, pid)
+	if err != nil {
+		log.Errorf(ctx, "models.PrepareRenderPlaceResponse: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(ctx, w, res)
 }
 
 func queryEvents(w http.ResponseWriter, r *http.Request) {

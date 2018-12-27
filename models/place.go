@@ -15,7 +15,11 @@ type Place struct {
 	DefaultCapacity int // GAE doesn't care. All int* types are 64-bit.
 }
 
-const placeKind = "Place"
+const (
+	placeKind = "Place"
+
+	renderPlaceMaxTopEvents = 20
+)
 
 func getPlaceKey(ctx context.Context, id string) *datastore.Key {
 	return datastore.NewKey(ctx, placeKind, id, 0, nil)
@@ -62,4 +66,33 @@ func EnsurePlaces(ctx context.Context, places map[string]string) (map[string]*da
 
 	// WTF?
 	return nil, err
+}
+
+type RenderPlaceResponse struct {
+	TopEvents []FrontendEvent `json:"top_events"`
+}
+
+func PrepareRenderPlaceResponse(ctx context.Context, placeID string) (*RenderPlaceResponse, error) {
+	key := getPlaceKey(ctx, placeID)
+
+	response := &RenderPlaceResponse{
+		TopEvents: make([]FrontendEvent, 0), // So json does not make it null.
+	}
+
+	keys, err := datastore.NewQuery(eventKind).KeysOnly().Filter("Place =", key).Order("-LastNoteCount").Limit(renderPlaceMaxTopEvents).GetAll(ctx, nil)
+	if err != nil {
+		return response, err
+	}
+
+	es := make([]*Event, len(keys))
+	err = nds.GetMulti(ctx, keys, es)
+	if err != nil {
+		return response, err
+	}
+
+	for _, e := range es {
+		response.TopEvents = append(response.TopEvents, e.ToFrontendEvent())
+	}
+
+	return response, nil
 }
