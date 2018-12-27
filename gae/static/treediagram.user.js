@@ -34,10 +34,9 @@
         const entryAreaDom = document.getElementById('entry_area');
         entryAreaDom.parentNode.insertBefore(tdDom, entryAreaDom.nextSibling);
 
-        const xhr = new XMLHttpRequest();
-        xhr.addEventListener("load", function (response) {
-            const data = JSON.parse(xhr.responseText);
-
+        fetch(`https://treediagram.sshz.org/api/renderEvent?id=${eventId}`).then(function (response) {
+            return response.json();
+        }).then(function (data) {
             const totalStatsSpan = document.getElementById("td_place_stats_total");
             totalStatsSpan.innerHTML = `${data.place_stats_total.rank}/${data.place_stats_total.total}`;
             const finishedStatsSpan = document.getElementById("td_place_stats_finished");
@@ -73,9 +72,6 @@
                 }
             });
         });
-
-        xhr.open("GET", "https://treediagram.sshz.org/api/renderEvent?id=" + eventId, true);
-        xhr.send();
     }
 
     function placePage(placeId) {
@@ -93,9 +89,9 @@
 
         const topEventsTbody = document.getElementById('td_top_events_tbody');
 
-        const xhr = new XMLHttpRequest();
-        xhr.addEventListener("load", function (response) {
-            const data = JSON.parse(xhr.responseText);
+        fetch(`https://treediagram.sshz.org/api/renderPlace?id=${placeId}`).then(function (response) {
+            return response.json();
+        }).then(function (data) {
 
             data.top_events.forEach(function (e) {
                 const trDom = htmlToElement(
@@ -108,9 +104,6 @@
                 topEventsTbody.appendChild(trDom);
             });
         });
-
-        xhr.open("GET", "https://treediagram.sshz.org/api/renderPlace?id=" + placeId, true);
-        xhr.send();
     }
 
     function main() {
