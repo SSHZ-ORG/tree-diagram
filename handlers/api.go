@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/SSHZ-ORG/tree-diagram/handlers/apicache"
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/paths"
 	"github.com/gorilla/mux"
@@ -30,6 +31,11 @@ func renderEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if fromCache := apicache.GetRenderEvent(ctx, eid); fromCache != nil {
+		writeEncodedJSON(ctx, w, fromCache)
+		return
+	}
+
 	res, err := models.PrepareRenderEventResponse(ctx, eid)
 	if err != nil {
 		log.Errorf(ctx, "models.PrepareRenderEventResponse: %v", err)
@@ -37,7 +43,10 @@ func renderEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(ctx, w, res)
+	if encoded, err := encodeJSON(ctx, w, res); err == nil {
+		apicache.PutRenderEvent(ctx, eid, encoded)
+		writeEncodedJSON(ctx, w, encoded)
+	}
 }
 
 func queryEvents(w http.ResponseWriter, r *http.Request) {
@@ -77,13 +86,23 @@ func queryEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 func writeJSON(ctx context.Context, w http.ResponseWriter, v interface{}) {
+	if encoded, err := encodeJSON(ctx, w, v); err == nil {
+		writeEncodedJSON(ctx, w, encoded)
+	}
+}
+
+func encodeJSON(ctx context.Context, w http.ResponseWriter, v interface{}) ([]byte, error) {
 	encoded, err := json.Marshal(v)
 	if err != nil {
 		log.Errorf(ctx, "%v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
+	return encoded, nil
+}
+
+func writeEncodedJSON(ctx context.Context, w http.ResponseWriter, encoded []byte) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(encoded)
