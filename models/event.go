@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/civil"
@@ -142,26 +143,6 @@ type PlaceNoteCountStats struct {
 	Rank  int `json:"rank"`
 }
 
-func GetPlaceNoteCountStats(ctx context.Context, placeKey *datastore.Key, noteCount int) (total PlaceNoteCountStats, finished PlaceNoteCountStats, err error) {
-	baseQuery := datastore.NewQuery(eventKind).Filter("Place =", placeKey)
-	if total.Total, err = baseQuery.Count(ctx); err != nil {
-		return
-	}
-	if total.Rank, err = baseQuery.Filter("LastNoteCount >", noteCount).Count(ctx); err != nil {
-		return
-	}
-
-	finishedQuery := baseQuery.Filter("Finished =", true)
-	if finished.Total, err = finishedQuery.Count(ctx); err != nil {
-		return
-	}
-	if finished.Rank, err = finishedQuery.Filter("LastNoteCount >", noteCount).Count(ctx); err != nil {
-		return
-	}
-
-	return
-}
-
 type RenderEventResponse struct {
 	Date      string           `json:"date"`
 	Snapshots []*EventSnapshot `json:"snapshots"`
@@ -186,6 +167,27 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 	}
 	response.Date = civil.DateOf(e.Date).String()
 
+	var errTotal, errFinished error
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	baseQuery := datastore.NewQuery(eventKind).Filter("Place =", e.Place)
+	finishedQuery := baseQuery.Filter("Finished =", true)
+
+	go func() {
+		defer wg.Done()
+		if response.PlaceStatsTotal.Total, errTotal = baseQuery.Count(ctx); errTotal != nil {
+			return
+		}
+		response.PlaceStatsTotal.Rank, errTotal = baseQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(ctx)
+	}()
+	go func() {
+		defer wg.Done()
+		if response.PlaceStatsFinished.Total, errFinished = finishedQuery.Count(ctx); errFinished != nil {
+			return
+		}
+		response.PlaceStatsFinished.Rank, errFinished = finishedQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(ctx)
+	}()
+
 	snapshots, err := getSnapshotsForEvent(ctx, key)
 	if err != nil {
 		return nil, err
@@ -194,8 +196,12 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 		response.Snapshots = snapshots
 	}
 
-	if response.PlaceStatsTotal, response.PlaceStatsFinished, err = GetPlaceNoteCountStats(ctx, e.Place, e.LastNoteCount); err != nil {
-		return nil, err
+	wg.Wait()
+	if errTotal != nil {
+		return nil, errTotal
+	}
+	if errFinished != nil {
+		return nil, errFinished
 	}
 
 	return response, nil
