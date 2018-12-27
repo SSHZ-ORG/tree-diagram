@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.2
+// @version      0.1.3
 // @description  Make EventerNote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -18,13 +18,10 @@
         return template.content.firstChild;
     }
 
-    const url = document.URL;
-
-    const eventPageRegex = /https:\/\/www.eventernote.com\/events\/(\d+)/g;
-    const eventPageMatch = eventPageRegex.exec(url);
-    if (eventPageMatch !== null) {
-        const canvasDom = htmlToElement(`
+    function eventPage(eventId) {
+        const tdDom = htmlToElement(`
             <div>
+                <h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>
                 <canvas id="td_chart"></canvas>
                 <div class="ma10 alert alert-info">
                     <span class="label">Total</span>
@@ -35,18 +32,16 @@
             </div>`);
 
         const entryAreaDom = document.getElementById('entry_area');
-        entryAreaDom.parentNode.insertBefore(canvasDom, entryAreaDom.nextSibling);
-
-        const eventId = eventPageMatch[1];
+        entryAreaDom.parentNode.insertBefore(tdDom, entryAreaDom.nextSibling);
 
         const xhr = new XMLHttpRequest();
         xhr.addEventListener("load", function (response) {
             const data = JSON.parse(xhr.responseText);
 
             const totalStatsSpan = document.getElementById("td_place_stats_total");
-            totalStatsSpan.innerHTML = data.place_stats_total.rank + "/" + data.place_stats_total.total;
+            totalStatsSpan.innerHTML = `${data.place_stats_total.rank}/${data.place_stats_total.total}`;
             const finishedStatsSpan = document.getElementById("td_place_stats_finished");
-            finishedStatsSpan.innerHTML = data.place_stats_finished.rank + "/" + data.place_stats_finished.total;
+            finishedStatsSpan.innerHTML = `${data.place_stats_finished.rank}/${data.place_stats_finished.total}`;
 
             const ctx = document.getElementById("td_chart");
             const tdChart = new Chart(ctx, {
@@ -82,4 +77,57 @@
         xhr.open("GET", "https://treediagram.sshz.org/api/renderEvent?id=" + eventId, true);
         xhr.send();
     }
+
+    function placePage(placeId) {
+        const tdDom = htmlToElement(`
+            <div>
+                <h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>
+                <h3>Top Events</h3>
+                <table class="table table-striped s">
+                    <tbody id="td_top_events_tbody"></tbody>
+                </table>
+            </div>`);
+
+        const placeDetailsTableDom = document.getElementsByClassName('gb_place_detail_table')[0];
+        placeDetailsTableDom.parentNode.insertBefore(tdDom, placeDetailsTableDom.nextSibling);
+
+        const topEventsTbody = document.getElementById('td_top_events_tbody');
+
+        const xhr = new XMLHttpRequest();
+        xhr.addEventListener("load", function (response) {
+            const data = JSON.parse(xhr.responseText);
+
+            data.top_events.forEach(function (e) {
+                const trDom = htmlToElement(
+                    `<tr>
+                        <td>${e.date}</td>
+                        <td><a href="/events/${e.id}">${e.name}</a></td>
+                        <td>${e.last_note_count}</td>
+                    </tr>`);
+
+                topEventsTbody.appendChild(trDom);
+            });
+        });
+
+        xhr.open("GET", "https://treediagram.sshz.org/api/renderPlace?id=" + placeId, true);
+        xhr.send();
+    }
+
+    function main() {
+        const url = document.URL;
+
+        const eventPageRegex = /https:\/\/www.eventernote.com\/events\/(\d+)/g;
+        const eventPageMatch = eventPageRegex.exec(url);
+        if (eventPageMatch) {
+            return eventPage(eventPageMatch[1]);
+        }
+
+        const placePageRegex = /https:\/\/www.eventernote.com\/places\/(\d+)/g;
+        const placePageMatch = placePageRegex.exec(url);
+        if (placePageMatch) {
+            return placePage(placePageMatch[1]);
+        }
+    }
+
+    main();
 })();
