@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.7
+// @version      0.1.7.1
 // @description  Make EventerNote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -81,7 +81,7 @@
 
         const eventListDom = htmlToElement(`
             <div>
-                <table class="table table-hover s" style="margin-bottom: 0">
+                <table class="table table-hover s" style="margin-bottom: 0;">
                     <tbody id="td_event_list_tbody"></tbody>
                 </table>
                 <button class="btn btn-block" type="button" id="td_event_list_load_more_button" disabled>
@@ -182,7 +182,7 @@
             return placePage(placePageMatch[1]);
         }
 
-        const actorPageRegex = /https:\/\/www.eventernote.com\/actors\/.+\/(\d+)/g;
+        const actorPageRegex = /https:\/\/www.eventernote.com\/actors\/(?:.+\/)?(\d+)/g;
         const actorPageMatch = actorPageRegex.exec(url);
         if (actorPageMatch) {
             return actorPage(actorPageMatch[1]);
