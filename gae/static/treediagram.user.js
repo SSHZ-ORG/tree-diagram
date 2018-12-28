@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.6
+// @version      0.1.7
 // @description  Make EventerNote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -77,7 +77,6 @@
     }
 
     function createEventList(argString, totalCount, domToAppend) {
-        let nextPageToLoad = 1; // 1-based.
         let loadedCount = 0;
 
         const eventListDom = htmlToElement(`
@@ -101,7 +100,7 @@
             }
 
             loadMoreButtonDom.disabled = true;
-            fetch(`${serverBaseAddress}/api/queryEvents?page=${nextPageToLoad}&${argString}`).then(function (response) {
+            fetch(`${serverBaseAddress}/api/queryEvents?offset=${loadedCount}&${argString}`).then(function (response) {
                 return response.json();
             }).then(function (data) {
                 data.forEach(function (e) {
@@ -113,11 +112,14 @@
                         <td>${e.lastNoteCount}</td>
                     </tr>`);
 
+                    if (!e.finished) {
+                        trDom.classList.add('warning');
+                    }
+
                     tbodyDom.appendChild(trDom);
                     loadedCount += 1;
                 });
 
-                nextPageToLoad += 1;
                 loadedIndicatorDom.innerText = loadedCount.toString();
 
                 if (loadedCount < totalCount) {
