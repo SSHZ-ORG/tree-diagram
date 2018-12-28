@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.4
+// @version      0.1.5
 // @description  Make EventerNote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -77,70 +77,58 @@
     }
 
     function createEventList(argString, totalCount, domToAppend) {
-        let currentPage = 1; // 1-based for display.
-        const totalPage = Math.floor((totalCount - 1) / 10) + 1;
+        let nextPageToLoad = 1; // 1-based.
+        let loadedCount = 0;
 
         const eventListDom = htmlToElement(`
             <div>
                 <table class="table table-hover s" style="margin-bottom: 0">
                     <tbody id="td_event_list_tbody"></tbody>
                 </table>
-                <div class="pagination pagination-centered">
-                    <ul>
-                        <li id="td_event_list_previous_page_button"><a href="#">&lt;</a></li>
-                        <li class="active"><span>
-                            <span id="td_event_list_page_indicator"></span> / ${totalPage} (${totalCount})
-                        </span></li>
-                        <li id="td_event_list_next_page_button"><a href="#">&gt;</a></li>
-                    </ul>
-                </div>
+                <button class="btn btn-block" type="button" id="td_event_list_load_more_button" disabled>
+                    Load More (<span id="td_event_list_loaded_indicator">0</span> / ${totalCount})
+                </button>
             </div>`);
         domToAppend.appendChild(eventListDom);
 
-        const pageIndicatorDom = document.getElementById('td_event_list_page_indicator');
+        const tbodyDom = document.getElementById('td_event_list_tbody');
+        const loadMoreButtonDom = document.getElementById('td_event_list_load_more_button');
+        const loadedIndicatorDom = document.getElementById('td_event_list_loaded_indicator');
 
-        function goToPage(newPage) {
-            const tbodyDom = document.getElementById('td_event_list_tbody');
-            while (tbodyDom.firstChild) {
-                tbodyDom.removeChild(tbodyDom.firstChild);
+        function loadMore() {
+            if (loadedCount >= totalCount) {
+                return;
             }
 
-            fetch(`${serverBaseAddress}/api/queryEvents?page=${newPage}&${argString}`).then(function (response) {
+            loadMoreButtonDom.disabled = true;
+            fetch(`${serverBaseAddress}/api/queryEvents?page=${nextPageToLoad}&${argString}`).then(function (response) {
                 return response.json();
             }).then(function (data) {
                 data.forEach(function (e) {
                     const trDom = htmlToElement(
                         `<tr>
+                        <td>${loadedCount + 1}</td>
                         <td>${e.date}</td>
                         <td><a href="/events/${e.id}">${e.name}</a></td>
                         <td>${e.lastNoteCount}</td>
                     </tr>`);
 
                     tbodyDom.appendChild(trDom);
+                    loadedCount += 1;
                 });
 
-                currentPage = newPage;
-                pageIndicatorDom.innerText = currentPage;
+                nextPageToLoad += 1;
+                loadedIndicatorDom.innerText = loadedCount.toString();
+
+                if (loadedCount < totalCount) {
+                    loadMoreButtonDom.disabled = false;
+                }
             });
         }
 
-        const previousPageButton = document.getElementById('td_event_list_previous_page_button');
-        previousPageButton.addEventListener('click', function () {
-            if (currentPage - 1 < 1) {
-                return;
-            }
-            goToPage(currentPage - 1);
-        });
+        loadMoreButtonDom.addEventListener('click', loadMore);
 
-        const nextPageButton = document.getElementById('td_event_list_next_page_button');
-        nextPageButton.addEventListener('click', function () {
-            if (currentPage + 1 > totalPage) {
-                return;
-            }
-            goToPage(currentPage + 1);
-        });
-
-        goToPage(1);
+        loadMore();
     }
 
     function placePage(placeId) {
