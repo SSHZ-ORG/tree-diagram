@@ -116,16 +116,25 @@ func queryEvents(w http.ResponseWriter, r *http.Request) {
 	placeID := r.Form.Get("place")
 	actorIDs := r.Form["actor"]
 
-	page := 1
-	if arg := r.Form.Get("page"); arg != "" {
-		page, err = strconv.Atoi(arg)
+	offset := 0
+	if arg := r.Form.Get("offset"); arg != "" {
+		offset, err = strconv.Atoi(arg)
 		if err != nil {
-			http.Error(w, "Illegal arg page", http.StatusBadRequest)
+			http.Error(w, "Illegal arg offset", http.StatusBadRequest)
 			return
 		}
 	}
 
-	events, err := models.QueryEvents(ctx, placeID, actorIDs, queryPageSize, (page-1)*queryPageSize)
+	if arg := r.Form.Get("page"); arg != "" {
+		page, err := strconv.Atoi(arg)
+		if err != nil {
+			http.Error(w, "Illegal arg page", http.StatusBadRequest)
+			return
+		}
+		offset = (page - 1) * queryPageSize
+	}
+
+	events, err := models.QueryEvents(ctx, placeID, actorIDs, queryPageSize, offset)
 	if err != nil {
 		log.Errorf(ctx, "models.QueryEvents: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
