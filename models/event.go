@@ -36,7 +36,8 @@ type FrontendEvent struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 
-	Date string `json:"date"`
+	Date     string `json:"date"`
+	Finished bool   `json:"finished"`
 
 	LastNoteCount int `json:"lastNoteCount"`
 }
@@ -50,7 +51,8 @@ func (e Event) ToFrontendEvent() FrontendEvent {
 		ID:   e.ID,
 		Name: e.Name,
 
-		Date: civil.DateOf(e.Date).String(),
+		Date:     civil.DateOf(e.Date).String(),
+		Finished: e.Finished,
 
 		LastNoteCount: e.LastNoteCount,
 	}
