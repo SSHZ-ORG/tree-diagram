@@ -104,10 +104,10 @@
                 return response.json();
             }).then(function (data) {
                 data.forEach(function (e) {
-                    const trDom = htmlToElement(
-                        `<tr>
+                    const trDom = htmlToElement(`
+                    <tr>
                         <td>${loadedCount + 1}</td>
-                        <td>${e.date}</td>
+                        <td nowrap>${e.date}</td>
                         <td><a href="/events/${e.id}">${e.name}</a></td>
                         <td>${e.lastNoteCount}</td>
                     </tr>`);
