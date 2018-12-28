@@ -38,9 +38,9 @@
             return response.json();
         }).then(function (data) {
             const totalStatsSpan = document.getElementById("td_place_stats_total");
-            totalStatsSpan.innerHTML = `${data.place_stats_total.rank}/${data.place_stats_total.total}`;
+            totalStatsSpan.innerHTML = `${data.placeStatsTotal.rank}/${data.placeStatsTotal.total}`;
             const finishedStatsSpan = document.getElementById("td_place_stats_finished");
-            finishedStatsSpan.innerHTML = `${data.place_stats_finished.rank}/${data.place_stats_finished.total}`;
+            finishedStatsSpan.innerHTML = `${data.placeStatsFinished.rank}/${data.placeStatsFinished.total}`;
 
             const ctx = document.getElementById("td_chart");
             const tdChart = new Chart(ctx, {
@@ -51,7 +51,7 @@
                         data: data.snapshots.map(function (i) {
                             return {
                                 x: new Date(i.timestamp),
-                                y: i.note_count,
+                                y: i.noteCount,
                             };
                         }),
                         cubicInterpolationMode: 'monotone',
@@ -93,12 +93,12 @@
             return response.json();
         }).then(function (data) {
 
-            data.top_events.forEach(function (e) {
+            data.topEvents.forEach(function (e) {
                 const trDom = htmlToElement(
                     `<tr>
                         <td>${e.date}</td>
                         <td><a href="/events/${e.id}">${e.name}</a></td>
-                        <td>${e.last_note_count}</td>
+                        <td>${e.lastNoteCount}</td>
                     </tr>`);
 
                 topEventsTbody.appendChild(trDom);

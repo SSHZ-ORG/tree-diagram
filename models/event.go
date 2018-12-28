@@ -38,7 +38,7 @@ type FrontendEvent struct {
 
 	Date string `json:"date"`
 
-	LastNoteCount int `json:"last_note_count"`
+	LastNoteCount int `json:"lastNoteCount"`
 }
 
 func (e Event) debugName() string {
@@ -142,8 +142,8 @@ type RenderEventResponse struct {
 	Date      string           `json:"date"`
 	Snapshots []*EventSnapshot `json:"snapshots"`
 
-	PlaceStatsTotal    PlaceNoteCountStats `json:"place_stats_total"`
-	PlaceStatsFinished PlaceNoteCountStats `json:"place_stats_finished"`
+	PlaceStatsTotal    PlaceNoteCountStats `json:"placeStatsTotal"`
+	PlaceStatsFinished PlaceNoteCountStats `json:"placeStatsFinished"`
 }
 
 func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEventResponse, error) {

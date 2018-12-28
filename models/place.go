@@ -69,7 +69,7 @@ func EnsurePlaces(ctx context.Context, places map[string]string) (map[string]*da
 }
 
 type RenderPlaceResponse struct {
-	TopEvents []FrontendEvent `json:"top_events"`
+	TopEvents []FrontendEvent `json:"topEvents"`
 }
 
 func PrepareRenderPlaceResponse(ctx context.Context, placeID string) (*RenderPlaceResponse, error) {
