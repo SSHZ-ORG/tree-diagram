@@ -69,30 +69,19 @@ func EnsurePlaces(ctx context.Context, places map[string]string) (map[string]*da
 }
 
 type RenderPlaceResponse struct {
-	TopEvents []FrontendEvent `json:"topEvents"`
+	KnownEventCount int `json:"knownEventCount"`
 }
 
 func PrepareRenderPlaceResponse(ctx context.Context, placeID string) (*RenderPlaceResponse, error) {
 	key := getPlaceKey(ctx, placeID)
 
-	response := &RenderPlaceResponse{
-		TopEvents: make([]FrontendEvent, 0), // So json does not make it null.
-	}
+	response := &RenderPlaceResponse{}
 
-	keys, err := datastore.NewQuery(eventKind).KeysOnly().Filter("Place =", key).Order("-LastNoteCount").Limit(renderPlaceMaxTopEvents).GetAll(ctx, nil)
+	kec, err := datastore.NewQuery(eventKind).KeysOnly().Filter("Place =", key).Count(ctx)
 	if err != nil {
 		return response, err
 	}
-
-	es := make([]*Event, len(keys))
-	err = nds.GetMulti(ctx, keys, es)
-	if err != nil {
-		return response, err
-	}
-
-	for _, e := range es {
-		response.TopEvents = append(response.TopEvents, e.ToFrontendEvent())
-	}
+	response.KnownEventCount = kec
 
 	return response, nil
 }
