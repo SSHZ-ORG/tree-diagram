@@ -57,8 +57,7 @@ func (e Event) ToFrontendEvent() FrontendEvent {
 }
 
 const (
-	eventKind     = "Event"
-	queryPageSize = 30
+	eventKind = "Event"
 )
 
 func getEventKey(ctx context.Context, id string) *datastore.Key {
@@ -112,8 +111,8 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 	return nil
 }
 
-func QueryEvents(ctx context.Context, placeID string, actorIDs []string, page int) ([]*Event, error) {
-	query := datastore.NewQuery(eventKind).KeysOnly().Limit(queryPageSize).Order("-LastNoteCount")
+func QueryEvents(ctx context.Context, placeID string, actorIDs []string, limit, offset int) ([]*Event, error) {
+	query := datastore.NewQuery(eventKind).KeysOnly().Limit(limit).Offset(offset).Order("-LastNoteCount")
 
 	if placeID != "" {
 		query = query.Filter("Place =", getPlaceKey(ctx, placeID))
@@ -121,10 +120,6 @@ func QueryEvents(ctx context.Context, placeID string, actorIDs []string, page in
 
 	for _, actorID := range actorIDs {
 		query = query.Filter("Actors =", getActorKey(ctx, actorID))
-	}
-
-	if page > 1 {
-		query = query.Offset(queryPageSize * (page - 1))
 	}
 
 	keys, err := query.GetAll(ctx, nil)

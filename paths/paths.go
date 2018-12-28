@@ -1,8 +1,8 @@
 package paths
 
 const (
-	APIRenderEvent     = "/api/renderEvent"
-	APIRenderPlace     = "/api/renderPlace"
+	APIRenderEventPath = "/api/renderEvent"
+	APIRenderPlacePath = "/api/renderPlace"
 	APIQueryEventsPath = "/api/queryEvents"
 
 	CommandEnqueueDateRangePath = "/admin/command/enqueueDateRange"

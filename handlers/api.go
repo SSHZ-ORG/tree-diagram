@@ -14,10 +14,15 @@ import (
 	"google.golang.org/appengine/log"
 )
 
+const (
+	queryPageSize = 10
+)
+
 func RegisterAPI(r *mux.Router) {
-	r.HandleFunc(paths.APIRenderEvent, renderEvent).Methods("GET", "OPTIONS")
-	r.HandleFunc(paths.APIRenderPlace, renderPlace).Methods("GET", "OPTIONS")
-	r.HandleFunc(paths.APIQueryEventsPath, queryEvents)
+	r.HandleFunc(paths.APIRenderEventPath, renderEvent).Methods("GET", "OPTIONS")
+	r.HandleFunc(paths.APIRenderPlacePath, renderPlace).Methods("GET", "OPTIONS")
+
+	r.HandleFunc(paths.APIQueryEventsPath, queryEvents).Methods("GET", "OPTIONS")
 }
 
 func renderEvent(w http.ResponseWriter, r *http.Request) {
@@ -73,6 +78,9 @@ func renderPlace(w http.ResponseWriter, r *http.Request) {
 }
 
 func queryEvents(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
 	ctx := appengine.NewContext(r)
 
 	err := r.ParseForm()
@@ -94,7 +102,7 @@ func queryEvents(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	events, err := models.QueryEvents(ctx, placeID, actorIDs, page)
+	events, err := models.QueryEvents(ctx, placeID, actorIDs, queryPageSize, (page-1)*queryPageSize)
 	if err != nil {
 		log.Errorf(ctx, "models.QueryEvents: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
