@@ -60,3 +60,21 @@ func EnsureActors(ctx context.Context, actors map[string]string) (map[string]*da
 	// WTF?
 	return nil, err
 }
+
+type RenderActorResponse struct {
+	KnownEventCount int `json:"knownEventCount"`
+}
+
+func PrepareRenderActorResponse(ctx context.Context, actorID string) (*RenderActorResponse, error) {
+	key := getActorKey(ctx, actorID)
+
+	response := &RenderActorResponse{}
+
+	kec, err := datastore.NewQuery(eventKind).KeysOnly().Filter("Actors =", key).Count(ctx)
+	if err != nil {
+		return response, err
+	}
+	response.KnownEventCount = kec
+
+	return response, nil
+}

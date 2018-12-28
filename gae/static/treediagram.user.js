@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.5
+// @version      0.1.6
 // @description  Make EventerNote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -148,6 +148,23 @@
         });
     }
 
+    function actorPage(actorId) {
+        const tdDom = htmlToElement(`
+            <div>
+                <h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>
+                <h3>Event List</h3>
+            </div>`);
+
+        const actorTitleDom = document.getElementsByClassName('gb_actors_title')[0];
+        actorTitleDom.parentNode.insertBefore(tdDom, actorTitleDom.nextSibling);
+
+        fetch(`${serverBaseAddress}/api/renderActor?id=${actorId}`).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            createEventList(`actor=${actorId}`, data.knownEventCount, tdDom);
+        });
+    }
+
     function main() {
         const url = document.URL;
 
@@ -161,6 +178,12 @@
         const placePageMatch = placePageRegex.exec(url);
         if (placePageMatch) {
             return placePage(placePageMatch[1]);
+        }
+
+        const actorPageRegex = /https:\/\/www.eventernote.com\/actors\/.+\/(\d+)/g;
+        const actorPageMatch = actorPageRegex.exec(url);
+        if (actorPageMatch) {
+            return actorPage(actorPageMatch[1]);
         }
     }
 

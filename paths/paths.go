@@ -3,6 +3,7 @@ package paths
 const (
 	APIRenderEventPath = "/api/renderEvent"
 	APIRenderPlacePath = "/api/renderPlace"
+	APIRenderActorPath = "/api/renderActor"
 	APIQueryEventsPath = "/api/queryEvents"
 
 	CommandEnqueueDateRangePath = "/admin/command/enqueueDateRange"

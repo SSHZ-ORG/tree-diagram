@@ -21,6 +21,7 @@ const (
 func RegisterAPI(r *mux.Router) {
 	r.HandleFunc(paths.APIRenderEventPath, renderEvent).Methods("GET", "OPTIONS")
 	r.HandleFunc(paths.APIRenderPlacePath, renderPlace).Methods("GET", "OPTIONS")
+	r.HandleFunc(paths.APIRenderActorPath, renderActor).Methods("GET", "OPTIONS")
 
 	r.HandleFunc(paths.APIQueryEventsPath, queryEvents).Methods("GET", "OPTIONS")
 }
@@ -70,6 +71,28 @@ func renderPlace(w http.ResponseWriter, r *http.Request) {
 	res, err := models.PrepareRenderPlaceResponse(ctx, pid)
 	if err != nil {
 		log.Errorf(ctx, "models.PrepareRenderPlaceResponse: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(ctx, w, res)
+}
+
+func renderActor(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	ctx := appengine.NewContext(r)
+
+	aid := r.FormValue("id")
+	if aid == "" {
+		http.Error(w, "Missing arg id", http.StatusBadRequest)
+		return
+	}
+
+	res, err := models.PrepareRenderActorResponse(ctx, aid)
+	if err != nil {
+		log.Errorf(ctx, "models.PrepareRenderActorResponse: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
