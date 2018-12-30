@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.8
+// @version      0.1.8.1
 // @description  Make EventerNote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -102,7 +102,10 @@
                 options: {
                     scales: {
                         xAxes: [{
-                            type: 'time'
+                            type: 'time',
+                            ticks: {
+                                maxRotation: 0
+                            }
                         }]
                     },
                     legend: {
@@ -178,8 +181,9 @@
         }
 
         loadMoreButtonDom.addEventListener('click', loadMore);
-
-        loadMore();
+        if (totalCount > 0) {
+            loadMoreButtonDom.disabled = false;
+        }
     }
 
     function placePage(placeId) {
