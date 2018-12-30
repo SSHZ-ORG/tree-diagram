@@ -1,16 +1,19 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.7.1
+// @version      0.1.8
 // @description  Make EventerNote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js
+// @require      https://treediagram.sshz.org/static/charjs-plugin-zoom-0.6.6-patched.min.js
 // ==/UserScript==
 
 (function () {
     'use strict';
 
+    const header = '<h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>';
     const serverBaseAddress = 'https://treediagram.sshz.org';
 
     function htmlToElement(html) {
@@ -23,9 +26,13 @@
     function eventPage(eventId) {
         const tdDom = htmlToElement(`
             <div>
-                <h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>
+                ${header}
                 <canvas id="td_chart"></canvas>
-                <div class="ma10 alert alert-info">
+                <button class="btn btn-block" type="button" id="td_chart_reset"  >
+                    Reset Zoom
+                </button>
+                <div class="ma10 alert alert-info s">
+                    Rank in Place:
                     <span class="label">Total</span>
                     <span id="td_place_stats_total"></span>
                     <span class="label">Finished</span>
@@ -45,6 +52,36 @@
             finishedStatsSpan.innerHTML = `${data.placeStatsFinished.rank}/${data.placeStatsFinished.total}`;
 
             const ctx = document.getElementById("td_chart");
+            const annotations = [{
+                type: 'line',
+                mode: 'vertical',
+                scaleID: 'x-axis-0',
+                value: new Date(),
+                borderColor: 'rgba(0, 0, 0, 0.2)',
+                borderWidth: 1,
+                borderDash: [2, 2],
+            }];
+
+            const liveDate = new Date(data.date);
+            if (data.snapshots.length > 0 && new Date(data.snapshots[0].timestamp) <= liveDate) {
+                annotations.push({
+                    type: 'line',
+                    mode: 'vertical',
+                    scaleID: 'x-axis-0',
+                    value: liveDate,
+                    borderColor: 'rgba(0, 0, 0, 0.2)',
+                    borderWidth: 1,
+                    borderDash: [10, 10],
+                    label: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                        cornerRadius: 0,
+                        position: 'top',
+                        enabled: true,
+                        content: "Live!"
+                    }
+                });
+            }
+
             const tdChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -70,8 +107,20 @@
                     },
                     legend: {
                         display: false
+                    },
+                    annotation: { // As of chartjs-plugin-annotation 0.5.7, it does not support `plugins` property.
+                        annotations: annotations
+                    },
+                    zoom: {
+                        enabled: true,
+                        drag: true,
+                        mode: 'x'
                     }
-                }
+                },
+            });
+
+            document.getElementById('td_chart_reset').addEventListener('click', function () {
+                tdChart.resetZoom();
             });
         });
     }
@@ -136,8 +185,8 @@
     function placePage(placeId) {
         const tdDom = htmlToElement(`
             <div>
-                <h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>
-                <h3>Event List</h3>
+                ${header}
+                <h3>Top Event List</h3>
             </div>`);
 
         const placeDetailsTableDom = document.getElementsByClassName('gb_place_detail_table')[0];
@@ -153,8 +202,8 @@
     function actorPage(actorId) {
         const tdDom = htmlToElement(`
             <div>
-                <h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>
-                <h3>Event List</h3>
+                ${header}
+                <h3>Top Event List</h3>
             </div>`);
 
         const actorTitleDom = document.getElementsByClassName('gb_actors_title')[0];
