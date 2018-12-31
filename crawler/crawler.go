@@ -29,9 +29,9 @@ const (
 
 // Crawls one page at the given date. pageNo is 1-index. Returns a boolean on whether should continue to next page.
 // Errors wrapped.
-func CrawlDateOnePage(ctx context.Context, date civil.Date, pageNo int) (bool, error) {
+func CrawlDateOnePage(ctx context.Context, date civil.Date, pageNo int, shouldRecordReport bool) (bool, error) {
 	url := fmt.Sprintf(datePageURLTemplate, date.Year, date.Month, date.Day, pageSize, pageNo)
-	n, err := crawlEventSearchPage(ctx, url)
+	n, err := crawlEventSearchPage(ctx, url, shouldRecordReport)
 	if err != nil {
 		return false, err
 	}
@@ -40,7 +40,7 @@ func CrawlDateOnePage(ctx context.Context, date civil.Date, pageNo int) (bool, e
 
 // Crawls the events at the given URL and returns the number of events that has NoteCount >= threshold.
 // Errors wrapped.
-func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
+func crawlEventSearchPage(ctx context.Context, url string, shouldRecordReport bool) (int, error) {
 	ts := time.Now()
 	today := civil.DateOf(ts.In(utils.JST()))
 
@@ -178,7 +178,7 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 		}
 	}
 
-	if err := models.InsertOrUpdateEvents(ctx, es); err != nil {
+	if err := models.InsertOrUpdateEvents(ctx, es, shouldRecordReport); err != nil {
 		return 0, err
 	}
 

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/civil"
+	"github.com/SSHZ-ORG/tree-diagram/reporter"
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
@@ -59,6 +60,24 @@ func (e Event) ToFrontendEvent() FrontendEvent {
 	}
 }
 
+func toReportItem(oe, ne *Event) reporter.ReportItem {
+	onc := 0
+	if oe != nil {
+		onc = oe.LastNoteCount
+	}
+
+	return reporter.ReportItem{
+		EventID: ne.ID,
+		Name:    ne.Name,
+
+		Date: civil.DateOf(ne.Date).String(),
+
+		OldNoteCount:  onc,
+		NewNoteCount:  ne.LastNoteCount,
+		DiffNoteCount: ne.LastNoteCount - onc,
+	}
+}
+
 const (
 	eventKind = "Event"
 )
@@ -69,7 +88,7 @@ func getEventKey(ctx context.Context, id string) *datastore.Key {
 
 // Insert or update events. This automatically takes snapshots if needed.
 // Errors wrapped.
-func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
+func InsertOrUpdateEvents(ctx context.Context, events []*Event, shouldRecordReport bool) error {
 	if len(events) == 0 {
 		return nil
 	}
@@ -110,6 +129,14 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 	}
 	if _, err := nds.PutMulti(ctx, snapshotKeys, snapshots); err != nil {
 		return errors.Wrap(err, "nds.PutMulti failed")
+	}
+
+	if shouldRecordReport {
+		var ris []reporter.ReportItem
+		for i, e := range events {
+			ris = append(ris, toReportItem(oes[i], e))
+		}
+		return reporter.AddToTodayReport(ctx, ris)
 	}
 
 	return nil

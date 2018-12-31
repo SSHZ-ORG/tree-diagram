@@ -3,9 +3,11 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"cloud.google.com/go/civil"
 	"github.com/SSHZ-ORG/tree-diagram/paths"
+	"github.com/SSHZ-ORG/tree-diagram/reporter"
 	"github.com/SSHZ-ORG/tree-diagram/scheduler"
 	"github.com/gorilla/mux"
 	"google.golang.org/appengine"
@@ -14,6 +16,13 @@ import (
 
 func RegisterCommand(r *mux.Router) {
 	r.HandleFunc(paths.CommandEnqueueDateRangePath, enqueueDateRange)
+
+	r.HandleFunc("/admin/command/renderTodayReport", func(w http.ResponseWriter, r *http.Request) {
+		ctx := appengine.NewContext(r)
+
+		s, _ := reporter.RenderReport(ctx, civil.DateOf(time.Now().In(time.UTC)))
+		_, _ = w.Write([]byte(s))
+	})
 }
 
 func enqueueDateRange(w http.ResponseWriter, r *http.Request) {

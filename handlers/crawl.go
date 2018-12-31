@@ -42,7 +42,7 @@ func crawlDate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shouldContinue, err := crawler.CrawlDateOnePage(ctx, date, page)
+	shouldContinue, err := crawler.CrawlDateOnePage(ctx, date, page, true)
 	if err != nil {
 		log.Errorf(ctx, "crawler.CrawlDateOnePage: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

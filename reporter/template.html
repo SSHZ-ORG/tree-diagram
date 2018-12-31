@@ -1,0 +1,47 @@
+<h4>Top Increasing:</h4>
+<table>
+    <thead>
+    <tr>
+        <th>Date</th>
+        <th>Name</th>
+        <th>Diff</th>
+        <th>From</th>
+        <th>To</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{range $item := .Increase}}
+        <tr>
+            <td>{{$item.Date}}</td>
+            <td><a href="https://www.eventernote.com/events/{{$item.EventID}}">{{$item.Name}}</a></td>
+            <td>{{$item.DiffNoteCount}}</td>
+            <td>{{$item.OldNoteCount}}</td>
+            <td>{{$item.NewNoteCount}}</td>
+        </tr>
+    {{end}}
+    </tbody>
+</table>
+
+<h4>Top Decreasing:</h4>
+<table>
+    <thead>
+    <tr>
+        <th>Date</th>
+        <th>Name</th>
+        <th>Diff</th>
+        <th>From</th>
+        <th>To</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{range $item := .Decrease}}
+        <tr>
+            <td>{{$item.Date}}</td>
+            <td><a href="https://www.eventernote.com/events/{{$item.EventID}}">{{$item.Name}}</a></td>
+            <td>{{$item.DiffNoteCount}}</td>
+            <td>{{$item.OldNoteCount}}</td>
+            <td>{{$item.NewNoteCount}}</td>
+        </tr>
+    {{end}}
+    </tbody>
+</table>
