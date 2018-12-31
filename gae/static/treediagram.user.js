@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.8.1
+// @version      0.1.8.2
 // @description  Make EventerNote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js
-// @require      https://treediagram.sshz.org/static/charjs-plugin-zoom-0.6.6-patched.min.js
+// @require      https://treediagram.sshz.org/static/chartjs-plugin-zoom-0.6.6-patched.min.js
 // ==/UserScript==
 
 (function () {
@@ -28,7 +28,7 @@
             <div>
                 ${header}
                 <canvas id="td_chart"></canvas>
-                <button class="btn btn-block" type="button" id="td_chart_reset"  >
+                <button class="btn btn-block" type="button" id="td_chart_reset">
                     Reset Zoom
                 </button>
                 <div class="ma10 alert alert-info s">
