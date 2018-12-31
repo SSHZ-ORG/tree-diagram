@@ -24,7 +24,7 @@ func GetRenderEvent(ctx context.Context, eid string) []byte {
 }
 
 func PutRenderEvent(ctx context.Context, eid string, data []byte) {
-	_ = memcache.Add(ctx, &memcache.Item{
+	_ = memcache.Set(ctx, &memcache.Item{
 		Key:   renderEventKey(eid),
 		Value: data,
 	})
