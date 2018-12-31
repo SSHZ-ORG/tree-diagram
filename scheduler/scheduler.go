@@ -17,6 +17,7 @@ type DateQueue string
 const (
 	NormalDateQueue    = DateQueue("normal-date-queue")
 	ThrottledDateQueue = DateQueue("throttled-date-queue")
+	OnDemandDateQueue  = DateQueue("ondemand-date-queue")
 )
 
 func (q DateQueue) Schedule(ctx context.Context, date civil.Date, page int) error {
@@ -53,7 +54,7 @@ func (q DateQueue) CurrentTaskCount(ctx context.Context) (int, error) {
 func GetCurrentQueue(r *http.Request) DateQueue {
 	qn := r.Header.Get("X-AppEngine-QueueName")
 	if qn == "" {
-		return NormalDateQueue
+		return OnDemandDateQueue
 	}
 	return DateQueue(qn)
 }

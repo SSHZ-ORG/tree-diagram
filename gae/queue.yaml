@@ -6,3 +6,7 @@ queue:
   - name: throttled-date-queue
     rate: 40/h
     bucket_size: 1
+
+  - name: ondemand-date-queue
+    rate: 6/m
+    bucket_size: 1
