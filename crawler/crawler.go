@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/civil"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/SSHZ-ORG/tree-diagram/apicache"
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/utils"
 	"golang.org/x/net/context"
@@ -60,6 +61,7 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 	pMap := make(map[string]string)
 
 	var es []*models.Event
+	var eIDs []string
 	var eventAs [][]string
 	var eventPs []string
 
@@ -86,6 +88,7 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 			logError(ctx, url, i, "ID / Name", err)
 			return
 		}
+		eIDs = append(eIDs, e.ID)
 
 		// Critical. If fails skip the event.
 		date, err := civil.ParseDate(strings.Split(strings.TrimSpace(s.Find(".date").Children().First().Text()), " ")[0])
@@ -173,6 +176,10 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 	}
 
 	if err := models.InsertOrUpdateEvents(ctx, es); err != nil {
+		return 0, err
+	}
+
+	if err := apicache.ClearRenderEvents(ctx, eIDs); err != nil {
 		return 0, err
 	}
 
