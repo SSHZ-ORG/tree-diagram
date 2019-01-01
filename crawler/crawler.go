@@ -22,6 +22,8 @@ const (
 	pageSize              = 30
 	minNoteCountThreshold = 10
 
+	crawlHTTPTimeout = 30 * time.Second
+
 	datePageURLTemplate = "https://www.eventernote.com/events/search?year=%d&month=%d&day=%d&limit=%d&page=%d"
 )
 
@@ -42,7 +44,8 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 
 	log.Infof(ctx, "Crawling event search page %v", url)
 
-	client := urlfetch.Client(ctx)
+	ctxWithTimeout, _ := context.WithTimeout(ctx, crawlHTTPTimeout)
+	client := urlfetch.Client(ctxWithTimeout)
 	res, err := client.Get(url)
 	if err != nil {
 		return 0, err
