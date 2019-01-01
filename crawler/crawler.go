@@ -22,7 +22,7 @@ const (
 	pageSize              = 30
 	minNoteCountThreshold = 10
 
-	crawlHTTPTimeout = 30 * time.Second
+	crawlHTTPTimeout = 55 * time.Second
 
 	datePageURLTemplate = "https://www.eventernote.com/events/search?year=%d&month=%d&day=%d&limit=%d&page=%d"
 )
