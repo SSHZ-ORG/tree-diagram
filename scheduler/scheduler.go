@@ -20,13 +20,15 @@ const (
 	OnDemandDateQueue  = DateQueue("ondemand-date-queue")
 )
 
-func (q DateQueue) Schedule(ctx context.Context, date civil.Date, page int) error {
-	t := taskqueue.NewPOSTTask(paths.CrawlDatePath, url.Values{
+func newCrawlDateTask(date civil.Date, page int) *taskqueue.Task {
+	return taskqueue.NewPOSTTask(paths.CrawlDatePath, url.Values{
 		"date": []string{date.String()},
 		"page": []string{strconv.Itoa(page)},
 	})
+}
 
-	_, err := taskqueue.Add(ctx, t, string(q))
+func (q DateQueue) Schedule(ctx context.Context, date civil.Date, page int) error {
+	_, err := taskqueue.Add(ctx, newCrawlDateTask(date, page), string(q))
 	if err != nil {
 		log.Errorf(ctx, "Failed to enqueue: %v", err)
 	}
@@ -34,12 +36,15 @@ func (q DateQueue) Schedule(ctx context.Context, date civil.Date, page int) erro
 }
 
 func (q DateQueue) EnqueueDateRange(ctx context.Context, start, end civil.Date) error {
+	var ts []*taskqueue.Task
 	for cur := start; cur.Before(end); cur = cur.AddDays(1) {
-		if err := q.Schedule(ctx, cur, 1); err != nil {
-			return err
-		}
+		ts = append(ts, newCrawlDateTask(cur, 1))
 	}
-	return nil
+	_, err := taskqueue.AddMulti(ctx, ts, string(q))
+	if err != nil {
+		log.Errorf(ctx, "Failed to enqueue: %v", err)
+	}
+	return err
 }
 
 func (q DateQueue) CurrentTaskCount(ctx context.Context) (int, error) {
