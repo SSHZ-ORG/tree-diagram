@@ -18,6 +18,8 @@ const (
 	NormalDateQueue    = DateQueue("normal-date-queue")
 	ThrottledDateQueue = DateQueue("throttled-date-queue")
 	OnDemandDateQueue  = DateQueue("ondemand-date-queue")
+
+	maxTasksPerAddMulti = 100
 )
 
 func newCrawlDateTask(date civil.Date, page int) *taskqueue.Task {
@@ -40,11 +42,21 @@ func (q DateQueue) EnqueueDateRange(ctx context.Context, start, end civil.Date) 
 	for cur := start; cur.Before(end); cur = cur.AddDays(1) {
 		ts = append(ts, newCrawlDateTask(cur, 1))
 	}
-	_, err := taskqueue.AddMulti(ctx, ts, string(q))
-	if err != nil {
-		log.Errorf(ctx, "Failed to enqueue: %v", err)
+
+	var batches [][]*taskqueue.Task
+	for maxTasksPerAddMulti < len(ts) {
+		ts, batches = ts[maxTasksPerAddMulti:], append(batches, ts[0:maxTasksPerAddMulti:maxTasksPerAddMulti])
 	}
-	return err
+	batches = append(batches, ts)
+
+	for _, batch := range batches {
+		_, err := taskqueue.AddMulti(ctx, batch, string(q))
+		if err != nil {
+			log.Errorf(ctx, "Failed to enqueue: %v", err)
+			return err
+		}
+	}
+	return nil
 }
 
 func (q DateQueue) CurrentTaskCount(ctx context.Context) (int, error) {
