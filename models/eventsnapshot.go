@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
@@ -41,16 +42,17 @@ func maybeCreateSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event) 
 	return datastore.NewIncompleteKey(ctx, eventSnapshotKind, ek), s
 }
 
+// Errors wrapped.
 func getSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*EventSnapshot, error) {
 	keys, err := datastore.NewQuery(eventSnapshotKind).Ancestor(eventKey).Order("Timestamp").KeysOnly().GetAll(ctx, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "datastore query failed")
 	}
 
 	es := make([]*EventSnapshot, len(keys))
 	err = nds.GetMulti(ctx, keys, es)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "nds.GetMulti failed")
 	}
 
 	return es, nil

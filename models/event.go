@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/civil"
+	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
@@ -67,6 +68,7 @@ func getEventKey(ctx context.Context, id string) *datastore.Key {
 }
 
 // Insert or update events. This automatically takes snapshots if needed.
+// Errors wrapped.
 func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 	if len(events) == 0 {
 		return nil
@@ -84,11 +86,11 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 			for _, e := range me {
 				if e != nil && e != datastore.ErrNoSuchEntity {
 					// Something else happened. Rethrow it.
-					return err
+					return errors.Wrap(err, "nds.GetMulti returned error other than NoSuchEntity")
 				}
 			}
 		} else {
-			return err
+			return errors.Wrap(err, "nds.GetMulti returned error that is not a MultiError")
 		}
 	}
 
@@ -104,15 +106,16 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 
 	// We always update events even if no change, to update the timestamp.
 	if _, err := nds.PutMulti(ctx, keys, events); err != nil {
-		return err
+		return errors.Wrap(err, "nds.PutMulti failed")
 	}
 	if _, err := nds.PutMulti(ctx, snapshotKeys, snapshots); err != nil {
-		return err
+		return errors.Wrap(err, "nds.PutMulti failed")
 	}
 
 	return nil
 }
 
+// Errors wrapped.
 func QueryEvents(ctx context.Context, placeID string, actorIDs []string, limit, offset int) ([]*Event, error) {
 	query := datastore.NewQuery(eventKind).KeysOnly().Limit(limit).Offset(offset).Order("-LastNoteCount")
 
@@ -126,13 +129,13 @@ func QueryEvents(ctx context.Context, placeID string, actorIDs []string, limit, 
 
 	keys, err := query.GetAll(ctx, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "query.GetAll failed")
 	}
 
 	es := make([]*Event, len(keys))
 	err = nds.GetMulti(ctx, keys, es)
 
-	return es, err
+	return es, errors.Wrap(err, "nds.GetMulti failed")
 }
 
 type PlaceNoteCountStats struct {
@@ -148,6 +151,7 @@ type RenderEventResponse struct {
 	PlaceStatsFinished PlaceNoteCountStats `json:"placeStatsFinished"`
 }
 
+// Errors wrapped.
 func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEventResponse, error) {
 	key := getEventKey(ctx, eventID)
 
@@ -160,7 +164,7 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 		if err == datastore.ErrNoSuchEntity {
 			return response, nil // Don't care if we don't know about the event yet.
 		}
-		return nil, err
+		return nil, errors.Wrap(err, "nds.Get failed")
 	}
 	response.Date = civil.DateOf(e.Date).String()
 
@@ -172,17 +176,27 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 
 	go func() {
 		defer wg.Done()
-		if response.PlaceStatsTotal.Total, errTotal = baseQuery.Count(ctx); errTotal != nil {
+		var err error
+		if response.PlaceStatsTotal.Total, err = baseQuery.Count(ctx); err != nil {
+			errTotal = errors.Wrap(err, "Count total total failed")
 			return
 		}
-		response.PlaceStatsTotal.Rank, errTotal = baseQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(ctx)
+		if response.PlaceStatsTotal.Rank, err = baseQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(ctx); err != nil {
+			errTotal = errors.Wrap(err, "Count total rank failed")
+			return
+		}
 	}()
 	go func() {
 		defer wg.Done()
-		if response.PlaceStatsFinished.Total, errFinished = finishedQuery.Count(ctx); errFinished != nil {
+		var err error
+		if response.PlaceStatsFinished.Total, err = finishedQuery.Count(ctx); err != nil {
+			errFinished = errors.Wrap(err, "Count finished total failed")
 			return
 		}
-		response.PlaceStatsFinished.Rank, errFinished = finishedQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(ctx)
+		if response.PlaceStatsFinished.Rank, err = finishedQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(ctx); err != nil {
+			errFinished = errors.Wrap(err, "Count finished rank failed")
+			return
+		}
 	}()
 
 	snapshots, err := getSnapshotsForEvent(ctx, key)

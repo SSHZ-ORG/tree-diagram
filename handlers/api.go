@@ -45,7 +45,7 @@ func renderEvent(w http.ResponseWriter, r *http.Request) {
 
 	res, err := models.PrepareRenderEventResponse(ctx, eid)
 	if err != nil {
-		log.Errorf(ctx, "models.PrepareRenderEventResponse: %v", err)
+		log.Errorf(ctx, "models.PrepareRenderEventResponse: %+v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -70,7 +70,7 @@ func renderPlace(w http.ResponseWriter, r *http.Request) {
 
 	res, err := models.PrepareRenderPlaceResponse(ctx, pid)
 	if err != nil {
-		log.Errorf(ctx, "models.PrepareRenderPlaceResponse: %v", err)
+		log.Errorf(ctx, "models.PrepareRenderPlaceResponse: %+v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -92,7 +92,7 @@ func renderActor(w http.ResponseWriter, r *http.Request) {
 
 	res, err := models.PrepareRenderActorResponse(ctx, aid)
 	if err != nil {
-		log.Errorf(ctx, "models.PrepareRenderActorResponse: %v", err)
+		log.Errorf(ctx, "models.PrepareRenderActorResponse: %+v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -125,7 +125,7 @@ func queryEvents(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if arg := r.Form.Get("page"); arg != "" {
+	if arg := r.Form.Get("page"); arg != "" && offset == 0 {
 		page, err := strconv.Atoi(arg)
 		if err != nil {
 			http.Error(w, "Illegal arg page", http.StatusBadRequest)
@@ -136,7 +136,7 @@ func queryEvents(w http.ResponseWriter, r *http.Request) {
 
 	events, err := models.QueryEvents(ctx, placeID, actorIDs, queryPageSize, offset)
 	if err != nil {
-		log.Errorf(ctx, "models.QueryEvents: %v", err)
+		log.Errorf(ctx, "models.QueryEvents: %+v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}

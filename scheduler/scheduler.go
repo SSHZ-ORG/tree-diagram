@@ -7,8 +7,8 @@ import (
 
 	"cloud.google.com/go/civil"
 	"github.com/SSHZ-ORG/tree-diagram/paths"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
-	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/taskqueue"
 )
 
@@ -29,14 +29,13 @@ func newCrawlDateTask(date civil.Date, page int) *taskqueue.Task {
 	})
 }
 
+// Errors wrapped.
 func (q DateQueue) Schedule(ctx context.Context, date civil.Date, page int) error {
 	_, err := taskqueue.Add(ctx, newCrawlDateTask(date, page), string(q))
-	if err != nil {
-		log.Errorf(ctx, "Failed to enqueue: %v", err)
-	}
-	return err
+	return errors.Wrap(err, "taskqueue.Add failed")
 }
 
+// Errors wrapped.
 func (q DateQueue) EnqueueDateRange(ctx context.Context, start, end civil.Date) error {
 	var ts []*taskqueue.Task
 	for cur := start; cur.Before(end); cur = cur.AddDays(1) {
@@ -52,17 +51,17 @@ func (q DateQueue) EnqueueDateRange(ctx context.Context, start, end civil.Date) 
 	for _, batch := range batches {
 		_, err := taskqueue.AddMulti(ctx, batch, string(q))
 		if err != nil {
-			log.Errorf(ctx, "Failed to enqueue: %v", err)
-			return err
+			return errors.Wrap(err, "taskqueue.AddMulti failed")
 		}
 	}
 	return nil
 }
 
+// Errors wrapped.
 func (q DateQueue) CurrentTaskCount(ctx context.Context) (int, error) {
 	s, err := taskqueue.QueueStats(ctx, []string{string(q)})
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrap(err, "taskqueue.QueueStats failed")
 	}
 
 	return s[0].Tasks, nil

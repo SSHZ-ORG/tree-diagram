@@ -44,14 +44,14 @@ func crawlDate(w http.ResponseWriter, r *http.Request) {
 
 	shouldContinue, err := crawler.CrawlDateOnePage(ctx, date, page)
 	if err != nil {
-		log.Errorf(ctx, "crawler.CrawlDateOnePage: %v", err)
+		log.Errorf(ctx, "crawler.CrawlDateOnePage: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if shouldContinue {
 		if err := scheduler.GetCurrentQueue(r).Schedule(ctx, date, page+1); err != nil {
-			log.Errorf(ctx, "DateQueue.Schedule: %v", err)
+			log.Errorf(ctx, "DateQueue.Schedule: %+v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

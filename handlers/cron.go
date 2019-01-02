@@ -28,7 +28,7 @@ func dailyCron(w http.ResponseWriter, r *http.Request) {
 	now := civil.DateOf(time.Now().In(utils.JST()))
 
 	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, now.AddDays(-30), now.AddDays(360)); err != nil {
-		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %v", err)
+		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -39,7 +39,7 @@ func reviveCron(w http.ResponseWriter, r *http.Request) {
 
 	tc, err := scheduler.ThrottledDateQueue.CurrentTaskCount(ctx)
 	if err != nil {
-		log.Errorf(ctx, "DateQueue.CurrentTaskCount: %v", err)
+		log.Errorf(ctx, "DateQueue.CurrentTaskCount: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -52,7 +52,7 @@ func reviveCron(w http.ResponseWriter, r *http.Request) {
 	now := civil.DateOf(time.Now().In(utils.JST()))
 
 	if err := scheduler.ThrottledDateQueue.EnqueueDateRange(ctx, now.AddDays(-1800), now.AddDays(-30)); err != nil {
-		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %v", err)
+		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

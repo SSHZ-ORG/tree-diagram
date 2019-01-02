@@ -1,6 +1,7 @@
 package apicache
 
 import (
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/memcache"
@@ -30,6 +31,7 @@ func PutRenderEvent(ctx context.Context, eid string, data []byte) {
 	})
 }
 
+// Errors wrapped.
 func ClearRenderEvents(ctx context.Context, eids []string) error {
 	var keys []string
 	for _, eid := range eids {
@@ -41,11 +43,11 @@ func ClearRenderEvents(ctx context.Context, eids []string) error {
 		for _, e := range me {
 			if e != nil && e != memcache.ErrCacheMiss {
 				// Something else happened. Rethrow it.
-				return err
+				return errors.Wrap(err, "memcache.DeleteMulti returned error other than CacheMiss")
 			}
 		}
 		return nil
 	}
 
-	return err
+	return errors.Wrap(err, "memcache.DeleteMulti returned error that is not a MultiError")
 }

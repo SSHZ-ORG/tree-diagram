@@ -1,7 +1,6 @@
 package crawler
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 	"github.com/SSHZ-ORG/tree-diagram/apicache"
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/utils"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
@@ -28,6 +28,7 @@ const (
 )
 
 // Crawls one page at the given date. pageNo is 1-index. Returns a boolean on whether should continue to next page.
+// Errors wrapped.
 func CrawlDateOnePage(ctx context.Context, date civil.Date, pageNo int) (bool, error) {
 	url := fmt.Sprintf(datePageURLTemplate, date.Year, date.Month, date.Day, pageSize, pageNo)
 	n, err := crawlEventSearchPage(ctx, url)
@@ -38,6 +39,7 @@ func CrawlDateOnePage(ctx context.Context, date civil.Date, pageNo int) (bool, e
 }
 
 // Crawls the events at the given URL and returns the number of events that has NoteCount >= threshold.
+// Errors wrapped.
 func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 	ts := time.Now()
 	today := civil.DateOf(ts.In(utils.JST()))
@@ -48,16 +50,16 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 	client := urlfetch.Client(ctxWithTimeout)
 	res, err := client.Get(url)
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrap(err, "URL fetch failed")
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return 0, errors.New("Status Error: " + res.Status)
+		return 0, errors.New("URL Fetch returned unexpected status: " + res.Status)
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrap(err, "goquery parse failed")
 	}
 
 	aMap := make(map[string]string)
@@ -144,7 +146,7 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 					logError(ctx, url, i, "EndTime", err)
 				}
 			} else {
-				log.Errorf(ctx, "URL %s item %d: Unknown detailed time: %s.", url, i, detailedTime)
+				log.Errorf(ctx, "URL %s item %d: Unknown detailed time format: %s.", url, i, detailedTime)
 			}
 		}
 
@@ -158,13 +160,11 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 
 	aKeys, err := models.EnsureActors(ctx, aMap)
 	if err != nil {
-		log.Errorf(ctx, "EnsureActors: %v", err)
 		return 0, err
 	}
 
 	pKeys, err := models.EnsurePlaces(ctx, pMap)
 	if err != nil {
-		log.Errorf(ctx, "EnsurePlaces: %v", err)
 		return 0, err
 	}
 
@@ -191,7 +191,7 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 }
 
 func logError(ctx context.Context, url string, i int, field string, err error) {
-	log.Errorf(ctx, "Error on URL %s item %d: Cannot parse %s: %v.", url, i, field, err)
+	log.Errorf(ctx, "Error on URL %s item %d: Cannot parse %s: %+v.", url, i, field, err)
 }
 
 func parseLinkWithID(s *goquery.Selection) (string, string, error) {

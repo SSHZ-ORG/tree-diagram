@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
@@ -17,14 +18,13 @@ type Place struct {
 
 const (
 	placeKind = "Place"
-
-	renderPlaceMaxTopEvents = 20
 )
 
 func getPlaceKey(ctx context.Context, id string) *datastore.Key {
 	return datastore.NewKey(ctx, placeKind, id, 0, nil)
 }
 
+// Errors wrapped.
 func EnsurePlaces(ctx context.Context, places map[string]string) (map[string]*datastore.Key, error) {
 	var keys []*datastore.Key
 	var ps []*Place
@@ -54,24 +54,25 @@ func EnsurePlaces(ctx context.Context, places map[string]string) (map[string]*da
 			}
 			if e != datastore.ErrNoSuchEntity {
 				// Something else happened. Rethrow it.
-				return nil, err
+				return nil, errors.Wrap(err, "nds.GetMulti returned error other than NoSuchEntity")
 			}
 			keysToPut = append(keysToPut, keys[i])
 			psToPut = append(psToPut, ps[i])
 		}
 
 		_, err := nds.PutMulti(ctx, keysToPut, psToPut)
-		return keysMap, err
+		return keysMap, errors.Wrap(err, "nds.PutMulti failed")
 	}
 
 	// WTF?
-	return nil, err
+	return nil, errors.Wrap(err, "nds.GetMulti returned error that is not a MultiError")
 }
 
 type RenderPlaceResponse struct {
 	KnownEventCount int `json:"knownEventCount"`
 }
 
+// Errors wrapped.
 func PrepareRenderPlaceResponse(ctx context.Context, placeID string) (*RenderPlaceResponse, error) {
 	key := getPlaceKey(ctx, placeID)
 
@@ -79,7 +80,7 @@ func PrepareRenderPlaceResponse(ctx context.Context, placeID string) (*RenderPla
 
 	kec, err := datastore.NewQuery(eventKind).KeysOnly().Filter("Place =", key).Count(ctx)
 	if err != nil {
-		return response, err
+		return response, errors.Wrap(err, "Counting events failed")
 	}
 	response.KnownEventCount = kec
 
