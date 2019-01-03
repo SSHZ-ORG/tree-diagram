@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.8.2
-// @description  Make EventerNote Great Again
+// @version      0.1.9
+// @description  Make Eventernote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js
@@ -82,6 +82,20 @@
                 });
             }
 
+            data.snapshots.forEach(function (snapshot) {
+                if (snapshot.addedActors.length > 0 || snapshot.removedActors.length > 0) {
+                    annotations.push({
+                        type: 'line',
+                        mode: 'vertical',
+                        scaleID: 'x-axis-0',
+                        value: snapshot.timestamp,
+                        borderColor: 'rgba(0, 0, 0, 0.2)',
+                        borderWidth: 1,
+                        borderDash: [10, 4, 2, 4]
+                    });
+                }
+            });
+
             const tdChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -91,6 +105,7 @@
                             return {
                                 x: new Date(i.timestamp),
                                 y: i.noteCount,
+                                snapshot: i,
                             };
                         }),
                         cubicInterpolationMode: 'monotone',
@@ -110,6 +125,23 @@
                     },
                     legend: {
                         display: false
+                    },
+                    tooltips: {
+                        callbacks: {
+                            afterLabel: function (tooltipItem, data) {
+                                const snapshot = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].snapshot;
+
+                                let labels = [];
+                                if (snapshot.addedActors.length > 0) {
+                                    labels.push('Added: ' + snapshot.addedActors.join(', '));
+                                }
+                                if (snapshot.removedActors.length > 0) {
+                                    labels.push('Removed: ' + snapshot.removedActors.join(', '));
+                                }
+
+                                return labels.join('\n');
+                            }
+                        }
                     },
                     annotation: { // As of chartjs-plugin-annotation 0.5.7, it does not support `plugins` property.
                         annotations: annotations
