@@ -1,15 +1,15 @@
 package models
 
 import (
-	"github.com/SSHZ-ORG/tree-diagram/utils"
+	"github.com/scylladb/go-set/strset"
 	"google.golang.org/appengine/datastore"
 )
 
 var AllKinds = []string{actorKind, placeKind, eventKind, eventSnapshotKind}
 
 func areKeysSetsEqual(a, b []*datastore.Key) bool {
-	as := utils.NewStringSet()
-	bs := utils.NewStringSet()
+	as := strset.New()
+	bs := strset.New()
 
 	for _, k := range a {
 		as.Add(k.String())
@@ -18,5 +18,5 @@ func areKeysSetsEqual(a, b []*datastore.Key) bool {
 		bs.Add(k.String())
 	}
 
-	return as.Equals(bs)
+	return as.IsEqual(bs)
 }

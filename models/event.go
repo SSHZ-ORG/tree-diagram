@@ -8,6 +8,7 @@ import (
 	"cloud.google.com/go/civil"
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
+	"github.com/scylladb/go-set/strset"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
@@ -143,9 +144,17 @@ type PlaceNoteCountStats struct {
 	Rank  int `json:"rank"`
 }
 
+type FrontendEventSnapshot struct {
+	Timestamp time.Time `json:"timestamp"`
+	NoteCount int       `json:"noteCount"`
+
+	AddedActors   []string `json:"addedActors"`
+	RemovedActors []string `json:"removedActors"`
+}
+
 type RenderEventResponse struct {
-	Date      string           `json:"date"`
-	Snapshots []*EventSnapshot `json:"snapshots"`
+	Date      string                   `json:"date"`
+	Snapshots []*FrontendEventSnapshot `json:"snapshots"`
 
 	PlaceStatsTotal    PlaceNoteCountStats `json:"placeStatsTotal"`
 	PlaceStatsFinished PlaceNoteCountStats `json:"placeStatsFinished"`
@@ -156,7 +165,7 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 	key := getEventKey(ctx, eventID)
 
 	response := &RenderEventResponse{
-		Snapshots: make([]*EventSnapshot, 0), // So json does not make it null.
+		Snapshots: make([]*FrontendEventSnapshot, 0), // So json does not make it null.
 	}
 
 	e := &Event{}
@@ -203,8 +212,56 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 	if err != nil {
 		return nil, err
 	}
-	if len(snapshots) > 0 {
-		response.Snapshots = snapshots
+
+	akSet := strset.New()
+	for _, s := range snapshots {
+		for _, ak := range s.Actors {
+			akSet.Add(ak.Encode())
+		}
+	}
+	var aks []*datastore.Key
+	akSet.Each(func(i string) bool {
+		dk, _ := datastore.DecodeKey(i)
+		aks = append(aks, dk)
+		return true
+	})
+
+	actorNames := make(map[string]string)
+	actors, err := GetActors(ctx, aks)
+	if err != nil {
+		return response, err
+	}
+	for i, a := range actors {
+		actorNames[aks[i].Encode()] = a.Name
+	}
+
+	lastActors := strset.New()
+	for _, s := range snapshots {
+		item := &FrontendEventSnapshot{
+			Timestamp:     s.Timestamp,
+			NoteCount:     s.NoteCount,
+			AddedActors:   make([]string, 0),
+			RemovedActors: make([]string, 0),
+		}
+
+		if len(s.Actors) > 0 {
+			newActors := strset.New()
+			for _, ak := range s.Actors {
+				newActors.Add(ak.Encode())
+			}
+
+			strset.Difference(newActors, lastActors).Each(func(addedKey string) bool {
+				item.AddedActors = append(item.AddedActors, actorNames[addedKey])
+				return true
+			})
+			strset.Difference(lastActors, newActors).Each(func(removedKey string) bool {
+				item.RemovedActors = append(item.RemovedActors, actorNames[removedKey])
+				return true
+			})
+			lastActors = newActors
+		}
+
+		response.Snapshots = append(response.Snapshots, item)
 	}
 
 	wg.Wait()

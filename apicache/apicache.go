@@ -10,7 +10,7 @@ import (
 const (
 	keyPrefix = "TDAPI:"
 
-	renderEventKeyPrefix = keyPrefix + "RE1:"
+	renderEventKeyPrefix = keyPrefix + "RE2:"
 )
 
 func renderEventKey(eid string) string {

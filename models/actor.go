@@ -63,6 +63,13 @@ func EnsureActors(ctx context.Context, actors map[string]string) (map[string]*da
 	return nil, errors.Wrap(err, "nds.GetMulti returned error that is not a MultiError")
 }
 
+// Error wrapped
+func GetActors(ctx context.Context, keys []*datastore.Key) ([]*Actor, error) {
+	as := make([]*Actor, len(keys))
+	err := nds.GetMulti(ctx, keys, as)
+	return as, errors.Wrap(err, "nds.GetMulti failed")
+}
+
 type RenderActorResponse struct {
 	KnownEventCount int `json:"knownEventCount"`
 }
