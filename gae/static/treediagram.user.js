@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.9
+// @version      0.1.9.1
 // @description  Make Eventernote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -63,6 +63,7 @@
             }];
 
             const liveDate = new Date(data.date);
+            liveDate.setUTCHours(3);  // JST noon.
             if (data.snapshots.length > 0 && new Date(data.snapshots[0].timestamp) <= liveDate) {
                 annotations.push({
                     type: 'line',
@@ -133,10 +134,10 @@
 
                                 let labels = [];
                                 if (snapshot.addedActors.length > 0) {
-                                    labels.push('Added: ' + snapshot.addedActors.join(', '));
+                                    labels.push('++: ' + snapshot.addedActors.join(', '));
                                 }
                                 if (snapshot.removedActors.length > 0) {
-                                    labels.push('Removed: ' + snapshot.removedActors.join(', '));
+                                    labels.push('--: ' + snapshot.removedActors.join(', '));
                                 }
 
                                 return labels.join('\n');
