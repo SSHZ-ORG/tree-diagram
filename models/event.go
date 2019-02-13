@@ -31,7 +31,8 @@ type Event struct {
 
 	LastNoteCount int
 
-	LastUpdateTime time.Time `datastore:",noindex"` // deprecated
+	// The last time we see something changed in the event. Does not affect Equals().
+	LastUpdateTime time.Time
 }
 
 type FrontendEvent struct {
@@ -107,6 +108,7 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.Time) er
 		}
 
 		if !e.Equal(oes[i]) {
+			e.LastUpdateTime = ts
 			keysToInsert = append(keysToInsert, keys[i])
 			eventsToInsert = append(eventsToInsert, e)
 		}
