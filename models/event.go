@@ -31,7 +31,7 @@ type Event struct {
 
 	LastNoteCount int
 
-	LastUpdateTime time.Time `datastore:"-"` // deprecated
+	LastUpdateTime time.Time `datastore:",noindex"` // deprecated
 }
 
 type FrontendEvent struct {
