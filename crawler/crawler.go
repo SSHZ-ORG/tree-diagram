@@ -150,9 +150,6 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 			}
 		}
 
-		// Won't fail.
-		e.LastUpdateTime = ts
-
 		eventPs = append(eventPs, pID)
 		eventAs = append(eventAs, aIDs)
 		es = append(es, e)
@@ -178,7 +175,7 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 		}
 	}
 
-	if err := models.InsertOrUpdateEvents(ctx, es); err != nil {
+	if err := models.InsertOrUpdateEvents(ctx, es, ts); err != nil {
 		return 0, err
 	}
 

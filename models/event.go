@@ -31,7 +31,7 @@ type Event struct {
 
 	LastNoteCount int
 
-	LastUpdateTime time.Time
+	LastUpdateTime time.Time `datastore:"-"` // deprecated
 }
 
 type FrontendEvent struct {
@@ -70,7 +70,7 @@ func getEventKey(ctx context.Context, id string) *datastore.Key {
 
 // Insert or update events. This automatically takes snapshots if needed.
 // Errors wrapped.
-func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
+func InsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.Time) error {
 	if len(events) == 0 {
 		return nil
 	}
@@ -97,16 +97,22 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 
 	var snapshotKeys []*datastore.Key
 	var snapshots []*EventSnapshot
+	var keysToInsert []*datastore.Key
+	var eventsToInsert []*Event
 	for i, e := range events {
-		sk, s := maybeCreateSnapshot(ctx, keys[i], oes[i], e)
+		sk, s := maybeCreateSnapshot(ctx, keys[i], oes[i], e, ts)
 		if sk != nil {
 			snapshotKeys = append(snapshotKeys, sk)
 			snapshots = append(snapshots, s)
 		}
+
+		if !e.Equal(oes[i]) {
+			keysToInsert = append(keysToInsert, keys[i])
+			eventsToInsert = append(eventsToInsert, e)
+		}
 	}
 
-	// We always update events even if no change, to update the timestamp.
-	if _, err := nds.PutMulti(ctx, keys, events); err != nil {
+	if _, err := nds.PutMulti(ctx, keysToInsert, eventsToInsert); err != nil {
 		return errors.Wrap(err, "nds.PutMulti failed")
 	}
 	if _, err := nds.PutMulti(ctx, snapshotKeys, snapshots); err != nil {
@@ -114,6 +120,28 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 	}
 
 	return nil
+}
+
+func (e *Event) Equal(o *Event) bool {
+	if e != nil && o != nil {
+		if e.ID != o.ID || e.Name != o.Name || e.Date != o.Date || e.Finished != o.Finished {
+			return false
+		}
+		if !e.Place.Equal(o.Place) {
+			return false
+		}
+		if !areKeysSetsEqual(e.Actors, o.Actors) {
+			return false
+		}
+		if !e.OpenTime.Equal(o.OpenTime) || !e.StartTime.Equal(o.StartTime) || !e.EndTime.Equal(o.EndTime) {
+			return false
+		}
+		if e.LastNoteCount != o.LastNoteCount {
+			return false
+		}
+		return true
+	}
+	return e == o
 }
 
 // Errors wrapped.

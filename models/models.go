@@ -12,10 +12,10 @@ func areKeysSetsEqual(a, b []*datastore.Key) bool {
 	bs := strset.New()
 
 	for _, k := range a {
-		as.Add(k.String())
+		as.Add(k.Encode())
 	}
 	for _, k := range b {
-		bs.Add(k.String())
+		bs.Add(k.Encode())
 	}
 
 	return as.IsEqual(bs)
