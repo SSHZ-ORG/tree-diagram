@@ -5,7 +5,7 @@ queue:
     max_concurrent_requests: 1
 
   - name: throttled-date-queue
-    rate: 40/h
+    rate: 36/h
     bucket_size: 1
     max_concurrent_requests: 1
 
