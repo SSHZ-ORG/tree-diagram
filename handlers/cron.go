@@ -2,9 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
-	"cloud.google.com/go/civil"
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/paths"
 	"github.com/SSHZ-ORG/tree-diagram/scheduler"
@@ -19,15 +17,16 @@ import (
 func RegisterCron(r *mux.Router) {
 	r.HandleFunc(paths.CronDailyPath, dailyCron)
 	r.HandleFunc(paths.CronRevivePath, reviveCron)
+	r.HandleFunc(paths.CronCleanupPath, cleanupCron)
 	r.HandleFunc(paths.CronExportPath, exportCron)
 }
 
 func dailyCron(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
-	now := civil.DateOf(time.Now().In(utils.JST()))
+	today := utils.JSTToday()
 
-	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, now.AddDays(-30), now.AddDays(360)); err != nil {
+	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, today.AddDays(-30), today.AddDays(360)); err != nil {
 		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -49,10 +48,20 @@ func reviveCron(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	now := civil.DateOf(time.Now().In(utils.JST()))
+	today := utils.JSTToday()
 
-	if err := scheduler.ThrottledDateQueue.EnqueueDateRange(ctx, now.AddDays(-1800), now.AddDays(-30)); err != nil {
+	if err := scheduler.ThrottledDateQueue.EnqueueDateRange(ctx, today.AddDays(-1800), today.AddDays(-30)); err != nil {
 		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func cleanupCron(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	if err := models.CleanupFinishedEvents(ctx, utils.JSTToday()); err != nil {
+		log.Errorf(ctx, "models.CleanupFinishedEvents: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

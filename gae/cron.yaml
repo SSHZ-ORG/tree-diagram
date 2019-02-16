@@ -7,3 +7,8 @@ cron:
   - description: "ReviveCron"
     url: /admin/cron/revive
     schedule: every 1 hours
+
+  - description: "CleanupCron"
+    url: /admin/cron/cleanup
+    schedule: every day 00:05
+    timezone: Asia/Tokyo

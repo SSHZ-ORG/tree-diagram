@@ -10,7 +10,8 @@ const (
 
 	CrawlDatePath = "/admin/crawl/date"
 
-	CronDailyPath  = "/admin/cron/daily"
-	CronRevivePath = "/admin/cron/revive"
-	CronExportPath = "/admin/cron/export"
+	CronDailyPath   = "/admin/cron/daily"
+	CronRevivePath  = "/admin/cron/revive"
+	CronCleanupPath = "/admin/cron/cleanup"
+	CronExportPath  = "/admin/cron/export"
 )

@@ -146,6 +146,30 @@ func (e *Event) Equal(o *Event) bool {
 	return e == o
 }
 
+// If an event was picked up by us but disappear later (deleted / de-duped / NoteCount fell below threshold),
+// its Finished won't be updated. Clean them up manually.
+func CleanupFinishedEvents(ctx context.Context, today civil.Date) error {
+	query := datastore.NewQuery(eventKind).KeysOnly().Filter("Date <", today.In(time.UTC)).Filter("Finished =", false)
+
+	keys, err := query.GetAll(ctx, nil)
+	if err != nil {
+		return errors.Wrap(err, "query.GetAll failed")
+	}
+
+	es := make([]*Event, len(keys))
+	err = nds.GetMulti(ctx, keys, es)
+	if err != nil {
+		return errors.Wrap(err, "nds.GetMulti failed")
+	}
+
+	for _, e := range es {
+		e.Finished = true
+	}
+
+	_, err = nds.PutMulti(ctx, keys, es)
+	return errors.Wrap(err, "nds.PutMulti failed")
+}
+
 // Errors wrapped.
 func QueryEvents(ctx context.Context, placeID string, actorIDs []string, limit, offset int) ([]*Event, error) {
 	query := datastore.NewQuery(eventKind).KeysOnly().Limit(limit).Offset(offset).Order("-LastNoteCount")

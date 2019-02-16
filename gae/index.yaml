@@ -20,15 +20,20 @@ indexes:
 - kind: Event
   properties:
   - name: Actors
-  - name: Place
   - name: LastNoteCount
     direction: desc
 
 - kind: Event
   properties:
   - name: Actors
+  - name: Place
   - name: LastNoteCount
     direction: desc
+
+- kind: Event
+  properties:
+  - name: Finished
+  - name: Date
 
 - kind: Event
   properties:
