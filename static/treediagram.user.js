@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.9.1
+// @version      0.1.9.2
 // @description  Make Eventernote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.bundle.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js
 // @require      https://treediagram.sshz.org/static/chartjs-plugin-zoom-0.6.6-patched.min.js
+// @require      https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.5.0/dist/chartjs-plugin-datalabels.min.js
 // ==/UserScript==
 
 (function () {
@@ -76,7 +77,7 @@
                     label: {
                         backgroundColor: 'rgba(0, 0, 0, 0.4)',
                         cornerRadius: 0,
-                        position: 'top',
+                        position: 'bottom',
                         enabled: true,
                         content: "Live!"
                     }
@@ -85,15 +86,14 @@
 
             data.snapshots.forEach(function (snapshot) {
                 if (snapshot.addedActors.length > 0 || snapshot.removedActors.length > 0) {
-                    annotations.push({
-                        type: 'line',
-                        mode: 'vertical',
-                        scaleID: 'x-axis-0',
-                        value: snapshot.timestamp,
-                        borderColor: 'rgba(0, 0, 0, 0.2)',
-                        borderWidth: 1,
-                        borderDash: [10, 4, 2, 4]
-                    });
+                    var label = '';
+                    if (snapshot.addedActors.length > 0) {
+                        label += '+';
+                    }
+                    if (snapshot.removedActors.length > 0) {
+                        label += '-';
+                    }
+                    snapshot.dataLabel = label;
                 }
             });
 
@@ -112,7 +112,19 @@
                         cubicInterpolationMode: 'monotone',
                         backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderColor: 'rgb(54, 162, 235)',
-                        borderWidth: 1
+                        borderWidth: 1,
+                        datalabels: {
+                            display: function (context) {
+                                return data.snapshots[context.dataIndex].dataLabel !== undefined;
+                            },
+                            formatter: function (value, context) {
+                                return data.snapshots[context.dataIndex].dataLabel;
+                            },
+                            align: 'top',
+                            backgroundColor: 'rgba(97, 191, 153, 0.5)',
+                            borderRadius: 20,
+                            color: 'white'
+                        }
                     }]
                 },
                 options: {
