@@ -5,6 +5,10 @@ handlers:
     static_dir: static
     secure: always
 
+  - url: /robots.txt
+    static_files: robots.txt
+    upload: robots.txt
+
   - url: /admin/.*
     script: auto
     secure: always
