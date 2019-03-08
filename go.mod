@@ -7,7 +7,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/qedus/nds v1.0.0
 	github.com/scylladb/go-set v1.0.2
-	golang.org/x/net v0.0.0-20190227160552-c95aed5357e7
+	golang.org/x/net v0.0.0-20190301231341-16b79f2e4e95
 	golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 	google.golang.org/api v0.1.0
 	google.golang.org/appengine v1.4.0
