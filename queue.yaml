@@ -9,6 +9,11 @@ queue:
     bucket_size: 1
     max_concurrent_requests: 1
 
+  - name: deadslow-date-queue
+    rate: 20/h
+    bucket_size: 1
+    max_concurrent_requests: 1
+
   - name: ondemand-date-queue
     rate: 6/m
     bucket_size: 1

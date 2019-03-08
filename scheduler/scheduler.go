@@ -17,6 +17,7 @@ type DateQueue string
 const (
 	NormalDateQueue    = DateQueue("normal-date-queue")
 	ThrottledDateQueue = DateQueue("throttled-date-queue")
+	DeadSlowDateQueue  = DateQueue("deadslow-date-queue")
 	OnDemandDateQueue  = DateQueue("ondemand-date-queue")
 
 	maxTasksPerAddMulti = 100

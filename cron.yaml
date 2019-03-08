@@ -8,6 +8,10 @@ cron:
     url: /admin/cron/revive
     schedule: every 1 hours
 
+  - description: "UndeadCron"
+    url: /admin/cron/undead
+    schedule: every 12 hours
+
   - description: "CleanupCron"
     url: /admin/cron/cleanup
     schedule: every day 00:05

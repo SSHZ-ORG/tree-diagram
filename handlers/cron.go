@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"cloud.google.com/go/civil"
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/paths"
 	"github.com/SSHZ-ORG/tree-diagram/scheduler"
@@ -14,9 +15,18 @@ import (
 	"google.golang.org/appengine/log"
 )
 
+const (
+	dailyEndDate       = 360
+	dailyToReviveDate  = -30
+	reviveToUndeadDate = -1800
+
+	undeadStartDate = "2000-01-01"
+)
+
 func RegisterCron(r *mux.Router) {
 	r.HandleFunc(paths.CronDailyPath, dailyCron)
 	r.HandleFunc(paths.CronRevivePath, reviveCron)
+	r.HandleFunc(paths.CronUndeadPath, undeadCron)
 	r.HandleFunc(paths.CronCleanupPath, cleanupCron)
 	r.HandleFunc(paths.CronExportPath, exportCron)
 }
@@ -26,7 +36,7 @@ func dailyCron(w http.ResponseWriter, r *http.Request) {
 
 	today := utils.JSTToday()
 
-	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, today.AddDays(-30), today.AddDays(360)); err != nil {
+	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, today.AddDays(dailyToReviveDate), today.AddDays(dailyEndDate)); err != nil {
 		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -50,7 +60,32 @@ func reviveCron(w http.ResponseWriter, r *http.Request) {
 
 	today := utils.JSTToday()
 
-	if err := scheduler.ThrottledDateQueue.EnqueueDateRange(ctx, today.AddDays(-1800), today.AddDays(-30)); err != nil {
+	if err := scheduler.ThrottledDateQueue.EnqueueDateRange(ctx, today.AddDays(reviveToUndeadDate), today.AddDays(dailyToReviveDate)); err != nil {
+		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func undeadCron(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	tc, err := scheduler.DeadSlowDateQueue.CurrentTaskCount(ctx)
+	if err != nil {
+		log.Errorf(ctx, "DateQueue.CurrentTaskCount: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if tc > 0 {
+		log.Infof(ctx, "DeadSlowDateQueue not empty. Skipping undeadCron.")
+		return
+	}
+
+	today := utils.JSTToday()
+
+	startDate, _ := civil.ParseDate(undeadStartDate)
+	if err := scheduler.DeadSlowDateQueue.EnqueueDateRange(ctx, startDate, today.AddDays(reviveToUndeadDate)); err != nil {
 		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
