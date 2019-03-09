@@ -46,7 +46,7 @@ func enqueueDateRange(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, start, end); err != nil {
+	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, start, end, false); err != nil {
 		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

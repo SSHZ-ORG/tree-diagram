@@ -36,7 +36,7 @@ func dailyCron(w http.ResponseWriter, r *http.Request) {
 
 	today := utils.JSTToday()
 
-	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, today.AddDays(dailyToReviveDate), today.AddDays(dailyEndDate)); err != nil {
+	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, today.AddDays(dailyToReviveDate), today.AddDays(dailyEndDate), false); err != nil {
 		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -60,7 +60,7 @@ func reviveCron(w http.ResponseWriter, r *http.Request) {
 
 	today := utils.JSTToday()
 
-	if err := scheduler.ThrottledDateQueue.EnqueueDateRange(ctx, today.AddDays(reviveToUndeadDate), today.AddDays(dailyToReviveDate)); err != nil {
+	if err := scheduler.ThrottledDateQueue.EnqueueDateRange(ctx, today.AddDays(reviveToUndeadDate), today.AddDays(dailyToReviveDate), false); err != nil {
 		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -85,7 +85,7 @@ func undeadCron(w http.ResponseWriter, r *http.Request) {
 	today := utils.JSTToday()
 
 	startDate, _ := civil.ParseDate(undeadStartDate)
-	if err := scheduler.DeadSlowDateQueue.EnqueueDateRange(ctx, startDate, today.AddDays(reviveToUndeadDate)); err != nil {
+	if err := scheduler.DeadSlowDateQueue.EnqueueDateRange(ctx, startDate, today.AddDays(reviveToUndeadDate), true); err != nil {
 		log.Errorf(ctx, "DateQueue.EnqueueDateRange: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

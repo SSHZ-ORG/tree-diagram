@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -37,7 +38,7 @@ func (q DateQueue) Schedule(ctx context.Context, date civil.Date, page int) erro
 }
 
 // Errors wrapped.
-func (q DateQueue) EnqueueDateRange(ctx context.Context, start, end civil.Date) error {
+func (q DateQueue) EnqueueDateRange(ctx context.Context, start, end civil.Date, shuffle bool) error {
 	var ts []*taskqueue.Task
 	for cur := start; cur.Before(end); cur = cur.AddDays(1) {
 		ts = append(ts, newCrawlDateTask(cur, 1))
@@ -48,6 +49,12 @@ func (q DateQueue) EnqueueDateRange(ctx context.Context, start, end civil.Date) 
 		ts, batches = ts[maxTasksPerAddMulti:], append(batches, ts[0:maxTasksPerAddMulti:maxTasksPerAddMulti])
 	}
 	batches = append(batches, ts)
+
+	if shuffle {
+		rand.Shuffle(len(batches), func(i, j int) {
+			batches[i], batches[j] = batches[j], batches[i]
+		})
+	}
 
 	for _, batch := range batches {
 		_, err := taskqueue.AddMulti(ctx, batch, string(q))
