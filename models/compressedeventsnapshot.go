@@ -24,17 +24,17 @@ func CompressSnapshots(ctx context.Context, eventID string) error {
 	eventKey := getEventKey(ctx, eventID)
 	log.Debugf(ctx, "Starting compress snapshots for event %s", eventID)
 
-	err := nds.RunInTransaction(ctx, func(ctx context.Context) error {
-		snapshotKeys, snapshots, err := getNonCompressedSnapshotsForEvent(ctx, eventKey)
-		if err != nil {
-			return err
-		}
-		log.Debugf(ctx, "Got %d uncompressed snapshots", len(snapshotKeys))
-		if len(snapshotKeys) == 0 {
-			// Nothing to compress.
-			return nil
-		}
+	snapshotKeys, snapshots, err := getNonCompressedSnapshotsForEvent(ctx, eventKey)
+	if err != nil {
+		return err
+	}
+	log.Debugf(ctx, "Got %d uncompressed snapshots", len(snapshotKeys))
+	if len(snapshotKeys) == 0 {
+		// Nothing to compress.
+		return nil
+	}
 
+	err = nds.RunInTransaction(ctx, func(ctx context.Context) error {
 		latestCSKey, latestCS, err := getLatestCompressedSnapshot(ctx, eventKey)
 		if err != nil {
 			return err
