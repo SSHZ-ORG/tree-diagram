@@ -6,7 +6,8 @@ const (
 	APIRenderActorPath = "/api/renderActor"
 	APIQueryEventsPath = "/api/queryEvents"
 
-	CommandEnqueueDateRangePath = "/admin/command/enqueueDateRange"
+	CommandEnqueueDateRangePath   = "/admin/command/enqueueDateRange"
+	CommandCompressEventSnapshots = "/admin/command/compressEventSnapshots"
 
 	CrawlDatePath = "/admin/crawl/date"
 

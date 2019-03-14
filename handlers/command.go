@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/civil"
+	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/paths"
 	"github.com/SSHZ-ORG/tree-diagram/scheduler"
 	"github.com/gorilla/mux"
@@ -14,6 +15,7 @@ import (
 
 func RegisterCommand(r *mux.Router) {
 	r.HandleFunc(paths.CommandEnqueueDateRangePath, enqueueDateRange)
+	r.HandleFunc(paths.CommandCompressEventSnapshots, compressEventSnapshots)
 }
 
 func enqueueDateRange(w http.ResponseWriter, r *http.Request) {
@@ -53,4 +55,22 @@ func enqueueDateRange(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, _ = w.Write([]byte(fmt.Sprintf("Enqueued %s to %s.", start.String(), end.String())))
+}
+
+func compressEventSnapshots(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	eid := r.FormValue("id")
+	if eid == "" {
+		http.Error(w, "Missing arg id", http.StatusBadRequest)
+		return
+	}
+
+	if err := models.CompressSnapshots(ctx, eid); err != nil {
+		log.Errorf(ctx, "models.CompressSnapshots: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, _ = w.Write([]byte("OK"))
 }

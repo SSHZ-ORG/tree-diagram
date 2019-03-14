@@ -42,18 +42,39 @@ func maybeCreateSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event, 
 	return datastore.NewIncompleteKey(ctx, eventSnapshotKind, ek), s
 }
 
+// Returns all snapshots, including uncompressed ones and decompressed compressed ones.
 // Errors wrapped.
 func getSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*EventSnapshot, error) {
+	cess, err := getCompressedSnapshots(ctx, eventKey)
+	if err != nil {
+		return nil, err
+	}
+
+	_, ss, err := getNonCompressedSnapshotsForEvent(ctx, eventKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var merged []*EventSnapshot
+	for _, ces := range cess {
+		merged = append(merged, ces.decompress()...)
+	}
+	merged = append(merged, ss...)
+	return merged, nil
+}
+
+// Errors wrapped.
+func getNonCompressedSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*datastore.Key, []*EventSnapshot, error) {
 	keys, err := datastore.NewQuery(eventSnapshotKind).Ancestor(eventKey).Order("Timestamp").KeysOnly().GetAll(ctx, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "datastore query failed")
+		return nil, nil, errors.Wrap(err, "datastore query failed")
 	}
 
 	es := make([]*EventSnapshot, len(keys))
 	err = nds.GetMulti(ctx, keys, es)
 	if err != nil {
-		return nil, errors.Wrap(err, "nds.GetMulti failed")
+		return nil, nil, errors.Wrap(err, "nds.GetMulti failed")
 	}
 
-	return es, nil
+	return keys, es, nil
 }

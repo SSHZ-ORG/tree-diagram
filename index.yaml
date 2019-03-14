@@ -17,6 +17,17 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: CompressedEventSnapshot
+  ancestor: yes
+  properties:
+  - name: Timestamps
+
+- kind: CompressedEventSnapshot
+  ancestor: yes
+  properties:
+  - name: Timestamps
+    direction: desc
+
 - kind: Event
   properties:
   - name: Actors
