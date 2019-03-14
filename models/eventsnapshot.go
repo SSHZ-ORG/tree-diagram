@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
@@ -42,12 +43,16 @@ func maybeCreateSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event, 
 }
 
 // Errors wrapped.
-// This bypasses memcache.
 func getSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*EventSnapshot, error) {
-	var es []*EventSnapshot
-	_, err := datastore.NewQuery(eventSnapshotKind).Ancestor(eventKey).Order("Timestamp").GetAll(ctx, &es)
+	keys, err := datastore.NewQuery(eventSnapshotKind).Ancestor(eventKey).Order("Timestamp").KeysOnly().GetAll(ctx, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "datastore query failed")
+	}
+
+	es := make([]*EventSnapshot, len(keys))
+	err = nds.GetMulti(ctx, keys, es)
+	if err != nil {
+		return nil, errors.Wrap(err, "nds.GetMulti failed")
 	}
 
 	return es, nil
