@@ -43,16 +43,17 @@ func maybeCreateSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event, 
 }
 
 // Returns all snapshots, including uncompressed ones and decompressed compressed ones.
+// The bool returned is whether there are uncompressed snapshots.
 // Errors wrapped.
-func getSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*EventSnapshot, error) {
+func getSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*EventSnapshot, bool, error) {
 	cess, err := getCompressedSnapshots(ctx, eventKey)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	_, ss, err := getNonCompressedSnapshotsForEvent(ctx, eventKey)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	var merged []*EventSnapshot
@@ -60,7 +61,7 @@ func getSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*Even
 		merged = append(merged, ces.decompress()...)
 	}
 	merged = append(merged, ss...)
-	return merged, nil
+	return merged, len(ss) > 0, nil
 }
 
 // Errors wrapped.

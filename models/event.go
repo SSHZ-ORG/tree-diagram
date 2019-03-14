@@ -214,8 +214,9 @@ type RenderEventResponse struct {
 	PlaceStatsFinished PlaceNoteCountStats `json:"placeStatsFinished"`
 }
 
+// The bool returned is whether we see uncompressed snapshots when rendering.
 // Errors wrapped.
-func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEventResponse, error) {
+func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEventResponse, bool, error) {
 	key := getEventKey(ctx, eventID)
 
 	response := &RenderEventResponse{
@@ -225,9 +226,9 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 	e := &Event{}
 	if err := nds.Get(ctx, key, e); err != nil {
 		if err == datastore.ErrNoSuchEntity {
-			return response, nil // Don't care if we don't know about the event yet.
+			return response, false, nil // Don't care if we don't know about the event yet.
 		}
-		return nil, errors.Wrap(err, "nds.Get failed")
+		return nil, false, errors.Wrap(err, "nds.Get failed")
 	}
 	response.Date = civil.DateOf(e.Date).String()
 
@@ -262,9 +263,9 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 		}
 	}()
 
-	snapshots, err := getSnapshotsForEvent(ctx, key)
+	snapshots, hasUncompressed, err := getSnapshotsForEvent(ctx, key)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	akSet := strset.New()
@@ -283,7 +284,7 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 	actorNames := make(map[string]string)
 	actors, err := GetActors(ctx, aks)
 	if err != nil {
-		return response, err
+		return response, false, err
 	}
 	for i, a := range actors {
 		actorNames[aks[i].Encode()] = a.Name
@@ -320,11 +321,11 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 
 	wg.Wait()
 	if errTotal != nil {
-		return nil, errTotal
+		return nil, false, errTotal
 	}
 	if errFinished != nil {
-		return nil, errFinished
+		return nil, false, errFinished
 	}
 
-	return response, nil
+	return response, hasUncompressed, nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/SSHZ-ORG/tree-diagram/apicache"
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/paths"
+	"github.com/SSHZ-ORG/tree-diagram/scheduler"
 	"github.com/gorilla/mux"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
@@ -43,11 +44,15 @@ func renderEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := models.PrepareRenderEventResponse(ctx, eid)
+	res, hasUncompressed, err := models.PrepareRenderEventResponse(ctx, eid)
 	if err != nil {
 		log.Errorf(ctx, "models.PrepareRenderEventResponse: %+v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
+	}
+
+	if hasUncompressed {
+		scheduler.ScheduleCompressEventSnapshots(ctx, eid)
 	}
 
 	if encoded, err := encodeJSON(ctx, w, res); err == nil {

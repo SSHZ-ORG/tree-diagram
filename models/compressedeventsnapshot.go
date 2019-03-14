@@ -7,6 +7,7 @@ import (
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
 )
 
 type compressedEventSnapshot struct {
@@ -21,12 +22,14 @@ const compressedEventSnapshotKind = "CompressedEventSnapshot"
 // Errors wrapped.
 func CompressSnapshots(ctx context.Context, eventID string) error {
 	eventKey := getEventKey(ctx, eventID)
+	log.Debugf(ctx, "Starting compress snapshots for event %s", eventID)
 
 	err := nds.RunInTransaction(ctx, func(ctx context.Context) error {
 		snapshotKeys, snapshots, err := getNonCompressedSnapshotsForEvent(ctx, eventKey)
 		if err != nil {
 			return err
 		}
+		log.Debugf(ctx, "Got %d uncompressed snapshots", len(snapshotKeys))
 		if len(snapshotKeys) == 0 {
 			// Nothing to compress.
 			return nil
@@ -36,6 +39,7 @@ func CompressSnapshots(ctx context.Context, eventID string) error {
 		if err != nil {
 			return err
 		}
+		log.Debugf(ctx, "Last compressed snapshot: %v", latestCSKey)
 
 		var keysToPut []*datastore.Key
 		var csToPut []*compressedEventSnapshot
@@ -61,6 +65,7 @@ func CompressSnapshots(ctx context.Context, eventID string) error {
 			}
 		}
 
+		log.Debugf(ctx, "Compressed to %d entities", len(keysToPut))
 		if err := nds.DeleteMulti(ctx, snapshotKeys); err != nil {
 			return errors.Wrap(err, "nds.DeleteMulti failed")
 		}

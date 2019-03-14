@@ -63,17 +63,12 @@ func TestCompressSnapshots_NoPreviousCES(t *testing.T) {
 	if err := putSnapshots(ctx, expected); err != nil {
 		t.Fatal(err)
 	}
+	checkExpected(t, ctx, expected, true)
 
 	if err := CompressSnapshots(ctx, testEventID); err != nil {
 		t.Fatal(err)
 	}
-
-	snapshots, err := getSnapshotsForEvent(ctx, getEventKey(ctx, testEventID))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	checkEquals(t, expected, snapshots)
+	checkExpected(t, ctx, expected, false)
 }
 
 func TestCompressSnapshots_HasPreviousCES_FirstCanCompress(t *testing.T) {
@@ -90,10 +85,12 @@ func TestCompressSnapshots_HasPreviousCES_FirstCanCompress(t *testing.T) {
 	if err := putSnapshots(ctx, expected); err != nil {
 		t.Fatal(err)
 	}
+	checkExpected(t, ctx, expected, true)
 
 	if err := CompressSnapshots(ctx, testEventID); err != nil {
 		t.Fatal(err)
 	}
+	checkExpected(t, ctx, expected, false)
 
 	moreSnapshots := []*EventSnapshot{
 		createSnapshot(20, 1),
@@ -103,23 +100,17 @@ func TestCompressSnapshots_HasPreviousCES_FirstCanCompress(t *testing.T) {
 		createSnapshot(60, 1, actor2),
 		createSnapshot(70, 1),
 	}
+	expected = append(expected, moreSnapshots...)
 
 	if err := putSnapshots(ctx, moreSnapshots); err != nil {
 		t.Fatal(err)
 	}
-
-	expected = append(expected, moreSnapshots...)
+	checkExpected(t, ctx, expected, true)
 
 	if err := CompressSnapshots(ctx, testEventID); err != nil {
 		t.Fatal(err)
 	}
-
-	snapshots, err := getSnapshotsForEvent(ctx, getEventKey(ctx, testEventID))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	checkEquals(t, expected, snapshots)
+	checkExpected(t, ctx, expected, false)
 }
 
 func TestCompressSnapshots_HasPreviousCES_FirstCannotCompress(t *testing.T) {
@@ -137,10 +128,12 @@ func TestCompressSnapshots_HasPreviousCES_FirstCannotCompress(t *testing.T) {
 	if err := putSnapshots(ctx, expected); err != nil {
 		t.Fatal(err)
 	}
+	checkExpected(t, ctx, expected, true)
 
 	if err := CompressSnapshots(ctx, testEventID); err != nil {
 		t.Fatal(err)
 	}
+	checkExpected(t, ctx, expected, false)
 
 	moreSnapshots := []*EventSnapshot{
 		createSnapshot(30, 2),
@@ -149,26 +142,28 @@ func TestCompressSnapshots_HasPreviousCES_FirstCannotCompress(t *testing.T) {
 		createSnapshot(60, 1, actor2),
 		createSnapshot(70, 1),
 	}
+	expected = append(expected, moreSnapshots...)
 
 	if err := putSnapshots(ctx, moreSnapshots); err != nil {
 		t.Fatal(err)
 	}
-
-	expected = append(expected, moreSnapshots...)
+	checkExpected(t, ctx, expected, true)
 
 	if err := CompressSnapshots(ctx, testEventID); err != nil {
 		t.Fatal(err)
 	}
+	checkExpected(t, ctx, expected, false)
+}
 
-	snapshots, err := getSnapshotsForEvent(ctx, getEventKey(ctx, testEventID))
+func checkExpected(t *testing.T, ctx context.Context, expected []*EventSnapshot, expectedUncompressed bool) {
+	actual, uncompressed, err := getSnapshotsForEvent(ctx, getEventKey(ctx, testEventID))
 	if err != nil {
 		t.Fatal(err)
 	}
+	if uncompressed != expectedUncompressed {
+		t.Fatalf("Uncompressed bool returned is unexpected. Want %v.", expectedUncompressed)
+	}
 
-	checkEquals(t, expected, snapshots)
-}
-
-func checkEquals(t *testing.T, expected, actual []*EventSnapshot) {
 	if len(expected) != len(actual) {
 		t.Fatalf("len(expected) != len(actual): %d -> %d", len(expected), len(actual))
 	}
