@@ -83,5 +83,13 @@ func crawlActor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if nextOffset > 0 {
+		if err := scheduler.ScheduleCrawlActorPage(ctx, nextOffset); err != nil {
+			log.Errorf(ctx, "ScheduleCrawlActorPage: %+v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
 	_, _ = w.Write([]byte(fmt.Sprintf("Next offset: %d", nextOffset)))
 }
