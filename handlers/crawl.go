@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -15,6 +16,7 @@ import (
 
 func RegisterCrawl(r *mux.Router) {
 	r.HandleFunc(paths.CrawlDatePath, crawlDate)
+	r.HandleFunc(paths.CrawlActorPath, crawlActor)
 }
 
 func crawlDate(w http.ResponseWriter, r *http.Request) {
@@ -58,4 +60,28 @@ func crawlDate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, _ = w.Write([]byte("OK"))
+}
+
+func crawlActor(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	offsetArg := r.FormValue("offset")
+	if offsetArg == "" {
+		http.Error(w, "Missing arg offset", http.StatusBadRequest)
+		return
+	}
+	offset, err := strconv.Atoi(offsetArg)
+	if err != nil {
+		http.Error(w, "Illegal arg offset", http.StatusBadRequest)
+		return
+	}
+
+	nextOffset, err := crawler.CrawlActorOnePage(ctx, offset)
+	if err != nil {
+		log.Errorf(ctx, "crawler.CrawlActorOnePage: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, _ = w.Write([]byte(fmt.Sprintf("Next offset: %d", nextOffset)))
 }

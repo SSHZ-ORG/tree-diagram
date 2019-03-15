@@ -282,7 +282,7 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 	})
 
 	actorNames := make(map[string]string)
-	actors, err := GetActors(ctx, aks)
+	actors, err := getActors(ctx, aks)
 	if err != nil {
 		return response, false, err
 	}
