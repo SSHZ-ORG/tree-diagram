@@ -23,7 +23,7 @@ type EventSnapshot struct {
 
 const eventSnapshotKind = "EventSnapshot"
 
-func maybeCreateSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event, ts time.Time) (*datastore.Key, *EventSnapshot) {
+func createEventSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event, ts time.Time) (*datastore.Key, *EventSnapshot) {
 	s := &EventSnapshot{
 		EventID:   ne.ID,
 		Timestamp: ts,

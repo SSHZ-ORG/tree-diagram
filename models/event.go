@@ -101,7 +101,7 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.Time) er
 	var keysToInsert []*datastore.Key
 	var eventsToInsert []*Event
 	for i, e := range events {
-		sk, s := maybeCreateSnapshot(ctx, keys[i], oes[i], e, ts)
+		sk, s := createEventSnapshot(ctx, keys[i], oes[i], e, ts)
 		if sk != nil {
 			snapshotKeys = append(snapshotKeys, sk)
 			snapshots = append(snapshots, s)
