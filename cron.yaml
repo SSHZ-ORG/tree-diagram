@@ -16,3 +16,8 @@ cron:
     url: /admin/cron/cleanup
     schedule: every day 00:05
     timezone: Asia/Tokyo
+
+  - description: "DailyActorCron"
+    url: /admin/cron/dailyActor
+    schedule: every day 05:45
+    timezone: Asia/Tokyo

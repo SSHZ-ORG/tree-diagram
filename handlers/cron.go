@@ -28,6 +28,7 @@ func RegisterCron(r *mux.Router) {
 	r.HandleFunc(paths.CronRevivePath, reviveCron)
 	r.HandleFunc(paths.CronUndeadPath, undeadCron)
 	r.HandleFunc(paths.CronCleanupPath, cleanupCron)
+	r.HandleFunc(paths.CronDailyActorPath, dailyActorCron)
 	r.HandleFunc(paths.CronExportPath, exportCron)
 }
 
@@ -97,6 +98,16 @@ func cleanupCron(w http.ResponseWriter, r *http.Request) {
 
 	if err := models.CleanupFinishedEvents(ctx, utils.JSTToday()); err != nil {
 		log.Errorf(ctx, "models.CleanupFinishedEvents: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func dailyActorCron(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	if err := scheduler.ScheduleCrawlActorPage(ctx, 1); err != nil {
+		log.Errorf(ctx, "scheduler.ScheduleCrawlActorPage: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
