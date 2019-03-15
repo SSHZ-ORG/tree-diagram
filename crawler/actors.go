@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	actorPageSize = 1000
+	actorPageSize = 500
 
 	actorSearchAPITemplate = "https://www.eventernote.com/api/actors/search?limit=%d&offset=%d"
 )
