@@ -70,7 +70,7 @@ func CrawlActorOnePage(ctx context.Context, offset int) (int, error) {
 				LastFavoriteCount: int(value.Get("favorite_count").Int()),
 				LastUpdateTime:    ts,
 			}
-			if !oa.Equal(na) {
+			if oa.LastUpdateTime.IsZero() || !oa.Equal(na) {
 				oas = append(oas, oa)
 				nas = append(nas, na)
 			}

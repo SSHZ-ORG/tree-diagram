@@ -19,7 +19,7 @@ const actorSnapshotKind = "ActorSnapshot"
 // This returns nil, nil if we should not create a snapshot.
 func maybeCreateActorSnapshot(ctx context.Context, ak *datastore.Key, oa, na *Actor) (*datastore.Key, *ActorSnapshot) {
 	// For actors, we won't take snapshot if they don't exist yet - oa will not be nil.
-	if oa.LastFavoriteCount == na.LastFavoriteCount {
+	if oa.LastFavoriteCount == na.LastFavoriteCount && !oa.LastUpdateTime.IsZero() {
 		return nil, nil
 	}
 
