@@ -41,6 +41,8 @@ func CompressSnapshots(ctx context.Context, eventID string) error {
 		}
 		log.Debugf(ctx, "Last compressed snapshot: %v", latestCSKey)
 
+		entityCountTag := ""
+
 		var keysToPut []*datastore.Key
 		var csToPut []*compressedEventSnapshot
 
@@ -49,6 +51,7 @@ func CompressSnapshots(ctx context.Context, eventID string) error {
 			latestCS.compress(snapshots[0])
 			keysToPut = append(keysToPut, latestCSKey)
 			csToPut = append(csToPut, latestCS)
+			entityCountTag = " (-1)"
 		} else {
 			// Just create a new compressed snapshot.
 			keysToPut = append(keysToPut, datastore.NewIncompleteKey(ctx, compressedEventSnapshotKind, eventKey))
@@ -65,7 +68,7 @@ func CompressSnapshots(ctx context.Context, eventID string) error {
 			}
 		}
 
-		log.Debugf(ctx, "Compressed to %d entities", len(keysToPut))
+		log.Debugf(ctx, "Compressed to %d%s entities", len(keysToPut), entityCountTag)
 		if err := nds.DeleteMulti(ctx, snapshotKeys); err != nil {
 			return errors.Wrap(err, "nds.DeleteMulti failed")
 		}

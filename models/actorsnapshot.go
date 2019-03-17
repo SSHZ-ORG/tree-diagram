@@ -29,6 +29,6 @@ func maybeCreateActorSnapshot(ctx context.Context, ak *datastore.Key, oa, na *Ac
 		FavoriteCount: na.LastFavoriteCount,
 	}
 
-	log.Debugf(ctx, "Taking snapshot for actor %s. (%d -> %d)", na.debugName(), oa.LastFavoriteCount, na.LastFavoriteCount)
+	log.Debugf(ctx, "Taking snapshot for actor %s (%d -> %d)", na.debugName(), oa.LastFavoriteCount, na.LastFavoriteCount)
 	return datastore.NewIncompleteKey(ctx, actorSnapshotKind, ak), s
 }

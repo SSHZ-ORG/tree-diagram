@@ -38,7 +38,7 @@ func createEventSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event, 
 		s.Actors = ne.Actors
 	}
 
-	log.Debugf(ctx, "Taking snapshot for event %s. (%d -> %d)", ne.debugName(), oe.LastNoteCount, ne.LastNoteCount)
+	log.Debugf(ctx, "Taking snapshot for event %s (%d -> %d)", ne.debugName(), oe.LastNoteCount, ne.LastNoteCount)
 	return datastore.NewIncompleteKey(ctx, eventSnapshotKind, ek), s
 }
 
@@ -60,6 +60,8 @@ func getSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*Even
 	for _, ces := range cess {
 		merged = append(merged, ces.decompress()...)
 	}
+	log.Debugf(ctx, "CompressedEventSnapshot: %d/%d (%.2f%%)", len(cess), len(merged), float64(len(cess))/float64(len(merged))*100)
+
 	merged = append(merged, ss...)
 	return merged, len(ss) > 0, nil
 }
