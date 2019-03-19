@@ -19,5 +19,5 @@ cron:
 
   - description: "DailyActorCron"
     url: /admin/cron/dailyActor
-    schedule: every day 05:45
+    schedule: every day 06:05
     timezone: Asia/Tokyo
