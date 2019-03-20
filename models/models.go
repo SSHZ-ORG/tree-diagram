@@ -5,7 +5,7 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
-var AllKinds = []string{actorKind, placeKind, eventKind, eventSnapshotKind}
+var KindsToExport = []string{actorKind, placeKind, eventKind}
 
 func areKeysSetsEqual(a, b []*datastore.Key) bool {
 	as := strset.New()

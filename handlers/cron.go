@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"cloud.google.com/go/civil"
@@ -134,8 +135,8 @@ func exportCron(w http.ResponseWriter, r *http.Request) {
 	bucketName := appID + ".appspot.com"
 
 	resp, err := service.Projects.Export(appID, &datastore.GoogleDatastoreAdminV1ExportEntitiesRequest{
-		OutputUrlPrefix: "gs://" + bucketName + "/td-datastore/latest/",
-		EntityFilter:    &datastore.GoogleDatastoreAdminV1EntityFilter{Kinds: models.AllKinds},
+		OutputUrlPrefix: fmt.Sprintf("gs://%s/td-datastore/%s/", bucketName, utils.JSTToday().String()),
+		EntityFilter:    &datastore.GoogleDatastoreAdminV1EntityFilter{Kinds: models.KindsToExport},
 	}).Do()
 	if err != nil {
 		log.Errorf(ctx, "service.Projects.Export: %v", err)
