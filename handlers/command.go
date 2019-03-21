@@ -16,6 +16,8 @@ import (
 func RegisterCommand(r *mux.Router) {
 	r.HandleFunc(paths.CommandEnqueueDateRangePath, enqueueDateRange)
 	r.HandleFunc(paths.CommandCompressEventSnapshots, compressEventSnapshots)
+
+	r.HandleFunc(paths.CommandBackfill, backfillCES)
 }
 
 func enqueueDateRange(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +72,23 @@ func compressEventSnapshots(w http.ResponseWriter, r *http.Request) {
 		log.Errorf(ctx, "models.CompressSnapshots: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	_, _ = w.Write([]byte("OK"))
+}
+
+func backfillCES(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	ids, err := models.GetSomeEventIDsWithNonCompressedSnapshots(ctx)
+	if err != nil {
+		log.Errorf(ctx, "models.GetSomeEventIDsWithNonCompressedSnapshots: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	for _, id := range ids {
+		scheduler.ScheduleCompressEventSnapshots(ctx, id)
 	}
 
 	_, _ = w.Write([]byte("OK"))

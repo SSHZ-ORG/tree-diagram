@@ -21,3 +21,7 @@ cron:
     url: /admin/cron/dailyActor
     schedule: every day 06:05
     timezone: Asia/Tokyo
+
+  - description: "TemporaryCESBackfillCron"
+    url: /admin/command/backfill
+    schedule: every 5 minutes

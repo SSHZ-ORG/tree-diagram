@@ -5,6 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
+	"github.com/scylladb/go-set/strset"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
@@ -86,4 +87,18 @@ func getNonCompressedSnapshotsForEvent(ctx context.Context, eventKey *datastore.
 func countNonCompressedSnapshots(ctx context.Context, eventKey *datastore.Key) (int, error) {
 	count, err := datastore.NewQuery(eventSnapshotKind).Ancestor(eventKey).Count(ctx)
 	return count, errors.Wrap(err, "datastore query failed")
+}
+
+// Errors wrapped.
+func GetSomeEventIDsWithNonCompressedSnapshots(ctx context.Context) ([]string, error) {
+	keys, err := datastore.NewQuery(eventSnapshotKind).Order("Timestamp").KeysOnly().Limit(100).GetAll(ctx, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "datastore query failed")
+	}
+
+	set := strset.New()
+	for _, k := range keys {
+		set.Add(k.Parent().StringID())
+	}
+	return set.List(), nil
 }

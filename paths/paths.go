@@ -18,4 +18,6 @@ const (
 	CronCleanupPath    = "/admin/cron/cleanup"
 	CronDailyActorPath = "/admin/cron/dailyActor"
 	CronExportPath     = "/admin/cron/export"
+
+	CommandBackfill = "/admin/command/backfill"
 )
