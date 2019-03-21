@@ -164,22 +164,29 @@ func shouldCreateNewCES(oe, ne *Event) bool {
 	return false
 }
 
-func newCESFromEvent(ctx context.Context, e *Event, eventKey *datastore.Key) (*datastore.Key, *compressedEventSnapshot) {
-	return datastore.NewIncompleteKey(ctx, compressedEventSnapshotKind, eventKey), &compressedEventSnapshot{
-		EventID:    e.ID,
-		Timestamps: []time.Time{e.LastUpdateTime},
-		NoteCount:  e.LastNoteCount,
-		Actors:     e.Actors,
+func newCESFromEvent(ctx context.Context, oe, ne *Event, eventKey *datastore.Key) (*datastore.Key, *compressedEventSnapshot) {
+	ces := &compressedEventSnapshot{
+		EventID:    ne.ID,
+		Timestamps: []time.Time{ne.LastUpdateTime},
+		NoteCount:  ne.LastNoteCount,
 	}
+	if oe == nil || !areKeysSetsEqual(oe.Actors, ne.Actors) {
+		ces.Actors = ne.Actors
+	}
+	return datastore.NewIncompleteKey(ctx, compressedEventSnapshotKind, eventKey), ces
 }
 
 // Get key and CES which should then be Put into the datastore.
 // Errors wrapped.
 func createOrUpdateCES(ctx context.Context, oe, ne *Event, eventKey *datastore.Key) (*datastore.Key, *compressedEventSnapshot, error) {
 	if shouldCreateNewCES(oe, ne) {
-		key, ces := newCESFromEvent(ctx, ne, eventKey)
+		key, ces := newCESFromEvent(ctx, oe, ne, eventKey)
 
-		log.Debugf(ctx, "Creating new CES for event %s (%d -> %d)", ne.debugName(), oe.LastNoteCount, ne.LastNoteCount)
+		lastNoteCount := 0
+		if oe != nil {
+			lastNoteCount = oe.LastNoteCount
+		}
+		log.Debugf(ctx, "Creating new CES for event %s (%d -> %d)", ne.debugName(), lastNoteCount, ne.LastNoteCount)
 		return key, ces, nil
 	} else {
 		cesKey, ces, err := getLatestCompressedSnapshot(ctx, eventKey)
