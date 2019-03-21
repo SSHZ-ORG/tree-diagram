@@ -5,6 +5,8 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
+const maxEntitiesPerXGTransaction = 25
+
 var KindsToExport = []string{actorKind, placeKind, eventKind}
 
 func areKeysSetsEqual(a, b []*datastore.Key) bool {

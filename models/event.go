@@ -72,6 +72,24 @@ func getEventKey(ctx context.Context, id string) *datastore.Key {
 // Insert or update events. This automatically takes snapshots if needed.
 // Errors wrapped.
 func InsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.Time) error {
+	var batches [][]*Event
+	for maxEntitiesPerXGTransaction < len(events) {
+		events, batches = events[maxEntitiesPerXGTransaction:], append(batches, events[0:maxEntitiesPerXGTransaction:maxEntitiesPerXGTransaction])
+	}
+	batches = append(batches, events)
+
+	for _, es := range batches {
+		if err := internalInsertOrUpdateEvents(ctx, es, ts); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Insert or update at most 25 events because of Transaction XG restriction.
+// We can remove the restriction after we are migrated to Firestore.
+// Errors wrapped.
+func internalInsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.Time) error {
 	if len(events) == 0 {
 		return nil
 	}
