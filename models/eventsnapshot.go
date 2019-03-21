@@ -81,3 +81,9 @@ func getNonCompressedSnapshotsForEvent(ctx context.Context, eventKey *datastore.
 
 	return keys, es, nil
 }
+
+// Errors wrapped.
+func countNonCompressedSnapshots(ctx context.Context, eventKey *datastore.Key) (int, error) {
+	count, err := datastore.NewQuery(eventSnapshotKind).Ancestor(eventKey).Count(ctx)
+	return count, errors.Wrap(err, "datastore query failed")
+}

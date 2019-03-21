@@ -71,7 +71,9 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 	count := 0
 	events := doc.Find(".gb_event_list").Children().Children()
 	events.Each(func(i int, s *goquery.Selection) {
-		e := &models.Event{}
+		e := &models.Event{
+			LastUpdateTime: ts,
+		}
 
 		// Critical. If this is less than threshold, skip.
 		e.LastNoteCount, err = strconv.Atoi(strings.TrimSpace(s.Find(".note_count").Text()))

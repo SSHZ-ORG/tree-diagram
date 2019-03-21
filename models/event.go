@@ -114,32 +114,59 @@ func internalInsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.
 		}
 	}
 
-	var snapshotKeys []*datastore.Key
-	var snapshots []*EventSnapshot
-	var keysToInsert []*datastore.Key
-	var eventsToInsert []*Event
-	for i, e := range events {
-		sk, s := createEventSnapshot(ctx, keys[i], oes[i], e, ts)
-		if sk != nil {
-			snapshotKeys = append(snapshotKeys, sk)
-			snapshots = append(snapshots, s)
+	return datastore.RunInTransaction(ctx, func(ctx context.Context) error {
+		var keysToInsert []*datastore.Key
+		var eventsToInsert []*Event
+
+		var snapshotKeys []*datastore.Key
+		var snapshots []*EventSnapshot
+
+		var cesKeys []*datastore.Key
+		var cess []*compressedEventSnapshot
+
+		for i, e := range events {
+			if !e.Equal(oes[i]) {
+				e.LastUpdateTime = ts
+				keysToInsert = append(keysToInsert, keys[i])
+				eventsToInsert = append(eventsToInsert, e)
+			}
+
+			c, err := countNonCompressedSnapshots(ctx, keys[i])
+			if err != nil {
+				return err
+			}
+
+			if c == 0 {
+				// Everything already compressed. Use new logic.
+				cesKey, ces, err := createOrUpdateCES(ctx, oes[i], e, keys[i])
+				if err != nil {
+					return err
+				}
+				cesKeys = append(cesKeys, cesKey)
+				cess = append(cess, ces)
+			} else {
+				// Use old logic.
+				sk, s := createEventSnapshot(ctx, keys[i], oes[i], e, ts)
+				if sk != nil {
+					snapshotKeys = append(snapshotKeys, sk)
+					snapshots = append(snapshots, s)
+				}
+			}
 		}
 
-		if !e.Equal(oes[i]) {
-			e.LastUpdateTime = ts
-			keysToInsert = append(keysToInsert, keys[i])
-			eventsToInsert = append(eventsToInsert, e)
+		if _, err := nds.PutMulti(ctx, keysToInsert, eventsToInsert); err != nil {
+			return errors.Wrap(err, "nds.PutMulti failed")
 		}
-	}
+		if _, err := nds.PutMulti(ctx, snapshotKeys, snapshots); err != nil {
+			return errors.Wrap(err, "nds.PutMulti failed")
+		}
+		if _, err := nds.PutMulti(ctx, cesKeys, cess); err != nil {
+			return errors.Wrap(err, "nds.PutMulti failed")
+		}
 
-	if _, err := nds.PutMulti(ctx, keysToInsert, eventsToInsert); err != nil {
-		return errors.Wrap(err, "nds.PutMulti failed")
-	}
-	if _, err := nds.PutMulti(ctx, snapshotKeys, snapshots); err != nil {
-		return errors.Wrap(err, "nds.PutMulti failed")
-	}
+		return nil
+	}, &datastore.TransactionOptions{XG: true})
 
-	return nil
 }
 
 func (e *Event) Equal(o *Event) bool {
