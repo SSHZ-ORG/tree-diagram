@@ -119,13 +119,18 @@ func (c *compressedEventSnapshot) shouldCompress(s *EventSnapshot) bool {
 	if c.NoteCount != s.NoteCount {
 		return false
 	}
-	if len(s.Actors) > 0 {
+	if len(s.Actors) > 0 && !areKeysSetsEqual(c.Actors, s.Actors) {
 		return false
 	}
 	return true
 }
 
 func (c *compressedEventSnapshot) compress(s *EventSnapshot) {
+	if len(c.Timestamps) > 0 {
+		if c.Timestamps[len(c.Timestamps)-1].Equal(s.Timestamp) {
+			return
+		}
+	}
 	c.Timestamps = append(c.Timestamps, s.Timestamp)
 }
 
