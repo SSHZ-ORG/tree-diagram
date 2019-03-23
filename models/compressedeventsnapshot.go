@@ -59,6 +59,19 @@ func (c *compressedEventSnapshot) decompress() []*EventSnapshot {
 	return ss
 }
 
+func (c *compressedEventSnapshot) isConsistent(e *Event) bool {
+	if c == nil || e == nil {
+		return false
+	}
+	if c.NoteCount != e.LastNoteCount {
+		return false
+	}
+	if len(c.Actors) > 0 && !areKeysSetsEqual(c.Actors, e.Actors) {
+		return false
+	}
+	return true
+}
+
 func shouldCreateNewCES(oe, ne *Event) bool {
 	if oe == nil || ne == nil {
 		return true
@@ -87,23 +100,33 @@ func newCESFromEvent(ctx context.Context, oe, ne *Event, eventKey *datastore.Key
 // Get key and CES which should then be Put into the datastore.
 // Errors wrapped.
 func createOrUpdateCES(ctx context.Context, oe, ne *Event, eventKey *datastore.Key) (*datastore.Key, *compressedEventSnapshot, error) {
-	if shouldCreateNewCES(oe, ne) {
-		key, ces := newCESFromEvent(ctx, oe, ne, eventKey)
+	var key *datastore.Key
+	var ces *compressedEventSnapshot
+
+	if !shouldCreateNewCES(oe, ne) {
+		var err error
+		key, ces, err = getLatestCompressedSnapshot(ctx, eventKey)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if ces.isConsistent(ne) {
+			ces.Timestamps = append(ces.Timestamps, ne.LastUpdateTime)
+			log.Debugf(ctx, "Appending to CES %+v for event %s (%d -> %d)", key, ne.debugName(), oe.LastNoteCount, ne.LastNoteCount)
+		} else {
+			key, ces = nil, nil
+			log.Criticalf(ctx, "Inconsistent CES %+v detected!", key)
+		}
+	}
+
+	if key == nil {
+		key, ces = newCESFromEvent(ctx, oe, ne, eventKey)
 
 		lastNoteCount := 0
 		if oe != nil {
 			lastNoteCount = oe.LastNoteCount
 		}
 		log.Debugf(ctx, "Creating new CES for event %s (%d -> %d)", ne.debugName(), lastNoteCount, ne.LastNoteCount)
-		return key, ces, nil
-	} else {
-		cesKey, ces, err := getLatestCompressedSnapshot(ctx, eventKey)
-		if err != nil {
-			return nil, nil, err
-		}
-		ces.Timestamps = append(ces.Timestamps, ne.LastUpdateTime)
-
-		log.Debugf(ctx, "Appending to CES %+v for event %s (%d -> %d)", cesKey, ne.debugName(), oe.LastNoteCount, ne.LastNoteCount)
-		return cesKey, ces, nil
 	}
+	return key, ces, nil
 }
