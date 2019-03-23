@@ -73,14 +73,34 @@ func getEventKey(ctx context.Context, id string) *datastore.Key {
 // Insert or update events. This automatically takes snapshots if needed.
 // Errors wrapped.
 func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
+	batchSize := len(events)
+	if batchSize >= minEventsToParallelize {
+		batchSize = (len(events) + 1) / 2
+	}
+	if batchSize > maxEntitiesPerXGTransaction {
+		batchSize = maxEntitiesPerXGTransaction
+	}
+
 	var batches [][]*Event
-	for maxEntitiesPerXGTransaction < len(events) {
-		events, batches = events[maxEntitiesPerXGTransaction:], append(batches, events[0:maxEntitiesPerXGTransaction:maxEntitiesPerXGTransaction])
+	for batchSize < len(events) {
+		events, batches = events[batchSize:], append(batches, events[0:batchSize:batchSize])
 	}
 	batches = append(batches, events)
 
-	for _, es := range batches {
-		if err := internalInsertOrUpdateEvents(ctx, es); err != nil {
+	wg := sync.WaitGroup{}
+	wg.Add(len(batches))
+	errs := make([]error, len(batches))
+
+	for i := range batches {
+		go func(i int) {
+			defer wg.Done()
+			errs[i] = internalInsertOrUpdateEvents(ctx, batches[i])
+		}(i)
+	}
+
+	wg.Wait()
+	for _, err := range errs {
+		if err != nil {
 			return err
 		}
 	}

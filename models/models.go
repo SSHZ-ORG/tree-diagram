@@ -5,7 +5,10 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
-const maxEntitiesPerXGTransaction = 25
+const (
+	minEventsToParallelize      = 6
+	maxEntitiesPerXGTransaction = 25
+)
 
 var KindsToExport = []string{actorKind, placeKind, eventKind}
 
