@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
@@ -21,21 +22,20 @@ const compressedEventSnapshotKind = "CompressedEventSnapshot"
 // Errors wrapped.
 // This bypasses memcache.
 func getCompressedSnapshots(ctx context.Context, eventKey *datastore.Key) ([]*compressedEventSnapshot, error) {
-	var css []*compressedEventSnapshot
-	_, err := datastore.NewQuery(compressedEventSnapshotKind).Ancestor(eventKey).Order("Timestamps").GetAll(ctx, &css)
+	keys, err := datastore.NewQuery(compressedEventSnapshotKind).Ancestor(eventKey).Order("Timestamps").KeysOnly().GetAll(ctx, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "datastore query failed")
 	}
 
-	return css, nil
+	css := make([]*compressedEventSnapshot, len(keys))
+	err = nds.GetMulti(ctx, keys, css)
+	return css, errors.Wrap(err, "nds.GetMulti failed")
 }
 
 // Errors wrapped.
 // Returns nil if there is no compressed snapshot for the event yet.
-// This bypasses memcache.
 func getLatestCompressedSnapshot(ctx context.Context, eventKey *datastore.Key) (*datastore.Key, *compressedEventSnapshot, error) {
-	var css []*compressedEventSnapshot
-	keys, err := datastore.NewQuery(compressedEventSnapshotKind).Ancestor(eventKey).Order("-Timestamps").Limit(1).GetAll(ctx, &css)
+	keys, err := datastore.NewQuery(compressedEventSnapshotKind).Ancestor(eventKey).Order("-Timestamps").Limit(1).KeysOnly().GetAll(ctx, nil)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "datastore query failed")
 	}
@@ -43,7 +43,10 @@ func getLatestCompressedSnapshot(ctx context.Context, eventKey *datastore.Key) (
 	if len(keys) == 0 {
 		return nil, nil, nil
 	}
-	return keys[0], css[0], nil
+
+	var ces compressedEventSnapshot
+	err = nds.Get(ctx, keys[0], &ces)
+	return keys[0], &ces, errors.Wrap(err, "nds.Get failed")
 }
 
 func (c *compressedEventSnapshot) decompress() []*EventSnapshot {
