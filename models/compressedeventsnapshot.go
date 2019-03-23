@@ -7,7 +7,6 @@ import (
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
 )
 
 type compressedEventSnapshot struct {
@@ -32,21 +31,18 @@ func getCompressedSnapshots(ctx context.Context, eventKey *datastore.Key) ([]*co
 	return css, errors.Wrap(err, "nds.GetMulti failed")
 }
 
-// Errors wrapped.
 // Returns nil if there is no compressed snapshot for the event yet.
-func getLatestCompressedSnapshot(ctx context.Context, eventKey *datastore.Key) (*datastore.Key, *compressedEventSnapshot, error) {
+// Errors wrapped.
+func getLatestCompressedSnapshotKey(ctx context.Context, eventKey *datastore.Key) (*datastore.Key, error) {
 	keys, err := datastore.NewQuery(compressedEventSnapshotKind).Ancestor(eventKey).Order("-Timestamps").Limit(1).KeysOnly().GetAll(ctx, nil)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "datastore query failed")
+		return nil, errors.Wrap(err, "datastore query failed")
 	}
 
 	if len(keys) == 0 {
-		return nil, nil, nil
+		return nil, nil
 	}
-
-	var ces compressedEventSnapshot
-	err = nds.Get(ctx, keys[0], &ces)
-	return keys[0], &ces, errors.Wrap(err, "nds.Get failed")
+	return keys[0], nil
 }
 
 func (c *compressedEventSnapshot) decompress() []*EventSnapshot {
@@ -100,36 +96,11 @@ func newCESFromEvent(ctx context.Context, oe, ne *Event, eventKey *datastore.Key
 	return datastore.NewIncompleteKey(ctx, compressedEventSnapshotKind, eventKey), ces
 }
 
-// Get key and CES which should then be Put into the datastore.
+// If we should append to the last CES, returns its Key. Otherwise returns nil.
 // Errors wrapped.
-func createOrUpdateCES(ctx context.Context, oe, ne *Event, eventKey *datastore.Key) (*datastore.Key, *compressedEventSnapshot, error) {
-	var key *datastore.Key
-	var ces *compressedEventSnapshot
-
+func maybeGetCESKeyToAppend(ctx context.Context, oe, ne *Event, eventKey *datastore.Key) (*datastore.Key, error) {
 	if !shouldCreateNewCES(oe, ne) {
-		var err error
-		key, ces, err = getLatestCompressedSnapshot(ctx, eventKey)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		if ces.isConsistent(ne) {
-			ces.Timestamps = append(ces.Timestamps, ne.LastUpdateTime)
-			log.Debugf(ctx, "Appending to CES %+v for event %s (%d -> %d)", key, ne.debugName(), oe.LastNoteCount, ne.LastNoteCount)
-		} else {
-			key, ces = nil, nil
-			log.Criticalf(ctx, "Inconsistent CES %+v detected!", key)
-		}
+		return getLatestCompressedSnapshotKey(ctx, eventKey)
 	}
-
-	if key == nil {
-		key, ces = newCESFromEvent(ctx, oe, ne, eventKey)
-
-		lastNoteCount := 0
-		if oe != nil {
-			lastNoteCount = oe.LastNoteCount
-		}
-		log.Debugf(ctx, "Creating new CES for event %s (%d -> %d)", ne.debugName(), lastNoteCount, ne.LastNoteCount)
-	}
-	return key, ces, nil
+	return nil, nil
 }

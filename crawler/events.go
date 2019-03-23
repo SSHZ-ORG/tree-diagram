@@ -175,7 +175,7 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 		}
 	}
 
-	if err := models.InsertOrUpdateEvents(ctx, es, ts); err != nil {
+	if err := models.InsertOrUpdateEvents(ctx, es); err != nil {
 		return 0, err
 	}
 

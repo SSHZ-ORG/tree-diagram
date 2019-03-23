@@ -12,6 +12,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
 )
 
 type Event struct {
@@ -71,7 +72,7 @@ func getEventKey(ctx context.Context, id string) *datastore.Key {
 
 // Insert or update events. This automatically takes snapshots if needed.
 // Errors wrapped.
-func InsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.Time) error {
+func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 	var batches [][]*Event
 	for maxEntitiesPerXGTransaction < len(events) {
 		events, batches = events[maxEntitiesPerXGTransaction:], append(batches, events[0:maxEntitiesPerXGTransaction:maxEntitiesPerXGTransaction])
@@ -79,7 +80,7 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.Time) er
 	batches = append(batches, events)
 
 	for _, es := range batches {
-		if err := internalInsertOrUpdateEvents(ctx, es, ts); err != nil {
+		if err := internalInsertOrUpdateEvents(ctx, es); err != nil {
 			return err
 		}
 	}
@@ -89,18 +90,18 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.Time) er
 // Insert or update at most 25 events because of Transaction XG restriction.
 // We can remove the restriction after we are migrated to Firestore.
 // Errors wrapped.
-func internalInsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.Time) error {
+func internalInsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 	if len(events) == 0 {
 		return nil
 	}
 
-	var keys []*datastore.Key
+	var eventKeys []*datastore.Key
 	for _, e := range events {
-		keys = append(keys, getEventKey(ctx, e.ID))
+		eventKeys = append(eventKeys, getEventKey(ctx, e.ID))
 	}
 
 	oes := make([]*Event, len(events))
-	err := nds.GetMulti(ctx, keys, oes)
+	err := nds.GetMulti(ctx, eventKeys, oes)
 	if err != nil {
 		if me, ok := err.(appengine.MultiError); ok {
 			for _, e := range me {
@@ -118,29 +119,74 @@ func internalInsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.
 		var keysToInsert []*datastore.Key
 		var eventsToInsert []*Event
 
-		var cesKeys []*datastore.Key
-		var cess []*compressedEventSnapshot
+		var cesKeysToInsert []*datastore.Key
+		var cessToInsert []*compressedEventSnapshot
+
+		var cesKeysToAppend []*datastore.Key
+		cesToAppendIndexes := make(map[int]int) // Map from index in events -> index in cesKeysToAppend
 
 		for i, e := range events {
 			if !e.Equal(oes[i]) {
-				e.LastUpdateTime = ts
-				keysToInsert = append(keysToInsert, keys[i])
+				// Need to update the event itself.
+				keysToInsert = append(keysToInsert, eventKeys[i])
 				eventsToInsert = append(eventsToInsert, e)
 			}
 
-			// Everything already compressed. Use new logic.
-			cesKey, ces, err := createOrUpdateCES(ctx, oes[i], e, keys[i])
+			cesKey, err := maybeGetCESKeyToAppend(ctx, oes[i], e, eventKeys[i])
 			if err != nil {
 				return err
 			}
-			cesKeys = append(cesKeys, cesKey)
-			cess = append(cess, ces)
+
+			if cesKey != nil {
+				// We should append to an existing CES. Prepare to fetch it.
+				cesKeysToAppend = append(cesKeysToAppend, cesKey)
+				cesToAppendIndexes[i] = len(cesKeysToAppend) - 1
+			}
+		}
+
+		cessToAppend := make([]*compressedEventSnapshot, len(cesKeysToAppend))
+		if err := nds.GetMulti(ctx, cesKeysToAppend, cessToAppend); err != nil {
+			return errors.Wrap(err, "nds.GetMulti failed")
+		}
+
+		for i, e := range events {
+			var cesKey *datastore.Key
+			var ces *compressedEventSnapshot
+
+			if idx, ok := cesToAppendIndexes[i]; ok {
+				// We should append to an existing CES.
+				cesKey, ces = cesKeysToAppend[idx], cessToAppend[idx]
+
+				if ces.isConsistent(e) {
+					// Good. Let's append.
+					ces.Timestamps = append(ces.Timestamps, e.LastUpdateTime)
+					log.Debugf(ctx, "Appending to CES %+v for event %s (%d -> %d)", cesKey, e.debugName(), oes[i].LastNoteCount, e.LastNoteCount)
+				} else {
+					// Something is wrong. Shout out and create new CES.
+					cesKey, ces = nil, nil
+					log.Criticalf(ctx, "Inconsistent CES %+v for event %s detected!", cesKey, e.debugName())
+				}
+			}
+
+			if cesKey == nil {
+				// Either maybeGetCESKeyToAppend thinks we should create new one, or the last CES is inconsistent.
+				cesKey, ces = newCESFromEvent(ctx, oes[i], e, eventKeys[i])
+
+				lastNoteCount := 0
+				if oes[i] != nil {
+					lastNoteCount = oes[i].LastNoteCount
+				}
+				log.Debugf(ctx, "Creating new CES for event %s (%d -> %d)", e.debugName(), lastNoteCount, e.LastNoteCount)
+			}
+
+			cesKeysToInsert = append(cesKeysToInsert, cesKey)
+			cessToInsert = append(cessToInsert, ces)
 		}
 
 		if _, err := nds.PutMulti(ctx, keysToInsert, eventsToInsert); err != nil {
 			return errors.Wrap(err, "nds.PutMulti failed")
 		}
-		if _, err := nds.PutMulti(ctx, cesKeys, cess); err != nil {
+		if _, err := nds.PutMulti(ctx, cesKeysToInsert, cessToInsert); err != nil {
 			return errors.Wrap(err, "nds.PutMulti failed")
 		}
 
@@ -149,6 +195,7 @@ func internalInsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.
 
 }
 
+// This ignores LastUpdateTime
 func (e *Event) Equal(o *Event) bool {
 	if e != nil && o != nil {
 		if e.ID != o.ID || e.Name != o.Name || e.Date != o.Date || e.Finished != o.Finished {
