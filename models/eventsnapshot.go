@@ -3,9 +3,6 @@ package models
 import (
 	"time"
 
-	"github.com/pkg/errors"
-	"github.com/qedus/nds"
-	"github.com/scylladb/go-set/strset"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
@@ -22,39 +19,12 @@ type EventSnapshot struct {
 	Actors []*datastore.Key `datastore:",noindex" json:"-"`
 }
 
-const eventSnapshotKind = "EventSnapshot"
-
-func createEventSnapshot(ctx context.Context, ek *datastore.Key, oe, ne *Event, ts time.Time) (*datastore.Key, *EventSnapshot) {
-	s := &EventSnapshot{
-		EventID:   ne.ID,
-		Timestamp: ts,
-		NoteCount: ne.LastNoteCount,
-	}
-
-	if oe == nil {
-		oe = &Event{}
-	}
-
-	if !areKeysSetsEqual(oe.Actors, ne.Actors) {
-		s.Actors = ne.Actors
-	}
-
-	log.Debugf(ctx, "Taking snapshot for event %s (%d -> %d)", ne.debugName(), oe.LastNoteCount, ne.LastNoteCount)
-	return datastore.NewIncompleteKey(ctx, eventSnapshotKind, ek), s
-}
-
-// Returns all snapshots, including uncompressed ones and decompressed compressed ones.
-// The bool returned is whether there are uncompressed snapshots.
+// Returns all snapshots, decompressed from CES.
 // Errors wrapped.
-func getSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*EventSnapshot, bool, error) {
+func getSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*EventSnapshot, error) {
 	cess, err := getCompressedSnapshots(ctx, eventKey)
 	if err != nil {
-		return nil, false, err
-	}
-
-	_, ss, err := getNonCompressedSnapshotsForEvent(ctx, eventKey)
-	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	var merged []*EventSnapshot
@@ -63,42 +33,5 @@ func getSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*Even
 	}
 	log.Debugf(ctx, "CompressedEventSnapshot: %d/%d (%.2f%%)", len(cess), len(merged), float64(len(cess))/float64(len(merged))*100)
 
-	merged = append(merged, ss...)
-	return merged, len(ss) > 0, nil
-}
-
-// Errors wrapped.
-func getNonCompressedSnapshotsForEvent(ctx context.Context, eventKey *datastore.Key) ([]*datastore.Key, []*EventSnapshot, error) {
-	keys, err := datastore.NewQuery(eventSnapshotKind).Ancestor(eventKey).Order("Timestamp").KeysOnly().GetAll(ctx, nil)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "datastore query failed")
-	}
-
-	es := make([]*EventSnapshot, len(keys))
-	err = nds.GetMulti(ctx, keys, es)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "nds.GetMulti failed")
-	}
-
-	return keys, es, nil
-}
-
-// Errors wrapped.
-func countNonCompressedSnapshots(ctx context.Context, eventKey *datastore.Key) (int, error) {
-	count, err := datastore.NewQuery(eventSnapshotKind).Ancestor(eventKey).Count(ctx)
-	return count, errors.Wrap(err, "datastore query failed")
-}
-
-// Errors wrapped.
-func GetSomeEventIDsWithNonCompressedSnapshots(ctx context.Context) ([]string, error) {
-	keys, err := datastore.NewQuery(eventSnapshotKind).Order("Timestamp").KeysOnly().Limit(100).GetAll(ctx, nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "datastore query failed")
-	}
-
-	set := strset.New()
-	for _, k := range keys {
-		set.Add(k.Parent().StringID())
-	}
-	return set.List(), nil
+	return merged, nil
 }

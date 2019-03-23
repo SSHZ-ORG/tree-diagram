@@ -118,9 +118,6 @@ func internalInsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.
 		var keysToInsert []*datastore.Key
 		var eventsToInsert []*Event
 
-		var snapshotKeys []*datastore.Key
-		var snapshots []*EventSnapshot
-
 		var cesKeys []*datastore.Key
 		var cess []*compressedEventSnapshot
 
@@ -131,33 +128,16 @@ func internalInsertOrUpdateEvents(ctx context.Context, events []*Event, ts time.
 				eventsToInsert = append(eventsToInsert, e)
 			}
 
-			c, err := countNonCompressedSnapshots(ctx, keys[i])
+			// Everything already compressed. Use new logic.
+			cesKey, ces, err := createOrUpdateCES(ctx, oes[i], e, keys[i])
 			if err != nil {
 				return err
 			}
-
-			if c == 0 {
-				// Everything already compressed. Use new logic.
-				cesKey, ces, err := createOrUpdateCES(ctx, oes[i], e, keys[i])
-				if err != nil {
-					return err
-				}
-				cesKeys = append(cesKeys, cesKey)
-				cess = append(cess, ces)
-			} else {
-				// Use old logic.
-				sk, s := createEventSnapshot(ctx, keys[i], oes[i], e, ts)
-				if sk != nil {
-					snapshotKeys = append(snapshotKeys, sk)
-					snapshots = append(snapshots, s)
-				}
-			}
+			cesKeys = append(cesKeys, cesKey)
+			cess = append(cess, ces)
 		}
 
 		if _, err := nds.PutMulti(ctx, keysToInsert, eventsToInsert); err != nil {
-			return errors.Wrap(err, "nds.PutMulti failed")
-		}
-		if _, err := nds.PutMulti(ctx, snapshotKeys, snapshots); err != nil {
 			return errors.Wrap(err, "nds.PutMulti failed")
 		}
 		if _, err := nds.PutMulti(ctx, cesKeys, cess); err != nil {
@@ -259,9 +239,8 @@ type RenderEventResponse struct {
 	PlaceStatsFinished PlaceNoteCountStats `json:"placeStatsFinished"`
 }
 
-// The bool returned is whether we see uncompressed snapshots when rendering.
 // Errors wrapped.
-func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEventResponse, bool, error) {
+func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEventResponse, error) {
 	key := getEventKey(ctx, eventID)
 
 	response := &RenderEventResponse{
@@ -271,9 +250,9 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 	e := &Event{}
 	if err := nds.Get(ctx, key, e); err != nil {
 		if err == datastore.ErrNoSuchEntity {
-			return response, false, nil // Don't care if we don't know about the event yet.
+			return response, nil // Don't care if we don't know about the event yet.
 		}
-		return nil, false, errors.Wrap(err, "nds.Get failed")
+		return nil, errors.Wrap(err, "nds.Get failed")
 	}
 	response.Date = civil.DateOf(e.Date).String()
 
@@ -308,9 +287,9 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 		}
 	}()
 
-	snapshots, hasUncompressed, err := getSnapshotsForEvent(ctx, key)
+	snapshots, err := getSnapshotsForEvent(ctx, key)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	akSet := strset.New()
@@ -329,7 +308,7 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 	actorNames := make(map[string]string)
 	actors, err := getActors(ctx, aks)
 	if err != nil {
-		return response, false, err
+		return response, err
 	}
 	for i, a := range actors {
 		actorNames[aks[i].Encode()] = a.Name
@@ -366,11 +345,11 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 
 	wg.Wait()
 	if errTotal != nil {
-		return nil, false, errTotal
+		return nil, errTotal
 	}
 	if errFinished != nil {
-		return nil, false, errFinished
+		return nil, errFinished
 	}
 
-	return response, hasUncompressed, nil
+	return response, nil
 }

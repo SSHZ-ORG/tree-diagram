@@ -6,8 +6,7 @@ const (
 	APIRenderActorPath = "/api/renderActor"
 	APIQueryEventsPath = "/api/queryEvents"
 
-	CommandEnqueueDateRangePath   = "/admin/command/enqueueDateRange"
-	CommandCompressEventSnapshots = "/admin/command/compressEventSnapshots"
+	CommandEnqueueDateRangePath = "/admin/command/enqueueDateRange"
 
 	CrawlDatePath  = "/admin/crawl/date"
 	CrawlActorPath = "/admin/crawl/actor"
@@ -18,6 +17,4 @@ const (
 	CronCleanupPath    = "/admin/cron/cleanup"
 	CronDailyActorPath = "/admin/cron/dailyActor"
 	CronExportPath     = "/admin/cron/export"
-
-	CommandBackfill = "/admin/command/backfill"
 )
