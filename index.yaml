@@ -21,11 +21,6 @@ indexes:
     ancestor: yes
     properties:
       - name: Timestamps
-
-  - kind: CompressedEventSnapshot
-    ancestor: yes
-    properties:
-      - name: Timestamps
         direction: desc
 
   - kind: Event

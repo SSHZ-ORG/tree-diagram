@@ -22,9 +22,15 @@ const compressedEventSnapshotKind = "CompressedEventSnapshot"
 // Errors wrapped.
 // This bypasses memcache.
 func getCompressedSnapshots(ctx context.Context, eventKey *datastore.Key) ([]*compressedEventSnapshot, error) {
-	keys, err := datastore.NewQuery(compressedEventSnapshotKind).Ancestor(eventKey).Order("Timestamps").KeysOnly().GetAll(ctx, nil)
+	keys, err := datastore.NewQuery(compressedEventSnapshotKind).Ancestor(eventKey).Order("-Timestamps").KeysOnly().GetAll(ctx, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "datastore query failed")
+	}
+
+	// We query with ORDER BY Timestamps DESC. Reverse it back.
+	// Note that this field is repeated so it works only if all CES time ranges are consecutive.
+	for left, right := 0, len(keys)-1; left < right; left, right = left+1, right-1 {
+		keys[left], keys[right] = keys[right], keys[left]
 	}
 
 	css := make([]*compressedEventSnapshot, len(keys))
