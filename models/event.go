@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/civil"
+	"github.com/SSHZ-ORG/tree-diagram/models/cache"
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"github.com/scylladb/go-set/strset"
@@ -206,11 +207,13 @@ func internalInsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 		if _, err := nds.PutMulti(ctx, keysToInsert, eventsToInsert); err != nil {
 			return errors.Wrap(err, "nds.PutMulti failed")
 		}
-		if _, err := nds.PutMulti(ctx, cesKeysToInsert, cessToInsert); err != nil {
+
+		insertedCESKeys, err := nds.PutMulti(ctx, cesKeysToInsert, cessToInsert)
+		if err != nil {
 			return errors.Wrap(err, "nds.PutMulti failed")
 		}
 
-		return nil
+		return cache.UpdateLastCESKeys(ctx, insertedCESKeys)
 	}, &datastore.TransactionOptions{XG: true})
 
 }

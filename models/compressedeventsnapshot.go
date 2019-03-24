@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/SSHZ-ORG/tree-diagram/models/cache"
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
@@ -32,8 +33,13 @@ func getCompressedSnapshots(ctx context.Context, eventKey *datastore.Key) ([]*co
 }
 
 // Returns nil if there is no compressed snapshot for the event yet.
+// This is prone to race condition. Do not multi process the same events at the same time.
 // Errors wrapped.
 func getLatestCompressedSnapshotKey(ctx context.Context, eventKey *datastore.Key) (*datastore.Key, error) {
+	if maybeCESKey := cache.GetLastCESKey(ctx, eventKey); maybeCESKey != nil {
+		return maybeCESKey, nil
+	}
+
 	keys, err := datastore.NewQuery(compressedEventSnapshotKind).Ancestor(eventKey).Order("-Timestamps").Limit(1).KeysOnly().GetAll(ctx, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "datastore query failed")
