@@ -141,7 +141,7 @@ func queryEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var fes []models.FrontendEvent
+	fes := make([]models.FrontendEvent, 0)
 	for _, e := range events {
 		fes = append(fes, e.ToFrontendEvent())
 	}

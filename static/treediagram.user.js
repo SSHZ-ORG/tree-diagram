@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.9.3
+// @version      0.1.10.1
 // @description  Make Eventernote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -86,7 +86,7 @@
 
             data.snapshots.forEach(function (snapshot) {
                 if (snapshot.addedActors.length > 0 || snapshot.removedActors.length > 0) {
-                    var label = '';
+                    let label = '';
                     if (snapshot.addedActors.length > 0) {
                         label += '+';
                     }
@@ -177,7 +177,7 @@
         });
     }
 
-    function createEventList(argString, totalCount, domToAppend) {
+    function createEventList(argString, totalCount, domToAppend, autoLoadFirstPage) {
         let loadedCount = 0;
 
         const eventListDom = htmlToElement(`
@@ -186,7 +186,7 @@
                     <tbody id="td_event_list_tbody"></tbody>
                 </table>
                 <button class="btn btn-block" type="button" id="td_event_list_load_more_button" disabled>
-                    Load More (<span id="td_event_list_loaded_indicator">0</span> / ${totalCount})
+                    Load More (<span id="td_event_list_loaded_indicator">0</span> / ${totalCount || 'Unknown'})
                 </button>
             </div>`);
         domToAppend.appendChild(eventListDom);
@@ -196,7 +196,7 @@
         const loadedIndicatorDom = document.getElementById('td_event_list_loaded_indicator');
 
         function loadMore() {
-            if (loadedCount >= totalCount) {
+            if (totalCount && loadedCount >= totalCount) {
                 return;
             }
 
@@ -209,7 +209,7 @@
                     <tr>
                         <td>${loadedCount + 1}</td>
                         <td nowrap>${e.date}</td>
-                        <td><a href="/events/${e.id}">${e.name}</a></td>
+                        <td><a href="/events/${e.id}" target="_blank">${e.name}</a></td>
                         <td>${e.lastNoteCount}</td>
                     </tr>`);
 
@@ -223,15 +223,19 @@
 
                 loadedIndicatorDom.innerText = loadedCount.toString();
 
-                if (loadedCount < totalCount) {
+                if ((!totalCount) || loadedCount < totalCount) {
                     loadMoreButtonDom.disabled = false;
                 }
             });
         }
 
         loadMoreButtonDom.addEventListener('click', loadMore);
-        if (totalCount > 0) {
+        if ((!totalCount) || totalCount > 0) {
             loadMoreButtonDom.disabled = false;
+        }
+
+        if (autoLoadFirstPage) {
+            loadMore();
         }
     }
 
@@ -248,7 +252,7 @@
         fetch(`${serverBaseAddress}/api/renderPlace?id=${placeId}`).then(function (response) {
             return response.json();
         }).then(function (data) {
-            createEventList(`place=${placeId}`, data.knownEventCount, tdDom);
+            createEventList(`place=${placeId}`, data.knownEventCount, tdDom, false);
         });
     }
 
@@ -265,11 +269,120 @@
         fetch(`${serverBaseAddress}/api/renderActor?id=${actorId}`).then(function (response) {
             return response.json();
         }).then(function (data) {
-            createEventList(`actor=${actorId}`, data.knownEventCount, tdDom);
+            createEventList(`actor=${actorId}`, data.knownEventCount, tdDom, false);
         });
     }
 
+    function treeDiagramPage() {
+        const tdDom = htmlToElement(`
+            <div class="container">
+                <div class="row">
+                    <div class="page span8">
+                        <div class="page-header">${header}</div>
+                        <div>
+                            <h2>Advanced Event Search</h2>
+                            <div class="gb_form">
+                            <table class="table table-bordered table-striped">
+                            <tbody>
+                            <tr>
+                                <td class="span2">Actors</td>
+                                <td>
+                                    <div id="td_selected_actors"></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td>
+                                    <input type="text" id="td_search_actor_input" placeholder="Search actors..." />
+                                    <div id="td_search_actor_result"></div>
+                                </td>
+                            </tr>
+                            </tbody>
+                            </table>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-block btn-primary" type="button" id="td_run_query">Query</button>
+                            </div>
+                            <div id="td_event_list_container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>`);
+        document.getElementsByClassName('gb_ad_footer')[0].previousElementSibling.replaceWith(tdDom);
+
+        const selectedActors = [];
+        const selectedActorsDom = document.getElementById('td_selected_actors');
+        const searchActorResultDom = document.getElementById('td_search_actor_result');
+        const eventListContainerDom = document.getElementById('td_event_list_container');
+
+        const inputDom = document.getElementById('td_search_actor_input');
+        inputDom.addEventListener('keyup', () => {
+            searchActor(inputDom.value);
+        });
+
+        document.getElementById('td_run_query').addEventListener('click', runQuery);
+
+        function addActor(id, name) {
+            if (selectedActors.some(i => i === id)) return;
+            selectedActors.push(id);
+
+            const buttonDom = htmlToElement(`
+                <button class="btn" type="button"><i class="icon-minus"></i> ${name}</button>`);
+            selectedActorsDom.appendChild(buttonDom);
+
+            buttonDom.addEventListener('click', () => {
+                removeActor(id, buttonDom);
+            });
+        }
+
+        function removeActor(id, liDom) {
+            const index = selectedActors.indexOf(id);
+            if (index > -1) {
+                selectedActors.splice(index, 1);
+                liDom.remove();
+            }
+        }
+
+        function searchActor(keyword) {
+            if (!keyword) return;
+            fetch(`/api/actors/search?&simple=1&limit=20&keyword=${keyword}`)
+                .then(response => response.json())
+                .then(data => {
+                    while (searchActorResultDom.firstChild) {
+                        searchActorResultDom.removeChild(searchActorResultDom.firstChild);
+                    }
+                    if (data.results) {
+                        data.results.forEach(item => {
+                            const itemDom = htmlToElement(`
+                                <button class="btn" type="button"><i class="icon-plus"></i> ${item.name}</button>`);
+                            itemDom.addEventListener('click', () => {
+                                addActor(item.id, item.name);
+                            });
+                            searchActorResultDom.appendChild(itemDom);
+                        });
+                    }
+                });
+        }
+
+        function runQuery() {
+            if (eventListContainerDom.firstChild) {
+                eventListContainerDom.removeChild(eventListContainerDom.firstChild);
+            }
+            createEventList(selectedActors.map(i => `actor=${i}`).join('&'), undefined, eventListContainerDom, true);
+        }
+    }
+
+    function addTreeDiagramPageLink() {
+        const liDom = htmlToElement(`<li><a href="#">TreeDiagram</a></li>`);
+        liDom.addEventListener('click', () => {
+            treeDiagramPage();
+        });
+        document.getElementsByClassName('nav')[0].appendChild(liDom);
+    }
+
     function main() {
+        addTreeDiagramPageLink();
+
         const url = document.URL;
 
         const eventPageRegex = /https:\/\/www.eventernote.com\/events\/(\d+)/g;
