@@ -5,6 +5,7 @@ package cache
 import (
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
+	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/memcache"
@@ -38,7 +39,32 @@ func GetLastCESKey(ctx context.Context, eventKey *datastore.Key) *datastore.Key 
 }
 
 // Errors wrapped.
-func UpdateLastCESKeys(ctx context.Context, keys []*datastore.Key) error {
+func ClearLastCESKeys(ctx context.Context, eventKeys []*datastore.Key) error {
+	var keys []string
+	for _, k := range eventKeys {
+		if k.Kind() != "Event" { // TODO: don't hardcode this
+			log.Criticalf(ctx, "Illegal event Key %+v", k)
+			continue
+		}
+		keys = append(keys, lastCESKey(k.StringID()))
+	}
+	err := memcache.DeleteMulti(ctx, keys)
+
+	if me, ok := err.(appengine.MultiError); ok {
+		for _, e := range me {
+			if e != nil && e != memcache.ErrCacheMiss {
+				// Something else happened. Rethrow it.
+				return errors.Wrap(err, "memcache.DeleteMulti returned error other than CacheMiss")
+			}
+		}
+		return nil
+	}
+
+	return errors.Wrap(err, "memcache.DeleteMulti returned error that is not a MultiError")
+}
+
+// Errors will just be logged.
+func SetLastCESKeys(ctx context.Context, keys []*datastore.Key) {
 	var items []*memcache.Item
 	for _, k := range keys {
 		if k.Parent().Kind() != "Event" { // TODO: don't hardcode this
@@ -50,5 +76,8 @@ func UpdateLastCESKeys(ctx context.Context, keys []*datastore.Key) error {
 			Value: []byte(k.Encode()),
 		})
 	}
-	return errors.Wrap(memcache.SetMulti(ctx, items), "memcache.SetMulti failed")
+
+	if err := memcache.SetMulti(ctx, items); err != nil {
+		log.Warningf(ctx, "memcache failed when setting last CES Keys: %+v", err)
+	}
 }
