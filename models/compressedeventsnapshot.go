@@ -77,7 +77,7 @@ func (c *compressedEventSnapshot) isConsistent(e *Event) bool {
 	if c.NoteCount != e.LastNoteCount {
 		return false
 	}
-	if len(c.Actors) > 0 && !areKeysSetsEqual(c.Actors, e.Actors) {
+	if len(c.Actors) > 0 && len(e.Actors) > 0 && !areKeysSetsEqual(c.Actors, e.Actors) {
 		return false
 	}
 	return true
