@@ -136,7 +136,9 @@ func internalInsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 		}
 	}
 
-	return datastore.RunInTransaction(ctx, func(ctx context.Context) error {
+	var insertedCESKeys []*datastore.Key
+
+	err = nds.RunInTransaction(ctx, func(ctx context.Context) error {
 		var keysToInsert []*datastore.Key
 		var eventsToInsert []*Event
 
@@ -212,15 +214,20 @@ func internalInsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 			return errors.Wrap(err, "nds.PutMulti failed")
 		}
 
-		insertedCESKeys, err := nds.PutMulti(ctx, cesKeysToInsert, cessToInsert)
+		insertedCESKeys, err = nds.PutMulti(ctx, cesKeysToInsert, cessToInsert)
 		if err != nil {
 			return errors.Wrap(err, "nds.PutMulti failed")
 		}
 
-		cache.SetLastCESKeys(ctx, insertedCESKeys)
 		return nil
 	}, &datastore.TransactionOptions{XG: true})
 
+	if err != nil {
+		return err
+	}
+
+	cache.SetLastCESKeys(ctx, insertedCESKeys)
+	return nil
 }
 
 // This ignores LastUpdateTime
