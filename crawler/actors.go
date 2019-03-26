@@ -18,7 +18,7 @@ import (
 const (
 	actorPageSize = 500
 
-	actorSearchAPITemplate = "https://www.eventernote.com/api/actors/search?limit=%d&offset=%d"
+	actorSearchAPITemplate = "https://www.eventernote.com/api/actors/search?limit=%d&offset=%d&simple=1"
 )
 
 // Crawls one page at the given offset. offset is 1-index.
