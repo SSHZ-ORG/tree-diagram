@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.10.1
+// @version      0.1.10.2
 // @description  Make Eventernote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -41,7 +41,7 @@
                 </div>
             </div>`);
 
-        const entryAreaDom = document.getElementById('entry_area');
+        const entryAreaDom = document.getElementById('entry_area') || document.getElementsByClassName('mod_events_detail')[0];
         entryAreaDom.parentNode.insertBefore(tdDom, entryAreaDom.nextSibling);
 
         fetch(`${serverBaseAddress}/api/renderEvent?id=${eventId}`).then(function (response) {
@@ -246,7 +246,7 @@
                 <h3>Top Event List</h3>
             </div>`);
 
-        const placeDetailsTableDom = document.getElementsByClassName('gb_place_detail_table')[0];
+        const placeDetailsTableDom = document.getElementsByClassName('gb_place_detail_table')[0] || document.getElementsByClassName('mod_places_detail')[0];
         placeDetailsTableDom.parentNode.insertBefore(tdDom, placeDetailsTableDom.nextSibling);
 
         fetch(`${serverBaseAddress}/api/renderPlace?id=${placeId}`).then(function (response) {
@@ -263,7 +263,7 @@
                 <h3>Top Event List</h3>
             </div>`);
 
-        const actorTitleDom = document.getElementsByClassName('gb_actors_title')[0];
+        const actorTitleDom = document.getElementsByClassName('gb_actors_title')[0] || document.getElementsByClassName('gb_blur_title')[0];
         actorTitleDom.parentNode.insertBefore(tdDom, actorTitleDom.nextSibling);
 
         fetch(`${serverBaseAddress}/api/renderActor?id=${actorId}`).then(function (response) {
@@ -308,7 +308,8 @@
                     </div>
                 </div>
             </div>`);
-        document.getElementsByClassName('gb_ad_footer')[0].previousElementSibling.replaceWith(tdDom);
+        const contentDom = document.getElementsByClassName('gb_ad_footer').length > 0 ? document.getElementsByClassName('gb_ad_footer')[0].previousElementSibling : document.getElementById('container');
+        contentDom.replaceWith(tdDom);
 
         const selectedActors = [];
         const selectedActorsDom = document.getElementById('td_selected_actors');
@@ -377,7 +378,9 @@
         liDom.addEventListener('click', () => {
             treeDiagramPage();
         });
-        document.getElementsByClassName('nav')[0].appendChild(liDom);
+
+        const nav = document.getElementsByClassName('nav')[0] || document.getElementsByClassName('grid')[0].firstElementChild;
+        nav.appendChild(liDom);
     }
 
     function main() {
