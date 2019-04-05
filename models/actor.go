@@ -166,20 +166,31 @@ func UpdateActors(ctx context.Context, oas, nas []*Actor) error {
 }
 
 type RenderActorResponse struct {
-	KnownEventCount int `json:"knownEventCount"`
+	KnownEventCount int                      `json:"knownEventCount"`
+	Snapshots       []*FrontendActorSnapshot `json:"snapshots"`
 }
 
 // Errors wrapped.
 func PrepareRenderActorResponse(ctx context.Context, actorID string) (*RenderActorResponse, error) {
 	key := getActorKey(ctx, actorID)
 
-	response := &RenderActorResponse{}
+	response := &RenderActorResponse{
+		Snapshots: make([]*FrontendActorSnapshot, 0),
+	}
 
 	kec, err := datastore.NewQuery(eventKind).KeysOnly().Filter("Actors =", key).Count(ctx)
 	if err != nil {
 		return response, errors.Wrap(err, "Counting events failed")
 	}
 	response.KnownEventCount = kec
+
+	snapshots, err := getFrontendSnapshotsForActor(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	if len(snapshots) > 0 {
+		response.Snapshots = snapshots
+	}
 
 	return response, nil
 }
