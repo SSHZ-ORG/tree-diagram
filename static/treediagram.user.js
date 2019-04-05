@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.10.2
+// @version      0.1.11
 // @description  Make Eventernote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -264,10 +264,89 @@
         const actorTitleDom = document.getElementsByClassName('gb_actors_title')[0] || document.getElementsByClassName('gb_blur_title')[0];
         actorTitleDom.parentNode.insertBefore(tdDom, actorTitleDom.nextSibling);
 
+        const graphDom = htmlToElement(`
+            <div>
+                <canvas id="td_chart"></canvas>
+                <button class="btn btn-block" type="button" id="td_chart_reset">
+                    Reset Zoom
+                </button>
+            </div>`);
+        const favoriteUsersDom = document.getElementsByClassName('gb_users_icon')[0] || document.getElementsByClassName('gb_listusericon')[0];
+        favoriteUsersDom.parentNode.insertBefore(graphDom, favoriteUsersDom);
+
         fetch(`${serverBaseAddress}/api/renderActor?id=${actorId}`)
             .then(response => response.json())
             .then(data => {
                 createEventList(`actor=${actorId}`, data.knownEventCount, tdDom, false);
+
+                const ctx = document.getElementById("td_chart");
+
+                const dataPoints = [];
+                data.snapshots.forEach(snapshot => {
+                    const date = new Date(snapshot.date);
+                    date.setUTCHours(-3);  // JST 6am.
+                    if (dataPoints.length > 0) {
+                        // Not the first snapshot. See if we should pin the previous day.
+                        const previousDay = new Date(date);
+                        previousDay.setDate(previousDay.getDate() - 1);
+
+                        const previousPoint = dataPoints[dataPoints.length - 1];
+                        if (previousDay > previousPoint.x) {
+                            dataPoints.push({
+                                x: previousDay,
+                                y: previousPoint.y,
+                            });
+                        }
+                    }
+                    dataPoints.push({
+                        x: date,
+                        y: snapshot.favoriteCount,
+                    });
+                });
+
+                const tdChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'FavoriteCount',
+                            data: dataPoints,
+                            cubicInterpolationMode: 'monotone',
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgb(54, 162, 235)',
+                            borderWidth: 1,
+                            datalabels: {display: false},
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            xAxes: [{
+                                type: 'time',
+                                ticks: {
+                                    maxRotation: 0
+                                }
+                            }]
+                        },
+                        legend: {
+                            display: false
+                        },
+                        annotation: { // As of chartjs-plugin-annotation 0.5.7, it does not support `plugins` property.
+                            annotations: [chartNowAnnotation]
+                        },
+                        plugins: {
+                            zoom: {
+                                zoom: {
+                                    enabled: true,
+                                    drag: true,
+                                    mode: 'x',
+                                },
+                            },
+                        },
+                    },
+                });
+
+                document.getElementById('td_chart_reset').addEventListener('click', () => {
+                    tdChart.resetZoom();
+                });
             });
     }
 
