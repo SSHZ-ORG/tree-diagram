@@ -17,6 +17,16 @@
     const header = '<h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>';
     const serverBaseAddress = 'https://treediagram.sshz.org';
 
+    const chartNowAnnotation = {
+        type: 'line',
+        mode: 'vertical',
+        scaleID: 'x-axis-0',
+        value: new Date(),
+        borderColor: 'rgba(0, 0, 0, 0.2)',
+        borderWidth: 1,
+        borderDash: [2, 2],
+    };
+
     function htmlToElement(html) {
         const template = document.createElement('template');
         html = html.trim();
@@ -44,137 +54,125 @@
         const entryAreaDom = document.getElementById('entry_area') || document.getElementsByClassName('mod_events_detail')[0];
         entryAreaDom.parentNode.insertBefore(tdDom, entryAreaDom.nextSibling);
 
-        fetch(`${serverBaseAddress}/api/renderEvent?id=${eventId}`).then(function (response) {
-            return response.json();
-        }).then(function (data) {
-            const totalStatsSpan = document.getElementById("td_place_stats_total");
-            totalStatsSpan.innerHTML = `${data.placeStatsTotal.rank}/${data.placeStatsTotal.total}`;
-            const finishedStatsSpan = document.getElementById("td_place_stats_finished");
-            finishedStatsSpan.innerHTML = `${data.placeStatsFinished.rank}/${data.placeStatsFinished.total}`;
+        fetch(`${serverBaseAddress}/api/renderEvent?id=${eventId}`)
+            .then(response => response.json())
+            .then(data => {
+                const totalStatsSpan = document.getElementById("td_place_stats_total");
+                totalStatsSpan.innerHTML = `${data.placeStatsTotal.rank}/${data.placeStatsTotal.total}`;
+                const finishedStatsSpan = document.getElementById("td_place_stats_finished");
+                finishedStatsSpan.innerHTML = `${data.placeStatsFinished.rank}/${data.placeStatsFinished.total}`;
 
-            const ctx = document.getElementById("td_chart");
-            const annotations = [{
-                type: 'line',
-                mode: 'vertical',
-                scaleID: 'x-axis-0',
-                value: new Date(),
-                borderColor: 'rgba(0, 0, 0, 0.2)',
-                borderWidth: 1,
-                borderDash: [2, 2],
-            }];
+                const ctx = document.getElementById("td_chart");
+                const annotations = [chartNowAnnotation];
 
-            const liveDate = new Date(data.date);
-            liveDate.setUTCHours(3);  // JST noon.
-            if (data.snapshots.length > 0 && new Date(data.snapshots[0].timestamp) <= liveDate) {
-                annotations.push({
-                    type: 'line',
-                    mode: 'vertical',
-                    scaleID: 'x-axis-0',
-                    value: liveDate,
-                    borderColor: 'rgba(0, 0, 0, 0.2)',
-                    borderWidth: 1,
-                    borderDash: [10, 10],
-                    label: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                        cornerRadius: 0,
-                        position: 'bottom',
-                        enabled: true,
-                        content: "Live!"
+                const liveDate = new Date(data.date);
+                liveDate.setUTCHours(3);  // JST noon.
+                if (data.snapshots.length > 0 && new Date(data.snapshots[0].timestamp) <= liveDate) {
+                    annotations.push({
+                        type: 'line',
+                        mode: 'vertical',
+                        scaleID: 'x-axis-0',
+                        value: liveDate,
+                        borderColor: 'rgba(0, 0, 0, 0.2)',
+                        borderWidth: 1,
+                        borderDash: [10, 10],
+                        label: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                            cornerRadius: 0,
+                            position: 'bottom',
+                            enabled: true,
+                            content: "Live!"
+                        }
+                    });
+                }
+
+                data.snapshots.forEach(snapshot => {
+                    if (snapshot.addedActors.length > 0 || snapshot.removedActors.length > 0) {
+                        let label = '';
+                        if (snapshot.addedActors.length > 0) {
+                            label += '+';
+                        }
+                        if (snapshot.removedActors.length > 0) {
+                            label += '-';
+                        }
+                        snapshot.dataLabel = label;
                     }
                 });
-            }
 
-            data.snapshots.forEach(function (snapshot) {
-                if (snapshot.addedActors.length > 0 || snapshot.removedActors.length > 0) {
-                    let label = '';
-                    if (snapshot.addedActors.length > 0) {
-                        label += '+';
-                    }
-                    if (snapshot.removedActors.length > 0) {
-                        label += '-';
-                    }
-                    snapshot.dataLabel = label;
-                }
-            });
-
-            const tdChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'NoteCount',
-                        data: data.snapshots.map(function (i) {
-                            return {
-                                x: new Date(i.timestamp),
-                                y: i.noteCount,
-                                snapshot: i,
-                            };
-                        }),
-                        cubicInterpolationMode: 'monotone',
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                        borderColor: 'rgb(54, 162, 235)',
-                        borderWidth: 1,
-                        datalabels: {
-                            display: function (context) {
-                                return data.snapshots[context.dataIndex].dataLabel !== undefined;
-                            },
-                            formatter: function (value, context) {
-                                return data.snapshots[context.dataIndex].dataLabel;
-                            },
-                            align: 'top',
-                            backgroundColor: 'rgba(97, 191, 153, 0.5)',
-                            borderRadius: 20,
-                            color: 'white'
-                        }
-                    }]
-                },
-                options: {
-                    scales: {
-                        xAxes: [{
-                            type: 'time',
-                            ticks: {
-                                maxRotation: 0
+                const tdChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'NoteCount',
+                            data: data.snapshots.map(i => {
+                                return {
+                                    x: new Date(i.timestamp),
+                                    y: i.noteCount,
+                                    snapshot: i,
+                                };
+                            }),
+                            cubicInterpolationMode: 'monotone',
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgb(54, 162, 235)',
+                            borderWidth: 1,
+                            datalabels: {
+                                display: context => data.snapshots[context.dataIndex].dataLabel !== undefined,
+                                formatter: (value, context) => data.snapshots[context.dataIndex].dataLabel,
+                                align: 'top',
+                                backgroundColor: 'rgba(97, 191, 153, 0.5)',
+                                borderRadius: 20,
+                                color: 'white'
                             }
                         }]
                     },
-                    legend: {
-                        display: false
-                    },
-                    tooltips: {
-                        callbacks: {
-                            afterLabel: function (tooltipItem, data) {
-                                const snapshot = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].snapshot;
-
-                                let labels = [];
-                                if (snapshot.addedActors.length > 0) {
-                                    labels.push('++: ' + snapshot.addedActors.join(', '));
+                    options: {
+                        scales: {
+                            xAxes: [{
+                                type: 'time',
+                                ticks: {
+                                    maxRotation: 0
                                 }
-                                if (snapshot.removedActors.length > 0) {
-                                    labels.push('--: ' + snapshot.removedActors.join(', '));
-                                }
+                            }]
+                        },
+                        legend: {
+                            display: false
+                        },
+                        tooltips: {
+                            callbacks: {
+                                afterLabel: (tooltipItem, data) => {
+                                    const snapshot = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].snapshot;
 
-                                return labels.join('\n');
+                                    let labels = [];
+                                    if (snapshot.addedActors.length > 0) {
+                                        labels.push('++: ' + snapshot.addedActors.join(', '));
+                                    }
+                                    if (snapshot.removedActors.length > 0) {
+                                        labels.push('--: ' + snapshot.removedActors.join(', '));
+                                    }
+
+                                    return labels.join('\n');
+                                }
                             }
-                        }
-                    },
-                    annotation: { // As of chartjs-plugin-annotation 0.5.7, it does not support `plugins` property.
-                        annotations: annotations
-                    },
-                    plugins: {
-                        zoom: {
+                        },
+                        annotation: { // As of chartjs-plugin-annotation 0.5.7, it does not support `plugins` property.
+                            annotations: annotations
+                        },
+                        plugins: {
                             zoom: {
-                                enabled: true,
-                                drag: true,
-                                mode: 'x',
+                                zoom: {
+                                    enabled: true,
+                                    drag: true,
+                                    mode: 'x',
+                                },
                             },
                         },
                     },
-                },
-            });
+                });
 
-            document.getElementById('td_chart_reset').addEventListener('click', function () {
-                tdChart.resetZoom();
+                document.getElementById('td_chart_reset').addEventListener('click', () => {
+                    tdChart.resetZoom();
+                });
             });
-        });
     }
 
     function createEventList(argString, totalCount, domToAppend, autoLoadFirstPage) {
@@ -201,32 +199,32 @@
             }
 
             loadMoreButtonDom.disabled = true;
-            fetch(`${serverBaseAddress}/api/queryEvents?offset=${loadedCount}&${argString}`).then(function (response) {
-                return response.json();
-            }).then(function (data) {
-                data.forEach(function (e) {
-                    const trDom = htmlToElement(`
-                    <tr>
-                        <td>${loadedCount + 1}</td>
-                        <td nowrap>${e.date}</td>
-                        <td><a href="/events/${e.id}" target="_blank">${e.name}</a></td>
-                        <td>${e.lastNoteCount}</td>
-                    </tr>`);
+            fetch(`${serverBaseAddress}/api/queryEvents?offset=${loadedCount}&${argString}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(e => {
+                        const trDom = htmlToElement(`
+                            <tr>
+                                <td>${loadedCount + 1}</td>
+                                <td nowrap>${e.date}</td>
+                                <td><a href="/events/${e.id}" target="_blank">${e.name}</a></td>
+                                <td>${e.lastNoteCount}</td>
+                            </tr>`);
 
-                    if (!e.finished) {
-                        trDom.classList.add('warning');
+                        if (!e.finished) {
+                            trDom.classList.add('warning');
+                        }
+
+                        tbodyDom.appendChild(trDom);
+                        loadedCount += 1;
+                    });
+
+                    loadedIndicatorDom.innerText = loadedCount.toString();
+
+                    if ((!totalCount) || loadedCount < totalCount) {
+                        loadMoreButtonDom.disabled = false;
                     }
-
-                    tbodyDom.appendChild(trDom);
-                    loadedCount += 1;
                 });
-
-                loadedIndicatorDom.innerText = loadedCount.toString();
-
-                if ((!totalCount) || loadedCount < totalCount) {
-                    loadMoreButtonDom.disabled = false;
-                }
-            });
         }
 
         loadMoreButtonDom.addEventListener('click', loadMore);
@@ -249,11 +247,11 @@
         const placeDetailsTableDom = document.getElementsByClassName('gb_place_detail_table')[0] || document.getElementsByClassName('mod_places_detail')[0];
         placeDetailsTableDom.parentNode.insertBefore(tdDom, placeDetailsTableDom.nextSibling);
 
-        fetch(`${serverBaseAddress}/api/renderPlace?id=${placeId}`).then(function (response) {
-            return response.json();
-        }).then(function (data) {
-            createEventList(`place=${placeId}`, data.knownEventCount, tdDom, false);
-        });
+        fetch(`${serverBaseAddress}/api/renderPlace?id=${placeId}`)
+            .then(response => response.json())
+            .then(data => {
+                createEventList(`place=${placeId}`, data.knownEventCount, tdDom, false);
+            });
     }
 
     function actorPage(actorId) {
@@ -266,11 +264,11 @@
         const actorTitleDom = document.getElementsByClassName('gb_actors_title')[0] || document.getElementsByClassName('gb_blur_title')[0];
         actorTitleDom.parentNode.insertBefore(tdDom, actorTitleDom.nextSibling);
 
-        fetch(`${serverBaseAddress}/api/renderActor?id=${actorId}`).then(function (response) {
-            return response.json();
-        }).then(function (data) {
-            createEventList(`actor=${actorId}`, data.knownEventCount, tdDom, false);
-        });
+        fetch(`${serverBaseAddress}/api/renderActor?id=${actorId}`)
+            .then(response => response.json())
+            .then(data => {
+                createEventList(`actor=${actorId}`, data.knownEventCount, tdDom, false);
+            });
     }
 
     function treeDiagramPage() {
