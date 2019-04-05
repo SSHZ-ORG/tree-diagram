@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/SSHZ-ORG/tree-diagram/apicache"
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
@@ -60,6 +61,7 @@ func CrawlActorOnePage(ctx context.Context, offset int) (int, error) {
 		return 0, err
 	}
 
+	var updatedActorIDs []string
 	var oas, nas []*models.Actor
 	json.Get("results").ForEach(func(key, value gjson.Result) bool {
 		id := strconv.FormatInt(value.Get("id").Int(), 10)
@@ -71,6 +73,7 @@ func CrawlActorOnePage(ctx context.Context, offset int) (int, error) {
 				LastUpdateTime:    ts,
 			}
 			if oa.LastUpdateTime.IsZero() || !oa.Equal(na) {
+				updatedActorIDs = append(updatedActorIDs, id)
 				oas = append(oas, oa)
 				nas = append(nas, na)
 			}
@@ -80,6 +83,10 @@ func CrawlActorOnePage(ctx context.Context, offset int) (int, error) {
 
 	err = models.UpdateActors(ctx, oas, nas)
 	if err != nil {
+		return 0, err
+	}
+
+	if err := apicache.ClearRenderActors(ctx, updatedActorIDs); err != nil {
 		return 0, err
 	}
 

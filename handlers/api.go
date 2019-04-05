@@ -90,6 +90,11 @@ func renderActor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if fromCache := apicache.GetRenderActor(ctx, aid); fromCache != nil {
+		writeEncodedJSON(ctx, w, fromCache)
+		return
+	}
+
 	res, err := models.PrepareRenderActorResponse(ctx, aid)
 	if err != nil {
 		log.Errorf(ctx, "models.PrepareRenderActorResponse: %+v", err)
@@ -97,7 +102,10 @@ func renderActor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(ctx, w, res)
+	if encoded, err := encodeJSON(ctx, w, res); err == nil {
+		apicache.PutRenderActor(ctx, aid, encoded)
+		writeEncodedJSON(ctx, w, encoded)
+	}
 }
 
 func queryEvents(w http.ResponseWriter, r *http.Request) {

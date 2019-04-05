@@ -175,12 +175,20 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 		}
 	}
 
-	if err := models.InsertOrUpdateEvents(ctx, es); err != nil {
+	diffActorIDs, err := models.InsertOrUpdateEvents(ctx, es)
+	if err != nil {
 		return 0, err
 	}
 
 	if err := apicache.ClearRenderEvents(ctx, eIDs); err != nil {
 		return 0, err
+	}
+
+	if !diffActorIDs.IsEmpty() {
+		log.Debugf(ctx, "Clearing renderActor cache for actors %+v", diffActorIDs)
+		if err := apicache.ClearRenderActors(ctx, diffActorIDs.List()); err != nil {
+			return 0, err
+		}
 	}
 
 	log.Infof(ctx, "Updated %d events.", len(es))

@@ -72,8 +72,9 @@ func getEventKey(ctx context.Context, id string) *datastore.Key {
 }
 
 // Insert or update events. This automatically takes snapshots if needed.
+// Returns actors whose related events have changed (and thus apicache should be cleared.)
 // Errors wrapped.
-func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
+func InsertOrUpdateEvents(ctx context.Context, events []*Event) (*strset.Set, error) {
 	batchSize := len(events)
 	if batchSize >= minEventsToParallelize {
 		batchSize = (len(events) + 1) / 2
@@ -91,29 +92,31 @@ func InsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 	wg := sync.WaitGroup{}
 	wg.Add(len(batches))
 	errs := make([]error, len(batches))
+	diffActorIDs := make([]*strset.Set, len(batches))
 
 	for i := range batches {
 		go func(i int) {
 			defer wg.Done()
-			errs[i] = internalInsertOrUpdateEvents(ctx, batches[i])
+			diffActorIDs[i], errs[i] = internalInsertOrUpdateEvents(ctx, batches[i])
 		}(i)
 	}
 
 	wg.Wait()
 	for _, err := range errs {
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return strset.Union(diffActorIDs...), nil
 }
 
 // Insert or update at most 25 events because of Transaction XG restriction.
 // We can remove the restriction after we are migrated to Firestore.
+// Returns actors whose related events have changed (and thus apicache should be cleared.)
 // Errors wrapped.
-func internalInsertOrUpdateEvents(ctx context.Context, events []*Event) error {
+func internalInsertOrUpdateEvents(ctx context.Context, events []*Event) (*strset.Set, error) {
 	if len(events) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	var eventKeys []*datastore.Key
@@ -128,15 +131,16 @@ func internalInsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 			for _, e := range me {
 				if e != nil && e != datastore.ErrNoSuchEntity {
 					// Something else happened. Rethrow it.
-					return errors.Wrap(err, "nds.GetMulti returned error other than NoSuchEntity")
+					return nil, errors.Wrap(err, "nds.GetMulti returned error other than NoSuchEntity")
 				}
 			}
 		} else {
-			return errors.Wrap(err, "nds.GetMulti returned error that is not a MultiError")
+			return nil, errors.Wrap(err, "nds.GetMulti returned error that is not a MultiError")
 		}
 	}
 
 	var insertedCESKeys []*datastore.Key
+	diffActorIDs := strset.New()
 
 	err = nds.RunInTransaction(ctx, func(ctx context.Context) error {
 		var keysToInsert []*datastore.Key
@@ -153,6 +157,7 @@ func internalInsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 				// Need to update the event itself.
 				keysToInsert = append(keysToInsert, eventKeys[i])
 				eventsToInsert = append(eventsToInsert, e)
+				diffActorIDs = strset.Union(diffActorIDs, e.DiffActorIDs(oes[i]))
 			}
 
 			cesKey, err := maybeGetCESKeyToAppend(ctx, oes[i], e, eventKeys[i])
@@ -223,11 +228,11 @@ func internalInsertOrUpdateEvents(ctx context.Context, events []*Event) error {
 	}, &datastore.TransactionOptions{XG: true})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	cache.SetLastCESKeys(ctx, insertedCESKeys)
-	return nil
+	return diffActorIDs, nil
 }
 
 // This ignores LastUpdateTime
@@ -251,6 +256,24 @@ func (e *Event) Equal(o *Event) bool {
 		return true
 	}
 	return e == o
+}
+
+func (e *Event) DiffActorIDs(o *Event) *strset.Set {
+	as := strset.New()
+	bs := strset.New()
+
+	if e != nil {
+		for _, k := range e.Actors {
+			as.Add(k.StringID())
+		}
+	}
+	if o != nil {
+		for _, k := range o.Actors {
+			bs.Add(k.StringID())
+		}
+	}
+
+	return strset.SymmetricDifference(as, bs)
 }
 
 // If an event was picked up by us but disappear later (deleted / de-duped / NoteCount fell below threshold),

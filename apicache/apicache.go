@@ -7,35 +7,29 @@ import (
 	"google.golang.org/appengine/memcache"
 )
 
-const (
-	keyPrefix = "TDAPI:"
+const keyPrefix = "TDAPI:"
 
-	renderEventKeyPrefix = keyPrefix + "RE2:"
-)
+type keyFunc func(string) string
 
-func renderEventKey(eid string) string {
-	return renderEventKeyPrefix + eid
-}
-
-func GetRenderEvent(ctx context.Context, eid string) []byte {
-	if item, err := memcache.Get(ctx, renderEventKey(eid)); err == nil {
+func getInternal(ctx context.Context, id string, f keyFunc) []byte {
+	if item, err := memcache.Get(ctx, f(id)); err == nil {
 		return item.Value
 	}
 	return nil
 }
 
-func PutRenderEvent(ctx context.Context, eid string, data []byte) {
+func putInternal(ctx context.Context, id string, data []byte, f keyFunc) {
 	_ = memcache.Set(ctx, &memcache.Item{
-		Key:   renderEventKey(eid),
+		Key:   f(id),
 		Value: data,
 	})
 }
 
 // Errors wrapped.
-func ClearRenderEvents(ctx context.Context, eids []string) error {
+func clearInternal(ctx context.Context, ids []string, f keyFunc) error {
 	var keys []string
-	for _, eid := range eids {
-		keys = append(keys, renderEventKey(eid))
+	for _, id := range ids {
+		keys = append(keys, f(id))
 	}
 	err := memcache.DeleteMulti(ctx, keys)
 
