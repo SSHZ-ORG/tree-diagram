@@ -75,6 +75,10 @@ func getEventKey(ctx context.Context, id string) *datastore.Key {
 // Returns actors whose related events have changed (and thus apicache should be cleared.)
 // Errors wrapped.
 func InsertOrUpdateEvents(ctx context.Context, events []*Event) (*strset.Set, error) {
+	if len(events) == 0 {
+		return strset.New(), nil
+	}
+
 	batchSize := len(events)
 	if batchSize >= minEventsToParallelize {
 		batchSize = (len(events) + 1) / 2
