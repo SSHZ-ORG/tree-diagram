@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/pkg/errors"
@@ -178,18 +179,30 @@ func PrepareRenderActorResponse(ctx context.Context, actorID string) (*RenderAct
 		Snapshots: make([]*FrontendActorSnapshot, 0),
 	}
 
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	var snapshotsErr error
+	go func() {
+		defer wg.Done()
+		snapshots, err := getFrontendSnapshotsForActor(ctx, key)
+		if err != nil {
+			snapshotsErr = err
+			return
+		}
+		if len(snapshots) > 0 {
+			response.Snapshots = snapshots
+		}
+	}()
+
 	kec, err := datastore.NewQuery(eventKind).KeysOnly().Filter("Actors =", key).Count(ctx)
 	if err != nil {
 		return response, errors.Wrap(err, "Counting events failed")
 	}
 	response.KnownEventCount = kec
 
-	snapshots, err := getFrontendSnapshotsForActor(ctx, key)
-	if err != nil {
-		return nil, err
-	}
-	if len(snapshots) > 0 {
-		response.Snapshots = snapshots
+	wg.Wait()
+	if snapshotsErr != nil {
+		return nil, snapshotsErr
 	}
 
 	return response, nil
