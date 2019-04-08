@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.11
+// @version      0.1.11.1
 // @description  Make Eventernote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -281,28 +281,27 @@
 
                 const ctx = document.getElementById("td_chart");
 
-                const dataPoints = [];
-                data.snapshots.forEach(snapshot => {
-                    const date = new Date(snapshot.date);
-                    date.setUTCHours(-3);  // JST 6am.
-                    if (dataPoints.length > 0) {
-                        // Not the first snapshot. See if we should pin the previous day.
-                        const previousDay = new Date(date);
-                        previousDay.setDate(previousDay.getDate() - 1);
-
-                        const previousPoint = dataPoints[dataPoints.length - 1];
-                        if (previousDay > previousPoint.x) {
-                            dataPoints.push({
-                                x: previousDay,
-                                y: previousPoint.y,
-                            });
-                        }
-                    }
-                    dataPoints.push({
-                        x: date,
-                        y: snapshot.favoriteCount,
-                    });
+                data.snapshots.forEach(s => {
+                    s.date = new Date(s.date);
+                    s.date.setUTCHours(-3);  // JST 6am.
                 });
+
+                const dataPoints = [];
+                if (data.snapshots.length > 0) {
+                    const snapshots = data.snapshots.slice();
+                    let lastFavoriteCount = 0;
+
+                    for (let date = snapshots[0].date; date < new Date(); date.setDate(date.getDate() + 1)) {
+                        if (snapshots.length > 0 && date >= snapshots[0].date) {
+                            lastFavoriteCount = snapshots[0].favoriteCount;
+                            snapshots.shift();
+                        }
+                        dataPoints.push({
+                            x: new Date(date.getTime()),
+                            y: lastFavoriteCount,
+                        });
+                    }
+                }
 
                 const tdChart = new Chart(ctx, {
                     type: 'line',
