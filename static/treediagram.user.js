@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.11.1
+// @version      0.1.11.2
 // @description  Make Eventernote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -349,6 +349,16 @@
             });
     }
 
+    function userPage() {
+        const favoriteActorsDom = document.getElementsByClassName('gb_actors_list')[0] || document.getElementsByClassName('favorite_actor')[0];
+        const actorDoms = favoriteActorsDom.getElementsByTagName('li');
+        for (let i = 0; i < actorDoms.length; i++)
+        {
+            let count = actorDoms[i].className.match(/c(\d+)/)[1];
+            actorDoms[i].getElementsByTagName('a')[0].textContent += ` (${count})`;
+        }
+    }
+
     function treeDiagramPage() {
         const tdDom = htmlToElement(`
             <div class="container">
@@ -464,22 +474,28 @@
 
         const url = document.URL;
 
-        const eventPageRegex = /https:\/\/www.eventernote.com\/events\/(\d+)/g;
-        const eventPageMatch = eventPageRegex.exec(url);
+        const eventPageRegex = /^https:\/\/www.eventernote.com\/events\/(\d+)$/;
+        const eventPageMatch = url.match(eventPageRegex);
         if (eventPageMatch) {
             return eventPage(eventPageMatch[1]);
         }
 
-        const placePageRegex = /https:\/\/www.eventernote.com\/places\/(\d+)/g;
-        const placePageMatch = placePageRegex.exec(url);
+        const placePageRegex = /^https:\/\/www.eventernote.com\/places\/(\d+)$/;
+        const placePageMatch = url.match(placePageRegex);
         if (placePageMatch) {
             return placePage(placePageMatch[1]);
         }
 
-        const actorPageRegex = /https:\/\/www.eventernote.com\/actors\/(?:.+\/)?(\d+)/g;
-        const actorPageMatch = actorPageRegex.exec(url);
+        const actorPageRegex = /^https:\/\/www.eventernote.com\/actors\/(?:.+\/)?(\d+)$/;
+        const actorPageMatch = url.match(actorPageRegex);
         if (actorPageMatch) {
             return actorPage(actorPageMatch[1]);
+        }
+
+        const userPageRegex = /^https:\/\/www.eventernote.com\/users(?:\/.+)?$/;
+        const userPageMatch = url.match(userPageRegex);
+        if (userPageMatch) {
+            return userPage();
         }
     }
 
