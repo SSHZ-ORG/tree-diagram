@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.11.2
+// @version      0.1.11.3
 // @description  Make Eventernote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -57,6 +57,12 @@
         fetch(`${serverBaseAddress}/api/renderEvent?id=${eventId}`)
             .then(response => response.json())
             .then(data => {
+                data.snapshots = data.snapshots || [];
+                data.snapshots.forEach(snapshot => {
+                    snapshot.addedActors = snapshot.addedActors || [];
+                    snapshot.removedActors = snapshot.removedActors || [];
+                });
+
                 const totalStatsSpan = document.getElementById("td_place_stats_total");
                 totalStatsSpan.innerHTML = `${data.placeStatsTotal.rank}/${data.placeStatsTotal.total}`;
                 const finishedStatsSpan = document.getElementById("td_place_stats_finished");
@@ -277,6 +283,8 @@
         fetch(`${serverBaseAddress}/api/renderActor?id=${actorId}`)
             .then(response => response.json())
             .then(data => {
+                data.snapshots = data.snapshots || [];
+
                 createEventList(`actor=${actorId}`, data.knownEventCount, tdDom, false);
 
                 const ctx = document.getElementById("td_chart");
@@ -351,11 +359,13 @@
 
     function userPage() {
         const favoriteActorsDom = document.getElementsByClassName('gb_actors_list')[0] || document.getElementsByClassName('favorite_actor')[0];
-        const actorDoms = favoriteActorsDom.getElementsByTagName('li');
-        for (let i = 0; i < actorDoms.length; i++)
-        {
-            let count = actorDoms[i].className.match(/c(\d+)/)[1];
-            actorDoms[i].getElementsByTagName('a')[0].textContent += ` (${count})`;
+        if (favoriteActorsDom) {
+            const actorDoms = favoriteActorsDom.getElementsByTagName('li');
+            for (let i = 0; i < actorDoms.length; i++)
+            {
+                let count = actorDoms[i].className.match(/c(\d+)/)[1];
+                actorDoms[i].getElementsByTagName('a')[0].textContent += ` (${count})`;
+            }
         }
     }
 
