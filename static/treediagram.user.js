@@ -63,16 +63,16 @@
                     snapshot.removedActors = snapshot.removedActors || [];
                 });
 
-                const totalStatsSpan = document.getElementById("td_place_stats_total");
+                const totalStatsSpan = document.getElementById('td_place_stats_total');
                 totalStatsSpan.innerHTML = `${data.placeStatsTotal.rank}/${data.placeStatsTotal.total}`;
-                const finishedStatsSpan = document.getElementById("td_place_stats_finished");
+                const finishedStatsSpan = document.getElementById('td_place_stats_finished');
                 finishedStatsSpan.innerHTML = `${data.placeStatsFinished.rank}/${data.placeStatsFinished.total}`;
 
-                const ctx = document.getElementById("td_chart");
+                const ctx = document.getElementById('td_chart');
                 const annotations = [chartNowAnnotation];
 
                 const liveDate = new Date(data.date);
-                liveDate.setUTCHours(3);  // JST noon.
+                liveDate.setUTCHours(3); // JST noon.
                 if (data.snapshots.length > 0 && new Date(data.snapshots[0].timestamp) <= liveDate) {
                     annotations.push({
                         type: 'line',
@@ -87,8 +87,8 @@
                             cornerRadius: 0,
                             position: 'bottom',
                             enabled: true,
-                            content: "Live!"
-                        }
+                            content: 'Live!',
+                        },
                     });
                 }
 
@@ -124,23 +124,23 @@
                                 display: context => data.snapshots[context.dataIndex].dataLabel !== undefined,
                                 formatter: (value, context) => data.snapshots[context.dataIndex].dataLabel,
                                 align: 'top',
-                                backgroundColor: 'rgba(97, 191, 153, 0.5)',  // #61BF99
+                                backgroundColor: 'rgba(97, 191, 153, 0.5)', // #61BF99
                                 borderRadius: 20,
-                                color: 'white'
-                            }
-                        }]
+                                color: 'white',
+                            },
+                        }],
                     },
                     options: {
                         scales: {
                             xAxes: [{
                                 type: 'time',
                                 ticks: {
-                                    maxRotation: 0
-                                }
-                            }]
+                                    maxRotation: 0,
+                                },
+                            }],
                         },
                         legend: {
-                            display: false
+                            display: false,
                         },
                         tooltips: {
                             callbacks: {
@@ -156,11 +156,11 @@
                                     }
 
                                     return labels.join('\n');
-                                }
-                            }
+                                },
+                            },
                         },
                         annotation: { // As of chartjs-plugin-annotation 0.5.7, it does not support `plugins` property.
-                            annotations: annotations
+                            annotations: annotations,
                         },
                         plugins: {
                             zoom: {
@@ -286,11 +286,11 @@
 
                 createEventList(`actor=${actorId}`, data.knownEventCount, tdDom, false);
 
-                const ctx = document.getElementById("td_chart");
+                const ctx = document.getElementById('td_chart');
 
                 data.snapshots.forEach(s => {
                     s.date = new Date(s.date);
-                    s.date.setUTCHours(-3);  // JST 6am.
+                    s.date.setUTCHours(-3); // JST 6am.
                 });
 
                 const dataPoints = [];
@@ -320,23 +320,23 @@
                             backgroundColor: 'rgba(54, 162, 235, 0.5)',
                             borderColor: 'rgb(54, 162, 235)',
                             borderWidth: 1,
-                            datalabels: {display: false},
-                        }]
+                            datalabels: { display: false },
+                        }],
                     },
                     options: {
                         scales: {
                             xAxes: [{
                                 type: 'time',
                                 ticks: {
-                                    maxRotation: 0
-                                }
-                            }]
+                                    maxRotation: 0,
+                                },
+                            }],
                         },
                         legend: {
-                            display: false
+                            display: false,
                         },
                         annotation: { // As of chartjs-plugin-annotation 0.5.7, it does not support `plugins` property.
-                            annotations: [chartNowAnnotation]
+                            annotations: [chartNowAnnotation],
                         },
                         plugins: {
                             zoom: {
@@ -360,8 +360,7 @@
         const favoriteActorsDom = document.getElementsByClassName('gb_actors_list')[0] || document.getElementsByClassName('favorite_actor')[0];
         if (favoriteActorsDom) {
             const actorDoms = favoriteActorsDom.getElementsByTagName('li');
-            for (let i = 0; i < actorDoms.length; i++)
-            {
+            for (let i = 0; i < actorDoms.length; i++) {
                 let count = actorDoms[i].className.match(/c(\d+)/)[1];
                 actorDoms[i].getElementsByTagName('a')[0].textContent += ` (${count})`;
             }
