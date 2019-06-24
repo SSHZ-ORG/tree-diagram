@@ -26,17 +26,17 @@ func (a Actor) debugName() string {
 	return fmt.Sprintf("[%s] %s", a.ID, a.Name)
 }
 
-func (e *Actor) Equal(o *Actor) bool {
-	if e != nil && o != nil {
-		if e.ID != o.ID || e.Name != o.Name {
+func (a *Actor) Equal(o *Actor) bool {
+	if a != nil && o != nil {
+		if a.ID != o.ID || a.Name != o.Name {
 			return false
 		}
-		if e.LastFavoriteCount != o.LastFavoriteCount {
+		if a.LastFavoriteCount != o.LastFavoriteCount {
 			return false
 		}
 		return true
 	}
-	return e == o
+	return a == o
 }
 
 const actorKind = "Actor"
