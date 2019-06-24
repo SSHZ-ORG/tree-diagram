@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.11.3
+// @version      0.1.11.4
 // @description  Make Eventernote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -114,7 +114,6 @@
                                 return {
                                     x: new Date(i.timestamp),
                                     y: i.noteCount,
-                                    snapshot: i,
                                 };
                             }),
                             cubicInterpolationMode: 'monotone',
@@ -125,7 +124,7 @@
                                 display: context => data.snapshots[context.dataIndex].dataLabel !== undefined,
                                 formatter: (value, context) => data.snapshots[context.dataIndex].dataLabel,
                                 align: 'top',
-                                backgroundColor: 'rgba(97, 191, 153, 0.5)',
+                                backgroundColor: 'rgba(97, 191, 153, 0.5)',  // #61BF99
                                 borderRadius: 20,
                                 color: 'white'
                             }
@@ -145,8 +144,8 @@
                         },
                         tooltips: {
                             callbacks: {
-                                afterLabel: (tooltipItem, data) => {
-                                    const snapshot = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index].snapshot;
+                                afterLabel: (tooltipItem, chartData) => {
+                                    const snapshot = data.snapshots[tooltipItem.index];
 
                                     let labels = [];
                                     if (snapshot.addedActors.length > 0) {
