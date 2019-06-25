@@ -8,12 +8,12 @@ func renderActorKey(aid string) string {
 	return renderActorKeyPrefix + aid
 }
 
-func GetRenderActor(ctx context.Context, aid string) []byte {
-	return getInternal(ctx, []string{aid}, renderActorKey)[aid]
+func GetRenderActor(ctx context.Context, aid []string) map[string][]byte {
+	return getInternal(ctx, aid, renderActorKey)
 }
 
-func PutRenderActor(ctx context.Context, aid string, data []byte) {
-	putInternal(ctx, map[string][]byte{aid: data}, renderActorKey)
+func PutRenderActor(ctx context.Context, data map[string][]byte) {
+	putInternal(ctx, data, renderActorKey)
 }
 
 // Errors wrapped.

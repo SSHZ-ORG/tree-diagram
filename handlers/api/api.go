@@ -15,6 +15,8 @@ const (
 )
 
 func RegisterAPI(r *mux.Router) {
+	r.HandleFunc(paths.APICompareActorsPath, compareActors).Methods("GET", "OPTIONS")
+
 	r.HandleFunc(paths.APIRenderEventPath, renderEvent).Methods("GET", "OPTIONS")
 	r.HandleFunc(paths.APIRenderPlacePath, renderPlace).Methods("GET", "OPTIONS")
 	r.HandleFunc(paths.APIRenderActorPath, renderActor).Methods("GET", "OPTIONS")
