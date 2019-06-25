@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/SSHZ-ORG/tree-diagram/handlers"
+	"github.com/SSHZ-ORG/tree-diagram/handlers/api"
 	"github.com/gorilla/mux"
 	"google.golang.org/appengine"
 )
@@ -15,7 +16,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	handlers.RegisterAPI(r)
+	api.RegisterAPI(r)
 	handlers.RegisterCommand(r)
 	handlers.RegisterCrawl(r)
 	handlers.RegisterCron(r)
