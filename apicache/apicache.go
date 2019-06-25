@@ -11,18 +11,31 @@ const keyPrefix = "TDAPI:"
 
 type keyFunc func(string) string
 
-func getInternal(ctx context.Context, id string, f keyFunc) []byte {
-	if item, err := memcache.Get(ctx, f(id)); err == nil {
-		return item.Value
+func getInternal(ctx context.Context, ids []string, f keyFunc) map[string][]byte {
+	var keys []string
+	for _, id := range ids {
+		keys = append(keys, f(id))
 	}
-	return nil
+	items, _ := memcache.GetMulti(ctx, keys)
+
+	m := make(map[string][]byte)
+	for _, id := range ids {
+		if item, ok := items[f(id)]; ok {
+			m[id] = item.Value
+		}
+	}
+	return m
 }
 
-func putInternal(ctx context.Context, id string, data []byte, f keyFunc) {
-	_ = memcache.Set(ctx, &memcache.Item{
-		Key:   f(id),
-		Value: data,
-	})
+func putInternal(ctx context.Context, data map[string][]byte, f keyFunc) {
+	var items []*memcache.Item
+	for id, v := range data {
+		items = append(items, &memcache.Item{
+			Key:   f(id),
+			Value: v,
+		})
+	}
+	_ = memcache.SetMulti(ctx, items)
 }
 
 // Errors wrapped.

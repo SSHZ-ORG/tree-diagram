@@ -9,11 +9,11 @@ func renderEventKey(eid string) string {
 }
 
 func GetRenderEvent(ctx context.Context, eid string) []byte {
-	return getInternal(ctx, eid, renderEventKey)
+	return getInternal(ctx, []string{eid}, renderEventKey)[eid]
 }
 
 func PutRenderEvent(ctx context.Context, eid string, data []byte) {
-	putInternal(ctx, eid, data, renderEventKey)
+	putInternal(ctx, map[string][]byte{eid: data}, renderEventKey)
 }
 
 // Errors wrapped.
