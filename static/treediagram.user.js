@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.12
+// @version      0.1.12.1
 // @description  Make Eventernote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -118,8 +118,6 @@
                                 };
                             }),
                             cubicInterpolationMode: 'monotone',
-                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                            borderColor: 'rgb(54, 162, 235)',
                             borderWidth: 1,
                             datalabels: {
                                 display: context => data.snapshots[context.dataIndex].dataLabel !== undefined,
@@ -170,6 +168,9 @@
                                     drag: true,
                                     mode: 'x',
                                 },
+                            },
+                            colorschemes: {
+                                scheme: `tableau.ClassicMedium10`,
                             },
                         },
                     },
@@ -318,8 +319,6 @@
                             label: 'FavoriteCount',
                             data: dataPoints,
                             cubicInterpolationMode: 'monotone',
-                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                            borderColor: 'rgb(54, 162, 235)',
                             borderWidth: 1,
                             datalabels: { display: false },
                         }],
@@ -346,6 +345,9 @@
                                     drag: true,
                                     mode: 'x',
                                 },
+                            },
+                            colorschemes: {
+                                scheme: `tableau.ClassicMedium10`,
                             },
                         },
                     },
@@ -534,16 +536,12 @@
                             tooltips: {
                                 mode: 'index',
                             },
-                            legend: {
-                                display: true,
-                            },
                             annotation: { // As of chartjs-plugin-annotation 0.5.7, it does not support `plugins` property.
                                 annotations: [chartNowAnnotation],
                             },
                             plugins: {
                                 colorschemes: {
                                     scheme: `brewer.Spectral${Math.min(11, Math.max(3, datasets.length))}`,
-                                    fillAlpha: 0.5,
                                 },
                             },
                         },
