@@ -9,6 +9,7 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js
 // @require      https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.0/dist/chartjs-plugin-zoom.min.js
 // @require      https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.6.0/dist/chartjs-plugin-datalabels.min.js
+// @require      https://cdn.jsdelivr.net/npm/chartjs-plugin-colorschemes@0.4.0/dist/chartjs-plugin-colorschemes.min.js
 // ==/UserScript==
 
 (function () {
@@ -395,8 +396,10 @@
                             </table>
                             </div>
                             <div class="form-actions">
-                                <button class="btn btn-block btn-primary" type="button" id="td_run_query">Query</button>
+                                <button class="btn btn-block btn-info" type="button" id="td_compare_actors">Compare Favorites</button>
+                                <button class="btn btn-block btn-primary" type="button" id="td_run_query">Query Events</button>
                             </div>
+                            <div id="td_actor_favorites_chart_container"></div>
                             <div id="td_event_list_container"></div>
                         </div>
                     </div>
@@ -406,8 +409,10 @@
         contentDom.replaceWith(tdDom);
 
         const selectedActors = [];
+        const actorNames = {};
         const selectedActorsDom = document.getElementById('td_selected_actors');
         const searchActorResultDom = document.getElementById('td_search_actor_result');
+        const actorFavoritesChartContainerDom = document.getElementById('td_actor_favorites_chart_container');
         const eventListContainerDom = document.getElementById('td_event_list_container');
 
         const inputDom = document.getElementById('td_search_actor_input');
@@ -415,11 +420,13 @@
             searchActor(inputDom.value);
         });
 
+        document.getElementById('td_compare_actors').addEventListener('click', compareActors);
         document.getElementById('td_run_query').addEventListener('click', runQuery);
 
         function addActor(id, name) {
             if (selectedActors.some(i => i === id)) return;
             selectedActors.push(id);
+            actorNames[id] = name;
 
             const buttonDom = htmlToElement(`
                 <button class="btn" type="button"><i class="icon-minus"></i> ${name}</button>`);
@@ -456,6 +463,91 @@
                             searchActorResultDom.appendChild(itemDom);
                         });
                     }
+                });
+        }
+
+        function compareActors() {
+            while (actorFavoritesChartContainerDom.firstChild) {
+                actorFavoritesChartContainerDom.removeChild(actorFavoritesChartContainerDom.firstChild);
+            }
+
+            const ctx = htmlToElement(`<canvas id="td_chart"></canvas>`);
+            actorFavoritesChartContainerDom.appendChild(ctx);
+
+            fetch(`${serverBaseAddress}/api/compareActors?${selectedActors.map(i => `id=${i}`).join('&')}`)
+                .then(response => response.json())
+                .then(data => {
+                    const datasets = [];
+
+                    for (const [actorId, res] of Object.entries(data)) {
+                        res.snapshots.forEach(s => {
+                            s.date = new Date(s.date);
+                            s.date.setUTCHours(-3); // JST 6am.
+                        });
+
+                        const dataPoints = [];
+                        if (res.snapshots.length > 0) {
+                            const snapshots = res.snapshots.slice();
+                            let lastFavoriteCount = 0;
+
+                            for (let date = snapshots[0].date; date < new Date(); date.setDate(date.getDate() + 1)) {
+                                if (snapshots.length > 0 && date >= snapshots[0].date) {
+                                    lastFavoriteCount = snapshots[0].favoriteCount;
+                                    snapshots.shift();
+                                }
+                                dataPoints.push({
+                                    x: new Date(date.getTime()),
+                                    y: lastFavoriteCount,
+                                });
+                            }
+                        }
+
+                        datasets.push(
+                            {
+                                label: `${actorNames[actorId]}`,
+                                data: dataPoints,
+                                cubicInterpolationMode: 'monotone',
+                                borderWidth: 1,
+                                datalabels: { display: false },
+                            }
+                        );
+                    }
+
+                    datasets.sort(function (a, b) {
+                        return a.data[a.data.length - 1].y - b.data[b.data.length - 1].y;
+                    });
+
+                    const tdChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            datasets: datasets,
+                        },
+                        options: {
+                            scales: {
+                                xAxes: [{
+                                    type: 'time',
+                                    ticks: {
+                                        maxRotation: 0,
+                                    },
+                                }],
+                            },
+                            tooltips: {
+                                mode: 'index',
+                            },
+                            legend: {
+                                display: true,
+                            },
+                            annotation: { // As of chartjs-plugin-annotation 0.5.7, it does not support `plugins` property.
+                                annotations: [chartNowAnnotation],
+                            },
+                            plugins: {
+                                colorschemes: {
+                                    scheme: `brewer.Spectral${Math.min(11, Math.max(3, datasets.length))}`,
+                                    fillAlpha: 0.5,
+                                },
+                            },
+                        },
+                    });
                 });
         }
 
