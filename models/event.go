@@ -280,8 +280,9 @@ func (e *Event) DiffActorIDs(o *Event) *strset.Set {
 	return strset.SymmetricDifference(as, bs)
 }
 
-// If an event was picked up by us but disappear later (deleted / de-duped / NoteCount fell below threshold),
-// its Finished won't be updated. Clean them up manually.
+// Set Finished to False for everything that happened before today.
+// For events on yesterday, the daily cron is not executed yet when this cron happens.
+// Not using Transaction as this should never overlap with daily cron.
 func CleanupFinishedEvents(ctx context.Context, today civil.Date) error {
 	query := datastore.NewQuery(eventKind).KeysOnly().Filter("Date <", today.In(time.UTC)).Filter("Finished =", false)
 
