@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TreeDiagram
 // @namespace    https://www.sshz.org/
-// @version      0.1.12.2
+// @version      0.1.12.3
 // @description  Make Eventernote Great Again
 // @author       SSHZ.ORG
 // @match        https://www.eventernote.com/*
@@ -536,6 +536,9 @@
                                     type: 'time',
                                     ticks: {
                                         maxRotation: 0,
+                                    },
+                                    gridLines: {
+                                        zeroLineColor: 'rgba(0, 0, 0, 0.1)',
                                     },
                                 }],
                             },
