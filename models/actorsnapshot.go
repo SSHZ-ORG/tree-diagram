@@ -16,9 +16,13 @@ type ActorSnapshot struct {
 	ActorID       string `datastore:",noindex"` // Use Key.Parent
 	Timestamp     time.Time
 	FavoriteCount int `datastore:",noindex"` // Don't query Snapshots directly.
+	ModelVersion  int
 }
 
-const actorSnapshotKind = "ActorSnapshot"
+const (
+	actorSnapshotKind                = "ActorSnapshot"
+	actorSnapshotCurrentModelVersion = 1
+)
 
 // This returns nil, nil if we should not create a snapshot.
 func maybeCreateActorSnapshot(ctx context.Context, ak *datastore.Key, oa, na *Actor) (*datastore.Key, *ActorSnapshot) {
@@ -31,6 +35,7 @@ func maybeCreateActorSnapshot(ctx context.Context, ak *datastore.Key, oa, na *Ac
 		ActorID:       na.ID,
 		Timestamp:     na.LastUpdateTime,
 		FavoriteCount: na.LastFavoriteCount,
+		ModelVersion:  actorSnapshotCurrentModelVersion,
 	}
 
 	log.Debugf(ctx, "Taking snapshot for actor %s (%d -> %d)", na.debugName(), oa.LastFavoriteCount, na.LastFavoriteCount)
