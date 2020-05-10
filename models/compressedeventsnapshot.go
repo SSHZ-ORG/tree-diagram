@@ -11,8 +11,8 @@ import (
 )
 
 type compressedEventSnapshot struct {
-	EventID    string `datastore:",noindex"` // Use Key.Parent
-	Timestamps []time.Time
+	EventID    string           `datastore:",noindex"` // Use Key.Parent
+	Timestamps []time.Time      `datastore:",noindex"`
 	NoteCount  int              `datastore:",noindex"`
 	Actors     []*datastore.Key `datastore:",noindex"`
 }
