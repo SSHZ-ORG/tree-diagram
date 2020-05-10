@@ -191,7 +191,7 @@ func internalInsertOrUpdateEvents(ctx context.Context, events []*Event) (*strset
 
 				if ces.isConsistent(e) {
 					// Good. Let's append.
-					ces.Timestamps = append(ces.Timestamps, e.LastUpdateTime)
+					ces.appendTime(e.LastUpdateTime)
 					log.Debugf(ctx, "Appending to CES %+v for event %s (%d -> %d)", cesKey, e.debugName(), oes[i].LastNoteCount, e.LastNoteCount)
 				} else {
 					// Something is wrong. Shout out and create new CES.

@@ -11,13 +11,17 @@ import (
 )
 
 type compressedEventSnapshot struct {
-	EventID    string           `datastore:",noindex"` // Use Key.Parent
-	Timestamps []time.Time      `datastore:",noindex"`
-	NoteCount  int              `datastore:",noindex"`
-	Actors     []*datastore.Key `datastore:",noindex"`
+	EventID      string           `datastore:",noindex"` // Use Key.Parent
+	Timestamps   []time.Time      `datastore:",noindex"`
+	NoteCount    int              `datastore:",noindex"`
+	Actors       []*datastore.Key `datastore:",noindex"`
+	ModelVersion int
 }
 
-const compressedEventSnapshotKind = "CompressedEventSnapshot"
+const (
+	compressedEventSnapshotKind                = "CompressedEventSnapshot"
+	compressedEventSnapshotCurrentModelVersion = 1
+)
 
 // Errors wrapped.
 // This bypasses memcache.
@@ -83,6 +87,11 @@ func (c *compressedEventSnapshot) isConsistent(e *Event) bool {
 	return true
 }
 
+func (c *compressedEventSnapshot) appendTime(ts time.Time) {
+	c.Timestamps = append(c.Timestamps, ts)
+	c.ModelVersion = compressedEventSnapshotCurrentModelVersion
+}
+
 func shouldCreateNewCES(oe, ne *Event) bool {
 	if oe == nil || ne == nil {
 		return true
@@ -98,9 +107,10 @@ func shouldCreateNewCES(oe, ne *Event) bool {
 
 func newCESFromEvent(ctx context.Context, oe, ne *Event, eventKey *datastore.Key) (*datastore.Key, *compressedEventSnapshot) {
 	ces := &compressedEventSnapshot{
-		EventID:    ne.ID,
-		Timestamps: []time.Time{ne.LastUpdateTime},
-		NoteCount:  ne.LastNoteCount,
+		EventID:      ne.ID,
+		Timestamps:   []time.Time{ne.LastUpdateTime},
+		NoteCount:    ne.LastNoteCount,
+		ModelVersion: compressedEventSnapshotCurrentModelVersion,
 	}
 	if oe == nil || !areKeysSetsEqual(oe.Actors, ne.Actors) {
 		ces.Actors = ne.Actors
