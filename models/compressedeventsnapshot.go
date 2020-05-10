@@ -11,8 +11,8 @@ import (
 )
 
 type compressedEventSnapshot struct {
-	EventID      string           `datastore:",noindex"` // Use Key.Parent
-	Timestamps   []time.Time      `datastore:",noindex"`
+	EventID      string `datastore:",noindex"` // Use Key.Parent
+	Timestamps   []time.Time
 	NoteCount    int              `datastore:",noindex"`
 	Actors       []*datastore.Key `datastore:",noindex"`
 	ModelVersion int
@@ -20,7 +20,7 @@ type compressedEventSnapshot struct {
 
 const (
 	compressedEventSnapshotKind                = "CompressedEventSnapshot"
-	compressedEventSnapshotCurrentModelVersion = 1
+	compressedEventSnapshotCurrentModelVersion = 2
 )
 
 // Errors wrapped.
