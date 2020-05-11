@@ -8,6 +8,7 @@ import (
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
 )
 
 type compressedEventSnapshot struct {
@@ -160,11 +161,19 @@ func OneoffBackfillModelVersion(ctx context.Context, cursor string) (string, err
 			return errors.Wrap(err, "nds.GetMulti failed")
 		}
 
-		for _, ces := range cess {
-			ces.ModelVersion = compressedEventSnapshotCurrentModelVersion
+		var keysToPut []*datastore.Key
+		var cessToPut []*compressedEventSnapshot
+
+		for i, ces := range cess {
+			if ces.ModelVersion == 0 {
+				ces.ModelVersion = compressedEventSnapshotCurrentModelVersion
+				keysToPut = append(keysToPut, keys[i])
+				cessToPut = append(cessToPut, ces)
+			}
 		}
 
-		_, err := nds.PutMulti(ctx, keys, cess)
+		log.Debugf(ctx, "Updating %d CESs", len(keysToPut))
+		_, err := nds.PutMulti(ctx, keysToPut, cessToPut)
 		return errors.Wrap(err, "nds.PutMulti failed")
 	}, &datastore.TransactionOptions{XG: true})
 
