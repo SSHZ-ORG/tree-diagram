@@ -23,3 +23,8 @@ queue:
     rate: 3/m
     bucket_size: 1
     max_concurrent_requests: 1
+
+  - name: one-off-queue
+    rate: 6/h
+    bucket_size: 1
+    max_concurrent_requests: 1

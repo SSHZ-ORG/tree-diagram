@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"cloud.google.com/go/civil"
 	"github.com/SSHZ-ORG/tree-diagram/models"
@@ -31,6 +32,7 @@ func RegisterCron(r *mux.Router) {
 	r.HandleFunc(paths.CronCleanupPath, cleanupCron)
 	r.HandleFunc(paths.CronDailyActorPath, dailyActorCron)
 	r.HandleFunc(paths.CronExportPath, exportCron)
+	r.HandleFunc(paths.CronOneOff, oneOffCron)
 }
 
 func dailyCron(w http.ResponseWriter, r *http.Request) {
@@ -147,5 +149,31 @@ func exportCron(w http.ResponseWriter, r *http.Request) {
 		log.Errorf(ctx, "service.Projects.Export returned error: %v", resp.Error.Message)
 		http.Error(w, resp.Error.Message, resp.HTTPStatusCode)
 		return
+	}
+}
+
+func oneOffCron(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	cursor := r.FormValue("cursor")
+	log.Debugf(ctx, "Received cursor %s", cursor)
+
+	newCursor, err := models.OneoffBackfillModelVersion(ctx, cursor)
+	if err != nil {
+		log.Errorf(ctx, "models.OneoffBackfillModelVersion: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if newCursor != "" {
+		log.Debugf(ctx, "Scheduling cursor %s", newCursor)
+		err = scheduler.ScheduleOneOff(ctx, url.Values{
+			"cursor": []string{newCursor},
+		})
+		if err != nil {
+			log.Errorf(ctx, "scheduler.ScheduleOneOff: %+v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 }

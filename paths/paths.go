@@ -18,4 +18,5 @@ const (
 	CronCleanupPath    = "/admin/cron/cleanup"
 	CronDailyActorPath = "/admin/cron/dailyActor"
 	CronExportPath     = "/admin/cron/export"
+	CronOneOff         = "/admin/cron/oneOff"
 )
