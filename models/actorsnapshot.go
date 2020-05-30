@@ -78,3 +78,62 @@ func getFrontendSnapshotsForActor(ctx context.Context, ak *datastore.Key) ([]*Fr
 	}
 	return fass, nil
 }
+
+func OneoffBackfillModelVersion(ctx context.Context, cursor string) (string, error) {
+	q := datastore.NewQuery(actorSnapshotKind).KeysOnly()
+
+	if cursor != "" {
+		c, err := datastore.DecodeCursor(cursor)
+		if err != nil {
+			panic(err)
+		}
+		q = q.Start(c)
+	}
+	q = q.Limit(25)
+
+	var keys []*datastore.Key
+	it := q.Run(ctx)
+	key, err := it.Next(nil)
+	for err == nil {
+		keys = append(keys, key)
+		key, err = it.Next(nil)
+	}
+	if err != datastore.Done {
+		return "", err
+	}
+
+	if len(keys) == 0 {
+		return "", nil
+	}
+
+	err = nds.RunInTransaction(ctx, func(ctx context.Context) error {
+		ass := make([]*ActorSnapshot, len(keys))
+		if err := nds.GetMulti(ctx, keys, ass); err != nil {
+			return errors.Wrap(err, "nds.GetMulti failed")
+		}
+
+		var keysToPut []*datastore.Key
+		var assToPut []*ActorSnapshot
+
+		for i, as := range ass {
+			if as.ModelVersion == 0 {
+				as.ModelVersion = actorSnapshotCurrentModelVersion
+				keysToPut = append(keysToPut, keys[i])
+				assToPut = append(assToPut, as)
+			}
+		}
+
+		log.Debugf(ctx, "Updating %d ASs", len(keysToPut))
+		_, err := nds.PutMulti(ctx, keysToPut, assToPut)
+		return errors.Wrap(err, "nds.PutMulti failed")
+	}, &datastore.TransactionOptions{XG: true})
+
+	if err != nil {
+		return "", err
+	}
+	newCursor, err := it.Cursor()
+	if err != nil {
+		panic(err)
+	}
+	return newCursor.String(), nil
+}
