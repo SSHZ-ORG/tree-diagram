@@ -7,16 +7,16 @@ import (
 	"cloud.google.com/go/civil"
 	"github.com/SSHZ-ORG/tree-diagram/paths"
 	"github.com/SSHZ-ORG/tree-diagram/scheduler"
-	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 )
 
-func RegisterCommand(r *mux.Router) {
-	r.HandleFunc(paths.CommandEnqueueDateRangePath, enqueueDateRange)
+func RegisterCommand(r *httprouter.Router) {
+	r.GET(paths.CommandEnqueueDateRangePath, enqueueDateRange)
 }
 
-func enqueueDateRange(w http.ResponseWriter, r *http.Request) {
+func enqueueDateRange(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	startArg := r.FormValue("start")

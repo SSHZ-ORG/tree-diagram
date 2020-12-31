@@ -9,17 +9,17 @@ import (
 	"github.com/SSHZ-ORG/tree-diagram/crawler"
 	"github.com/SSHZ-ORG/tree-diagram/paths"
 	"github.com/SSHZ-ORG/tree-diagram/scheduler"
-	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 )
 
-func RegisterCrawl(r *mux.Router) {
-	r.HandleFunc(paths.CrawlDatePath, crawlDate)
-	r.HandleFunc(paths.CrawlActorPath, crawlActor)
+func RegisterCrawl(r *httprouter.Router) {
+	r.POST(paths.CrawlDatePath, crawlDate)
+	r.POST(paths.CrawlActorPath, crawlActor)
 }
 
-func crawlDate(w http.ResponseWriter, r *http.Request) {
+func crawlDate(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	dateArg := r.FormValue("date")
@@ -62,7 +62,7 @@ func crawlDate(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("OK"))
 }
 
-func crawlActor(w http.ResponseWriter, r *http.Request) {
+func crawlActor(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	offsetArg := r.FormValue("offset")

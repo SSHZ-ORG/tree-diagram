@@ -10,7 +10,7 @@ import (
 	"github.com/SSHZ-ORG/tree-diagram/paths"
 	"github.com/SSHZ-ORG/tree-diagram/scheduler"
 	"github.com/SSHZ-ORG/tree-diagram/utils"
-	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/datastore/v1"
 	"google.golang.org/appengine"
@@ -25,17 +25,17 @@ const (
 	undeadStartDate = "2000-01-01"
 )
 
-func RegisterCron(r *mux.Router) {
-	r.HandleFunc(paths.CronDailyPath, dailyCron)
-	r.HandleFunc(paths.CronRevivePath, reviveCron)
-	r.HandleFunc(paths.CronUndeadPath, undeadCron)
-	r.HandleFunc(paths.CronCleanupPath, cleanupCron)
-	r.HandleFunc(paths.CronDailyActorPath, dailyActorCron)
-	r.HandleFunc(paths.CronExportPath, exportCron)
-	r.HandleFunc(paths.CronOneOff, oneOffCron)
+func RegisterCron(r *httprouter.Router) {
+	r.GET(paths.CronDailyPath, dailyCron)
+	r.GET(paths.CronRevivePath, reviveCron)
+	r.GET(paths.CronUndeadPath, undeadCron)
+	r.GET(paths.CronCleanupPath, cleanupCron)
+	r.GET(paths.CronDailyActorPath, dailyActorCron)
+	r.GET(paths.CronExportPath, exportCron)
+	r.GET(paths.CronOneOff, oneOffCron)
 }
 
-func dailyCron(w http.ResponseWriter, r *http.Request) {
+func dailyCron(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	today := utils.JSTToday()
@@ -47,7 +47,7 @@ func dailyCron(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func reviveCron(w http.ResponseWriter, r *http.Request) {
+func reviveCron(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	tc, err := scheduler.ThrottledDateQueue.CurrentTaskCount(ctx)
@@ -71,7 +71,7 @@ func reviveCron(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func undeadCron(w http.ResponseWriter, r *http.Request) {
+func undeadCron(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	tc, err := scheduler.DeadSlowDateQueue.CurrentTaskCount(ctx)
@@ -96,7 +96,7 @@ func undeadCron(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func cleanupCron(w http.ResponseWriter, r *http.Request) {
+func cleanupCron(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	if err := models.CleanupFinishedEvents(ctx, utils.JSTToday()); err != nil {
@@ -106,7 +106,7 @@ func cleanupCron(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func dailyActorCron(w http.ResponseWriter, r *http.Request) {
+func dailyActorCron(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	if err := scheduler.ScheduleCrawlActorPage(ctx, 1); err != nil {
@@ -116,7 +116,7 @@ func dailyActorCron(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func exportCron(w http.ResponseWriter, r *http.Request) {
+func exportCron(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	client, err := google.DefaultClient(ctx, datastore.DatastoreScope)
@@ -152,7 +152,7 @@ func exportCron(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func oneOffCron(w http.ResponseWriter, r *http.Request) {
+func oneOffCron(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	cursor := r.FormValue("cursor")

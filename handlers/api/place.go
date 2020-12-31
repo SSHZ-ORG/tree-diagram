@@ -4,14 +4,12 @@ import (
 	"net/http"
 
 	"github.com/SSHZ-ORG/tree-diagram/models"
+	"github.com/julienschmidt/httprouter"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 )
 
-func renderPlace(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
+func renderPlace(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	pid := r.FormValue("id")

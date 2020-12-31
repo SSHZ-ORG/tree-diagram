@@ -6,14 +6,12 @@ import (
 
 	"github.com/SSHZ-ORG/tree-diagram/apicache"
 	"github.com/SSHZ-ORG/tree-diagram/models"
+	"github.com/julienschmidt/httprouter"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 )
 
-func renderEvent(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
+func renderEvent(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	eid := r.FormValue("id")
@@ -40,10 +38,7 @@ func renderEvent(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func queryEvents(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
+func queryEvents(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	err := r.ParseForm()

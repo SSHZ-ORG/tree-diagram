@@ -7,6 +7,7 @@ import (
 
 	"github.com/SSHZ-ORG/tree-diagram/apicache"
 	"github.com/SSHZ-ORG/tree-diagram/models"
+	"github.com/julienschmidt/httprouter"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
@@ -69,10 +70,7 @@ func prepareRenderActor(ctx context.Context, aids []string) (map[string][]byte, 
 	return m, nil
 }
 
-func renderActor(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
+func renderActor(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	aid := r.FormValue("id")
@@ -91,10 +89,7 @@ func renderActor(w http.ResponseWriter, r *http.Request) {
 	writeEncodedJSON(ctx, w, responses[aid])
 }
 
-func compareActors(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
+func compareActors(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
 	err := r.ParseForm()

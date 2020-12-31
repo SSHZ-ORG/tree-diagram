@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/SSHZ-ORG/tree-diagram/paths"
-	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/log"
 )
@@ -14,14 +14,14 @@ const (
 	queryPageSize = 10
 )
 
-func RegisterAPI(r *mux.Router) {
-	r.HandleFunc(paths.APICompareActorsPath, compareActors).Methods("GET", "OPTIONS")
+func RegisterAPI(r *httprouter.Router) {
+	r.GET(paths.APICompareActorsPath, compareActors)
 
-	r.HandleFunc(paths.APIRenderEventPath, renderEvent).Methods("GET", "OPTIONS")
-	r.HandleFunc(paths.APIRenderPlacePath, renderPlace).Methods("GET", "OPTIONS")
-	r.HandleFunc(paths.APIRenderActorPath, renderActor).Methods("GET", "OPTIONS")
+	r.GET(paths.APIRenderEventPath, renderEvent)
+	r.GET(paths.APIRenderPlacePath, renderPlace)
+	r.GET(paths.APIRenderActorPath, renderActor)
 
-	r.HandleFunc(paths.APIQueryEventsPath, queryEvents).Methods("GET", "OPTIONS")
+	r.GET(paths.APIQueryEventsPath, queryEvents)
 }
 
 func writeJSON(ctx context.Context, w http.ResponseWriter, v interface{}) {
