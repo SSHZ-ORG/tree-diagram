@@ -1,0 +1,17 @@
+syntax = "proto2";
+package treediagram.pb;
+
+option go_package = "github.com/SSHZ-ORG/tree-diagram/pb";
+
+message EchoRequest {
+    optional string payload = 1;
+}
+
+message EchoResponse {
+    optional string payload = 1;
+}
+
+service TreeDiagramService {
+    rpc Echo (EchoRequest) returns (EchoResponse) {
+    }
+}
