@@ -1,5 +1,6 @@
 const path = require('path')
 const WebpackUserscript = require('webpack-userscript')
+const ClosurePlugin = require('closure-webpack-plugin')
 const dev = process.env.NODE_ENV === 'development'
 
 module.exports = {
@@ -22,5 +23,13 @@ module.exports = {
                 match: 'https://www.eventernote.com/*',
             }
         })
-    ]
+    ],
+    optimization: {
+        minimizer: [
+            new ClosurePlugin({mode: 'STANDARD'}, {
+                strict_mode_input: false,
+                languageOut: 'ECMASCRIPT_2015'
+            })
+        ]
+    }
 }

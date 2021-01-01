@@ -11,7 +11,9 @@
   "author": "SSHZ.ORG",
   "license": "ISC",
   "devDependencies": {
+    "closure-webpack-plugin": "^2.3.0",
     "eslint": "^7.16.0",
+    "google-closure-compiler": "^20201207.0.0",
     "webpack": "^4.44.2",
     "webpack-cli": "^4.3.0",
     "webpack-dev-server": "^3.11.1",
