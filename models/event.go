@@ -7,6 +7,7 @@ import (
 
 	"cloud.google.com/go/civil"
 	"github.com/SSHZ-ORG/tree-diagram/models/cache"
+	"github.com/SSHZ-ORG/tree-diagram/pb"
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"github.com/scylladb/go-set/strset"
@@ -14,6 +15,8 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Event struct {
@@ -328,33 +331,13 @@ func QueryEvents(ctx context.Context, placeID string, actorIDs []string, limit, 
 	return es, errors.Wrap(err, "nds.GetMulti failed")
 }
 
-type PlaceNoteCountStats struct {
-	Total int `json:"total"`
-	Rank  int `json:"rank"`
-}
-
-type FrontendEventSnapshot struct {
-	Timestamp time.Time `json:"timestamp"`
-	NoteCount int       `json:"noteCount"`
-
-	AddedActors   []string `json:"addedActors"`
-	RemovedActors []string `json:"removedActors"`
-}
-
-type RenderEventResponse struct {
-	Date      string                   `json:"date"`
-	Snapshots []*FrontendEventSnapshot `json:"snapshots"`
-
-	PlaceStatsTotal    PlaceNoteCountStats `json:"placeStatsTotal"`
-	PlaceStatsFinished PlaceNoteCountStats `json:"placeStatsFinished"`
-}
-
 // Errors wrapped.
-func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEventResponse, error) {
+func PrepareRenderEventResponse(ctx context.Context, eventID string) (*pb.RenderEventResponse, error) {
 	key := getEventKey(ctx, eventID)
 
-	response := &RenderEventResponse{
-		Snapshots: make([]*FrontendEventSnapshot, 0), // So json does not make it null.
+	response := &pb.RenderEventResponse{
+		PlaceStatsTotal:    &pb.RenderEventResponse_PlaceNoteCountStats{},
+		PlaceStatsFinished: &pb.RenderEventResponse_PlaceNoteCountStats{},
 	}
 
 	e := &Event{}
@@ -364,7 +347,7 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 		}
 		return nil, errors.Wrap(err, "nds.Get failed")
 	}
-	response.Date = civil.DateOf(e.Date).String()
+	response.Date = proto.String(civil.DateOf(e.Date).String())
 
 	var errTotal, errFinished error
 	wg := sync.WaitGroup{}
@@ -374,24 +357,30 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 
 	go func() {
 		defer wg.Done()
-		var err error
-		if response.PlaceStatsTotal.Total, err = baseQuery.Count(ctx); err != nil {
+		if t, err := baseQuery.Count(ctx); err == nil {
+			response.PlaceStatsTotal.Total = proto.Int32(int32(t))
+		} else {
 			errTotal = errors.Wrap(err, "Count total total failed")
 			return
 		}
-		if response.PlaceStatsTotal.Rank, err = baseQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(ctx); err != nil {
+		if r, err := baseQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(ctx); err == nil {
+			response.PlaceStatsTotal.Rank = proto.Int32(int32(r))
+		} else {
 			errTotal = errors.Wrap(err, "Count total rank failed")
 			return
 		}
 	}()
 	go func() {
 		defer wg.Done()
-		var err error
-		if response.PlaceStatsFinished.Total, err = finishedQuery.Count(ctx); err != nil {
+		if t, err := finishedQuery.Count(ctx); err == nil {
+			response.PlaceStatsFinished.Total = proto.Int32(int32(t))
+		} else {
 			errFinished = errors.Wrap(err, "Count finished total failed")
 			return
 		}
-		if response.PlaceStatsFinished.Rank, err = finishedQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(ctx); err != nil {
+		if r, err := finishedQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(ctx); err == nil {
+			response.PlaceStatsFinished.Rank = proto.Int32(int32(r))
+		} else {
 			errFinished = errors.Wrap(err, "Count finished rank failed")
 			return
 		}
@@ -426,11 +415,9 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*RenderEve
 
 	lastActors := strset.New()
 	for _, s := range snapshots {
-		item := &FrontendEventSnapshot{
-			Timestamp:     s.Timestamp,
-			NoteCount:     s.NoteCount,
-			AddedActors:   make([]string, 0),
-			RemovedActors: make([]string, 0),
+		item := &pb.RenderEventResponse_Snapshot{
+			Timestamp: timestamppb.New(s.Timestamp),
+			NoteCount: proto.Int32(int32(s.NoteCount)),
 		}
 
 		if len(s.Actors) > 0 {

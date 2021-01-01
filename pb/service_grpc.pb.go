@@ -17,7 +17,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TreeDiagramServiceClient interface {
-	Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
+	RenderEvent(ctx context.Context, in *RenderEventRequest, opts ...grpc.CallOption) (*RenderEventResponse, error)
 }
 
 type treeDiagramServiceClient struct {
@@ -28,9 +28,9 @@ func NewTreeDiagramServiceClient(cc grpc.ClientConnInterface) TreeDiagramService
 	return &treeDiagramServiceClient{cc}
 }
 
-func (c *treeDiagramServiceClient) Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error) {
-	out := new(EchoResponse)
-	err := c.cc.Invoke(ctx, "/treediagram.pb.TreeDiagramService/Echo", in, out, opts...)
+func (c *treeDiagramServiceClient) RenderEvent(ctx context.Context, in *RenderEventRequest, opts ...grpc.CallOption) (*RenderEventResponse, error) {
+	out := new(RenderEventResponse)
+	err := c.cc.Invoke(ctx, "/treediagram.pb.TreeDiagramService/RenderEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (c *treeDiagramServiceClient) Echo(ctx context.Context, in *EchoRequest, op
 // All implementations must embed UnimplementedTreeDiagramServiceServer
 // for forward compatibility
 type TreeDiagramServiceServer interface {
-	Echo(context.Context, *EchoRequest) (*EchoResponse, error)
+	RenderEvent(context.Context, *RenderEventRequest) (*RenderEventResponse, error)
 	mustEmbedUnimplementedTreeDiagramServiceServer()
 }
 
@@ -49,8 +49,8 @@ type TreeDiagramServiceServer interface {
 type UnimplementedTreeDiagramServiceServer struct {
 }
 
-func (UnimplementedTreeDiagramServiceServer) Echo(context.Context, *EchoRequest) (*EchoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Echo not implemented")
+func (UnimplementedTreeDiagramServiceServer) RenderEvent(context.Context, *RenderEventRequest) (*RenderEventResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RenderEvent not implemented")
 }
 func (UnimplementedTreeDiagramServiceServer) mustEmbedUnimplementedTreeDiagramServiceServer() {}
 
@@ -65,20 +65,20 @@ func RegisterTreeDiagramServiceServer(s grpc.ServiceRegistrar, srv TreeDiagramSe
 	s.RegisterService(&TreeDiagramService_ServiceDesc, srv)
 }
 
-func _TreeDiagramService_Echo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EchoRequest)
+func _TreeDiagramService_RenderEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenderEventRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TreeDiagramServiceServer).Echo(ctx, in)
+		return srv.(TreeDiagramServiceServer).RenderEvent(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/treediagram.pb.TreeDiagramService/Echo",
+		FullMethod: "/treediagram.pb.TreeDiagramService/RenderEvent",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TreeDiagramServiceServer).Echo(ctx, req.(*EchoRequest))
+		return srv.(TreeDiagramServiceServer).RenderEvent(ctx, req.(*RenderEventRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -91,8 +91,8 @@ var TreeDiagramService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*TreeDiagramServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Echo",
-			Handler:    _TreeDiagramService_Echo_Handler,
+			MethodName: "RenderEvent",
+			Handler:    _TreeDiagramService_RenderEvent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

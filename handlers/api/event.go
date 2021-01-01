@@ -1,41 +1,44 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
 	"github.com/SSHZ-ORG/tree-diagram/apicache"
 	"github.com/SSHZ-ORG/tree-diagram/models"
+	"github.com/SSHZ-ORG/tree-diagram/pb"
 	"github.com/julienschmidt/httprouter"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
+	"google.golang.org/protobuf/proto"
 )
 
-func renderEvent(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := appengine.NewContext(r)
-
-	eid := r.FormValue("id")
-	if eid == "" {
-		http.Error(w, "Missing arg id", http.StatusBadRequest)
-		return
-	}
+func (t treeDiagramService) RenderEvent(ctx context.Context, req *pb.RenderEventRequest) (*pb.RenderEventResponse, error) {
+	eid := req.GetId()
 
 	if fromCache := apicache.GetRenderEvent(ctx, eid); fromCache != nil {
-		writeEncodedJSON(ctx, w, fromCache)
-		return
+		r := &pb.RenderEventResponse{}
+		if err := proto.Unmarshal(fromCache, r); err == nil {
+			return r, nil
+		} else {
+			log.Errorf(ctx, "proto.Unmarshal: %+v", err)
+			// Continue below
+		}
 	}
 
 	res, err := models.PrepareRenderEventResponse(ctx, eid)
-	if err != nil {
+	if err == nil {
+		if m, err := proto.Marshal(res); err == nil {
+			apicache.PutRenderEvent(ctx, eid, m)
+		} else {
+			panic(err)
+		}
+	} else {
 		log.Errorf(ctx, "models.PrepareRenderEventResponse: %+v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
 	}
 
-	if encoded, err := encodeJSON(ctx, w, res); err == nil {
-		apicache.PutRenderEvent(ctx, eid, encoded)
-		writeEncodedJSON(ctx, w, encoded)
-	}
+	return res, err
 }
 
 func queryEvents(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

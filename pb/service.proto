@@ -3,15 +3,32 @@ package treediagram.pb;
 
 option go_package = "github.com/SSHZ-ORG/tree-diagram/pb";
 
-message EchoRequest {
-    optional string payload = 1;
+import "google/protobuf/timestamp.proto";
+
+message RenderEventRequest {
+    optional string id = 1;
 }
 
-message EchoResponse {
-    optional string payload = 1;
+message RenderEventResponse {
+    optional string date = 1;
+
+    message Snapshot {
+        optional .google.protobuf.Timestamp timestamp = 1;
+        optional int32 note_count = 2;
+
+        repeated string added_actors = 3;
+        repeated string removed_actors = 4;
+    }
+    repeated Snapshot snapshots = 2;
+
+    message PlaceNoteCountStats {
+        optional int32 total = 1;
+        optional int32 rank = 2;
+    }
+    optional PlaceNoteCountStats place_stats_total = 3;
+    optional PlaceNoteCountStats place_stats_finished = 4;
 }
 
 service TreeDiagramService {
-    rpc Echo (EchoRequest) returns (EchoResponse) {
-    }
+    rpc RenderEvent (RenderEventRequest) returns (RenderEventResponse) {}
 }
