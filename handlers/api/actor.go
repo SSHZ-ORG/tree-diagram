@@ -8,6 +8,8 @@ import (
 	"github.com/SSHZ-ORG/tree-diagram/pb"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/log"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -73,10 +75,16 @@ func prepareRenderActor(ctx context.Context, aids []string) (map[string]*pb.Rend
 }
 
 func (t treeDiagramService) RenderActors(ctx context.Context, req *pb.RenderActorsRequest) (*pb.RenderActorsResponse, error) {
+	for _, id := range req.GetId() {
+		if id == "" {
+			return nil, status.Error(codes.InvalidArgument, "Empty id")
+		}
+	}
+
 	res, err := prepareRenderActor(ctx, req.GetId())
 	if err != nil {
 		log.Errorf(ctx, "prepareRenderActor: %+v", err)
-		return nil, err
+		return nil, internalError
 	}
 	return &pb.RenderActorsResponse{Items: res}, nil
 }

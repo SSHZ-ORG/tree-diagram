@@ -8,6 +8,8 @@ import (
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/pb"
 	"google.golang.org/appengine/log"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -17,6 +19,9 @@ const (
 
 func (t treeDiagramService) RenderEvent(ctx context.Context, req *pb.RenderEventRequest) (*pb.RenderEventResponse, error) {
 	eid := req.GetId()
+	if eid == "" {
+		return nil, status.Error(codes.InvalidArgument, "Empty id")
+	}
 
 	if fromCache := apicache.GetRenderEvent(ctx, eid); fromCache != nil {
 		r := &pb.RenderEventResponse{}
@@ -37,16 +42,17 @@ func (t treeDiagramService) RenderEvent(ctx context.Context, req *pb.RenderEvent
 		}
 	} else {
 		log.Errorf(ctx, "models.PrepareRenderEventResponse: %+v", err)
+		return nil, internalError
 	}
 
-	return res, err
+	return res, nil
 }
 
 func (t treeDiagramService) QueryEvents(ctx context.Context, req *pb.QueryEventsRequest) (*pb.QueryEventsResponse, error) {
 	events, err := models.QueryEvents(ctx, req.GetPlaceId(), req.GetActorIds(), queryPageSize, int(req.GetOffset()))
 	if err != nil {
 		log.Errorf(ctx, "models.QueryEvents: %+v", err)
-		return nil, err
+		return nil, internalError
 	}
 
 	resp := &pb.QueryEventsResponse{}
