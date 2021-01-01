@@ -1,29 +1,12 @@
 import {TreeDiagramServicePromiseClient} from "./service_grpc_web_pb";
 import {QueryEventsRequest, RenderActorsRequest, RenderEventRequest, RenderPlaceRequest} from "./service_pb";
 
-require('chart.js')
-require('chartjs-plugin-annotation')
-require('chartjs-plugin-colorschemes')
-require('chartjs-plugin-datalabels')
-require('chartjs-plugin-zoom')
-
 let Highcharts = require('highcharts');
 require('highcharts/modules/exporting')(Highcharts);
-
 
 const treeDiagramService = new TreeDiagramServicePromiseClient('https://treediagram.sshz.org');
 
 const header = '<h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>';
-
-const chartNowAnnotation = {
-    type: 'line',
-    mode: 'vertical',
-    scaleID: 'x-axis-0',
-    value: new Date(),
-    borderColor: 'rgba(0, 0, 0, 0.2)',
-    borderWidth: 1,
-    borderDash: [2, 2],
-};
 
 const plotLineNow = {
     value: new Date(),
@@ -219,6 +202,35 @@ function placePage(placeId) {
     });
 }
 
+function actorSnapshotsToDataPoints(snapshots) {
+    if (snapshots.length === 0) {
+        return [];
+    }
+
+    const dates = snapshots.map(s => {
+        const d = new Date(s.getDate());
+        d.setUTCHours(-3); // JST 6am.
+        return d;
+    });
+
+    const dataPoints = [];
+    const copy = snapshots.slice();
+    let lastFavoriteCount = 0;
+
+    for (let date = dates[0]; date < new Date(); date.setDate(date.getDate() + 1)) {
+        if (copy.length > 0 && date >= dates[0]) {
+            lastFavoriteCount = copy[0].getFavoriteCount();
+            dates.shift();
+            copy.shift();
+        }
+        dataPoints.push({
+            x: date.getTime(),
+            y: lastFavoriteCount,
+        });
+    }
+    return dataPoints;
+}
+
 function actorPage(actorId) {
     const tdDom = htmlToElement(`
         <div>
@@ -244,30 +256,6 @@ function actorPage(actorId) {
 
         const ctx = document.getElementById('td_chart');
 
-        const dates = data.getSnapshotsList().map(s => {
-            const d = new Date(s.getDate());
-            d.setUTCHours(-3); // JST 6am.
-            return d;
-        });
-
-        const dataPoints = [];
-        if (data.getSnapshotsList().length > 0) {
-            const snapshots = data.getSnapshotsList().slice();
-            let lastFavoriteCount = 0;
-
-            for (let date = dates[0]; date < new Date(); date.setDate(date.getDate() + 1)) {
-                if (snapshots.length > 0 && date >= dates[0]) {
-                    lastFavoriteCount = snapshots[0].getFavoriteCount();
-                    dates.shift();
-                    snapshots.shift();
-                }
-                dataPoints.push({
-                    x: new Date(date.getTime()),
-                    y: lastFavoriteCount,
-                });
-            }
-        }
-
         const plotLines = [plotLineNow];
         Highcharts.chart(ctx, {
             chart: {zoomType: 'x'},
@@ -280,11 +268,12 @@ function actorPage(actorId) {
             },
             yAxis: {title: {text: undefined}},
             legend: {enabled: false},
+            tooltip: {xDateFormat: '%Y-%m-%d'},
             series: [
                 {
                     name: 'FavoriteCount',
                     type: 'areaspline',
-                    data: dataPoints,
+                    data: actorSnapshotsToDataPoints(data.getSnapshotsList()),
                 },
                 {
                     // Dummy series to make sure plotLines appear even if they are out of main data range.
@@ -411,84 +400,35 @@ function treeDiagramPage() {
             actorFavoritesChartContainerDom.removeChild(actorFavoritesChartContainerDom.firstChild);
         }
 
-        const ctx = htmlToElement(`<canvas id="td_chart"></canvas>`);
-        actorFavoritesChartContainerDom.appendChild(ctx);
+        actorFavoritesChartContainerDom.appendChild(htmlToElement(`<div id="td_chart"></div>`));
+        const ctx = document.getElementById('td_chart');
 
         const request = new RenderActorsRequest();
         selectedActors.forEach(i => request.addId(i.toString()));
 
         treeDiagramService.renderActors(request).then(response => {
-            const datasets = [];
-
+            const series = [];
             for (const [actorId, res] of response.getItemsMap().entries()) {
-                const dates = res.getSnapshotsList().map(s => {
-                    const d = new Date(s.getDate());
-                    d.setUTCHours(-3); // JST 6am.
-                    return d;
+                series.push({
+                    name: `${actorNames[actorId]}`,
+                    type: 'spline',
+                    data: actorSnapshotsToDataPoints(res.getSnapshotsList()),
                 });
-
-                const dataPoints = [];
-                if (res.getSnapshotsList().length > 0) {
-                    const snapshots = res.getSnapshotsList().slice();
-                    let lastFavoriteCount = 0;
-
-                    for (let date = dates[0]; date < new Date(); date.setDate(date.getDate() + 1)) {
-                        if (snapshots.length > 0 && date >= dates[0]) {
-                            lastFavoriteCount = snapshots[0].getFavoriteCount();
-                            snapshots.shift();
-                            dates.shift();
-                        }
-                        dataPoints.push({
-                            x: new Date(date.getTime()),
-                            y: lastFavoriteCount,
-                        });
-                    }
-                }
-
-                datasets.push(
-                    {
-                        label: `${actorNames[actorId]}`,
-                        data: dataPoints,
-                        cubicInterpolationMode: 'monotone',
-                        borderWidth: 1,
-                        datalabels: {display: false},
-                    }
-                );
             }
-
-            datasets.sort(function (a, b) {
+            series.sort(function (a, b) {
                 return a.data[a.data.length - 1].y - b.data[b.data.length - 1].y;
             });
+            series.reverse();
 
-            const tdChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: datasets,
-                },
-                options: {
-                    scales: {
-                        xAxes: [{
-                            type: 'time',
-                            ticks: {
-                                maxRotation: 0,
-                            },
-                            gridLines: {
-                                zeroLineColor: 'rgba(0, 0, 0, 0.1)',
-                            },
-                        }],
-                    },
-                    tooltips: {
-                        mode: 'index',
-                    },
-                    annotation: { // As of chartjs-plugin-annotation 0.5.7, it does not support `plugins` property.
-                        annotations: [chartNowAnnotation],
-                    },
-                    plugins: {
-                        colorschemes: {
-                            scheme: `brewer.Spectral${Math.min(11, Math.max(3, datasets.length))}`,
-                        },
-                    },
-                },
+            Highcharts.chart(ctx, {
+                chart: {zoomType: 'x'},
+                credits: {enabled: false},
+                title: {text: undefined},
+                plotOptions: {spline: {threshold: null}},
+                xAxis: {type: 'datetime'},
+                yAxis: {title: {text: undefined}},
+                series: series,
+                tooltip: {xDateFormat: '%Y-%m-%d', shared: true},
             });
         });
     }
