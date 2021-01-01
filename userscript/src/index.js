@@ -231,10 +231,7 @@ function actorPage(actorId) {
 
     const graphDom = htmlToElement(`
         <div>
-            <canvas id="td_chart"></canvas>
-            <button class="btn btn-block" type="button" id="td_chart_reset">
-                Reset Zoom
-            </button>
+            <div id="td_chart"></div>
         </div>`);
     const favoriteUsersDom = document.getElementsByClassName('gb_users_icon')[0] || document.getElementsByClassName('gb_listusericon')[0];
     favoriteUsersDom.parentNode.insertBefore(graphDom, favoriteUsersDom);
@@ -271,52 +268,31 @@ function actorPage(actorId) {
             }
         }
 
-        const tdChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                datasets: [{
-                    label: 'FavoriteCount',
+        const plotLines = [plotLineNow];
+        Highcharts.chart(ctx, {
+            chart: {zoomType: 'x'},
+            credits: {enabled: false},
+            title: {text: undefined},
+            plotOptions: {areaspline: {threshold: null}},
+            xAxis: {
+                type: 'datetime',
+                plotLines: plotLines,
+            },
+            yAxis: {title: {text: undefined}},
+            legend: {enabled: false},
+            series: [
+                {
+                    name: 'FavoriteCount',
+                    type: 'areaspline',
                     data: dataPoints,
-                    cubicInterpolationMode: 'monotone',
-                    borderWidth: 1,
-                    datalabels: {display: false},
-                }],
-            },
-            options: {
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        ticks: {
-                            maxRotation: 0,
-                        },
-                        gridLines: {
-                            zeroLineColor: 'rgba(0, 0, 0, 0.1)',
-                        },
-                    }],
                 },
-                legend: {
-                    display: false,
+                {
+                    // Dummy series to make sure plotLines appear even if they are out of main data range.
+                    type: 'scatter',
+                    marker: {enabled: false},
+                    data: plotLines.map(i => ({x: i.value})),
                 },
-                annotation: { // As of chartjs-plugin-annotation 0.5.7, it does not support `plugins` property.
-                    annotations: [chartNowAnnotation],
-                },
-                plugins: {
-                    zoom: {
-                        zoom: {
-                            enabled: true,
-                            drag: true,
-                            mode: 'x',
-                        },
-                    },
-                    colorschemes: {
-                        scheme: `tableau.ClassicMedium10`,
-                    },
-                },
-            },
-        });
-
-        document.getElementById('td_chart_reset').addEventListener('click', () => {
-            tdChart.resetZoom();
+            ],
         });
     });
 }
