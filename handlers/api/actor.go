@@ -1,34 +1,38 @@
 package api
 
 import (
-	"encoding/json"
-	"net/http"
 	"sync"
 
 	"github.com/SSHZ-ORG/tree-diagram/apicache"
 	"github.com/SSHZ-ORG/tree-diagram/models"
-	"github.com/julienschmidt/httprouter"
-	"github.com/pkg/errors"
+	"github.com/SSHZ-ORG/tree-diagram/pb"
 	"golang.org/x/net/context"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
+	"google.golang.org/protobuf/proto"
 )
 
-func prepareRenderActor(ctx context.Context, aids []string) (map[string][]byte, error) {
-	m := make(map[string][]byte)
+func prepareRenderActor(ctx context.Context, aids []string) (map[string]*pb.RenderActorsResponse_ResponseItem, error) {
+	m := make(map[string]*pb.RenderActorsResponse_ResponseItem)
 
 	var missedIDs []string
 
 	fromCache := apicache.GetRenderActor(ctx, aids)
 	for _, id := range aids {
 		if data, ok := fromCache[id]; ok {
-			m[id] = data
-		} else {
-			missedIDs = append(missedIDs, id)
+			p := &pb.RenderActorsResponse_ResponseItem{}
+			err := proto.Unmarshal(data, p)
+			if err == nil {
+				m[id] = p
+				continue
+			} else {
+				log.Errorf(ctx, "proto.Unmarshal: %+v", err)
+			}
 		}
+
+		missedIDs = append(missedIDs, id)
 	}
 
-	responses := make([][]byte, len(missedIDs))
+	responses := make([]*pb.RenderActorsResponse_ResponseItem, len(missedIDs))
 	errs := make([]error, len(missedIDs))
 	wg := sync.WaitGroup{}
 	wg.Add(len(missedIDs))
@@ -43,13 +47,7 @@ func prepareRenderActor(ctx context.Context, aids []string) (map[string][]byte, 
 				return
 			}
 
-			encoded, err := json.Marshal(res)
-			if err != nil {
-				errs[i] = errors.Wrap(err, "Failed to encode RenderActorResponse")
-				return
-			}
-
-			responses[i] = encoded
+			responses[i] = res
 		}(i, id)
 	}
 
@@ -62,7 +60,11 @@ func prepareRenderActor(ctx context.Context, aids []string) (map[string][]byte, 
 		}
 
 		id := missedIDs[i]
-		toCache[id] = res
+		s, err := proto.Marshal(res)
+		if err != nil {
+			return nil, err
+		}
+		toCache[id] = s
 		m[id] = res
 	}
 
@@ -70,49 +72,11 @@ func prepareRenderActor(ctx context.Context, aids []string) (map[string][]byte, 
 	return m, nil
 }
 
-func renderActor(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := appengine.NewContext(r)
-
-	aid := r.FormValue("id")
-	if aid == "" {
-		http.Error(w, "Missing arg id", http.StatusBadRequest)
-		return
-	}
-
-	responses, err := prepareRenderActor(ctx, []string{aid})
+func (t treeDiagramService) RenderActors(ctx context.Context, req *pb.RenderActorsRequest) (*pb.RenderActorsResponse, error) {
+	res, err := prepareRenderActor(ctx, req.GetId())
 	if err != nil {
 		log.Errorf(ctx, "prepareRenderActor: %+v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-
-	writeEncodedJSON(ctx, w, responses[aid])
-}
-
-func compareActors(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := appengine.NewContext(r)
-
-	err := r.ParseForm()
-	if err != nil {
-		log.Errorf(ctx, "r.ParseForm: %v", err)
-		http.Error(w, "Malformed Query", http.StatusBadRequest)
-		return
-	}
-
-	actorIDs := r.Form["id"]
-
-	responses, err := prepareRenderActor(ctx, actorIDs)
-	if err != nil {
-		log.Errorf(ctx, "prepareRenderActor: %+v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	m := make(map[string]json.RawMessage)
-	for k, v := range responses {
-		m[k] = json.RawMessage(v)
-	}
-
-	encoded, _ := json.Marshal(m)
-	writeEncodedJSON(ctx, w, encoded)
+	return &pb.RenderActorsResponse{Items: res}, nil
 }

@@ -15,10 +15,6 @@ const (
 )
 
 func RegisterAPI(r *httprouter.Router) {
-	r.GET(paths.APICompareActorsPath, compareActors)
-
-	r.GET(paths.APIRenderActorPath, renderActor)
-
 	r.GET(paths.APIQueryEventsPath, queryEvents)
 }
 

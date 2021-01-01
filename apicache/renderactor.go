@@ -2,7 +2,7 @@ package apicache
 
 import "golang.org/x/net/context"
 
-const renderActorKeyPrefix = keyPrefix + "RA1:"
+const renderActorKeyPrefix = keyPrefix + "RA2:"
 
 func renderActorKey(aid string) string {
 	return renderActorKeyPrefix + aid

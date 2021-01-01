@@ -1,11 +1,7 @@
 package paths
 
 const (
-	APICompareActorsPath = "/api/compareActors"
-	APIRenderEventPath   = "/api/renderEvent"
-	APIRenderPlacePath   = "/api/renderPlace"
-	APIRenderActorPath   = "/api/renderActor"
-	APIQueryEventsPath   = "/api/queryEvents"
+	APIQueryEventsPath = "/api/queryEvents"
 
 	CommandEnqueueDateRangePath = "/admin/command/enqueueDateRange"
 

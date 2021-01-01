@@ -5,11 +5,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/SSHZ-ORG/tree-diagram/pb"
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
+	"google.golang.org/protobuf/proto"
 )
 
 type Actor struct {
@@ -166,18 +168,11 @@ func UpdateActors(ctx context.Context, oas, nas []*Actor) error {
 	return nil
 }
 
-type RenderActorResponse struct {
-	KnownEventCount int                      `json:"knownEventCount"`
-	Snapshots       []*FrontendActorSnapshot `json:"snapshots"`
-}
-
 // Errors wrapped.
-func PrepareRenderActorResponse(ctx context.Context, actorID string) (*RenderActorResponse, error) {
+func PrepareRenderActorResponse(ctx context.Context, actorID string) (*pb.RenderActorsResponse_ResponseItem, error) {
 	key := getActorKey(ctx, actorID)
 
-	response := &RenderActorResponse{
-		Snapshots: make([]*FrontendActorSnapshot, 0),
-	}
+	response := &pb.RenderActorsResponse_ResponseItem{}
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -189,16 +184,14 @@ func PrepareRenderActorResponse(ctx context.Context, actorID string) (*RenderAct
 			snapshotsErr = err
 			return
 		}
-		if len(snapshots) > 0 {
-			response.Snapshots = snapshots
-		}
+		response.Snapshots = snapshots
 	}()
 
 	kec, err := datastore.NewQuery(eventKind).KeysOnly().Filter("Actors =", key).Count(ctx)
 	if err != nil {
 		return response, errors.Wrap(err, "Counting events failed")
 	}
-	response.KnownEventCount = kec
+	response.KnownEventCount = proto.Int32(int32(kec))
 
 	wg.Wait()
 	if snapshotsErr != nil {

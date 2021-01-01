@@ -37,7 +37,25 @@ message RenderPlaceResponse {
     optional int32 known_event_count = 1;
 }
 
+message RenderActorsRequest {
+    repeated string id = 1;
+}
+
+message RenderActorsResponse {
+    message ResponseItem {
+        optional int32 known_event_count = 1;
+
+        message Snapshot {
+            optional string date = 1;
+            optional int32 favorite_count = 2;
+        }
+        repeated Snapshot snapshots = 2;
+    }
+    map<string, ResponseItem> items = 1;
+}
+
 service TreeDiagramService {
     rpc RenderEvent (RenderEventRequest) returns (RenderEventResponse) {}
     rpc RenderPlace (RenderPlaceRequest) returns (RenderPlaceResponse) {}
+    rpc RenderActors (RenderActorsRequest) returns (RenderActorsResponse) {}
 }

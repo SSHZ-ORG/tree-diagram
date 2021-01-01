@@ -4,12 +4,14 @@ import (
 	"time"
 
 	"cloud.google.com/go/civil"
+	"github.com/SSHZ-ORG/tree-diagram/pb"
 	"github.com/SSHZ-ORG/tree-diagram/utils"
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
+	"google.golang.org/protobuf/proto"
 )
 
 type ActorSnapshot struct {
@@ -42,20 +44,8 @@ func maybeCreateActorSnapshot(ctx context.Context, ak *datastore.Key, oa, na *Ac
 	return datastore.NewIncompleteKey(ctx, actorSnapshotKind, ak), s
 }
 
-func (as ActorSnapshot) toFrontendSnapshot() *FrontendActorSnapshot {
-	return &FrontendActorSnapshot{
-		Date:          civil.DateOf(as.Timestamp.In(utils.JST())),
-		FavoriteCount: as.FavoriteCount,
-	}
-}
-
-type FrontendActorSnapshot struct {
-	Date          civil.Date `json:"date"`
-	FavoriteCount int        `json:"favoriteCount"`
-}
-
 // Errors wrapped.
-func getFrontendSnapshotsForActor(ctx context.Context, ak *datastore.Key) ([]*FrontendActorSnapshot, error) {
+func getFrontendSnapshotsForActor(ctx context.Context, ak *datastore.Key) ([]*pb.RenderActorsResponse_ResponseItem_Snapshot, error) {
 	keys, err := datastore.NewQuery(actorSnapshotKind).Ancestor(ak).Order("-Timestamp").KeysOnly().GetAll(ctx, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "datastore query failed")
@@ -72,9 +62,12 @@ func getFrontendSnapshotsForActor(ctx context.Context, ak *datastore.Key) ([]*Fr
 		return nil, errors.Wrap(err, "nds.GetMulti failed")
 	}
 
-	var fass []*FrontendActorSnapshot
+	var fass []*pb.RenderActorsResponse_ResponseItem_Snapshot
 	for _, s := range snapshots {
-		fass = append(fass, s.toFrontendSnapshot())
+		fass = append(fass, &pb.RenderActorsResponse_ResponseItem_Snapshot{
+			Date:          proto.String(civil.DateOf(s.Timestamp.In(utils.JST())).String()),
+			FavoriteCount: proto.Int32(int32(s.FavoriteCount)),
+		})
 	}
 	return fass, nil
 }
