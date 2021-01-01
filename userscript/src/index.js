@@ -1,10 +1,10 @@
-import {TreeDiagramServicePromiseClient} from "./service_grpc_web_pb";
-import {QueryEventsRequest, RenderActorsRequest, RenderEventRequest, RenderPlaceRequest} from "./service_pb";
+const servicepb = require('./service_grpc_web_pb');
+const pb = require('./service_pb');
 
 let Highcharts = require('highcharts');
 require('highcharts/modules/exporting')(Highcharts);
 
-const treeDiagramService = new TreeDiagramServicePromiseClient('https://treediagram.sshz.org');
+const treeDiagramService = new servicepb.TreeDiagramServicePromiseClient('https://treediagram.sshz.org');
 
 const header = '<h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>';
 
@@ -38,7 +38,7 @@ function eventPage(eventId) {
     const entryAreaDom = document.getElementById('entry_area') || document.getElementsByClassName('mod_events_detail')[0];
     entryAreaDom.parentNode.insertBefore(tdDom, entryAreaDom.nextSibling);
 
-    const request = new RenderEventRequest().setId(eventId);
+    const request = new pb.RenderEventRequest().setId(eventId);
     treeDiagramService.renderEvent(request).then(response => {
         const totalStatsSpan = document.getElementById('td_place_stats_total');
         totalStatsSpan.innerHTML = `${response.getPlaceStatsTotal().getRank()}/${response.getPlaceStatsTotal().getTotal()}`;
@@ -145,7 +145,7 @@ function createEventList(placeId, actorIds, totalCount, domToAppend, autoLoadFir
         }
 
         loadMoreButtonDom.disabled = true;
-        const request = new QueryEventsRequest().setOffset(loadedCount);
+        const request = new pb.QueryEventsRequest().setOffset(loadedCount);
         if (placeId !== "") {
             request.setPlaceId(placeId);
         }
@@ -196,7 +196,7 @@ function placePage(placeId) {
     const placeDetailsTableDom = document.getElementsByClassName('gb_place_detail_table')[0] || document.getElementsByClassName('mod_places_detail')[0];
     placeDetailsTableDom.parentNode.insertBefore(tdDom, placeDetailsTableDom.nextSibling);
 
-    const request = new RenderPlaceRequest().setId(placeId);
+    const request = new pb.RenderPlaceRequest().setId(placeId);
     treeDiagramService.renderPlace(request).then(response => {
         createEventList(placeId, [], response.getKnownEventCount(), tdDom, false);
     });
@@ -248,7 +248,7 @@ function actorPage(actorId) {
     const favoriteUsersDom = document.getElementsByClassName('gb_users_icon')[0] || document.getElementsByClassName('gb_listusericon')[0];
     favoriteUsersDom.parentNode.insertBefore(graphDom, favoriteUsersDom);
 
-    const request = new RenderActorsRequest().addId(actorId);
+    const request = new pb.RenderActorsRequest().addId(actorId);
     treeDiagramService.renderActors(request).then(response => {
         const data = response.getItemsMap().get(actorId);
 
@@ -403,7 +403,7 @@ function treeDiagramPage() {
         actorFavoritesChartContainerDom.appendChild(htmlToElement(`<div id="td_chart"></div>`));
         const ctx = document.getElementById('td_chart');
 
-        const request = new RenderActorsRequest();
+        const request = new pb.RenderActorsRequest();
         selectedActors.forEach(i => request.addId(i.toString()));
 
         treeDiagramService.renderActors(request).then(response => {
