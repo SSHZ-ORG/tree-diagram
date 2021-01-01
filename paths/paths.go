@@ -1,8 +1,6 @@
 package paths
 
 const (
-	APIQueryEventsPath = "/api/queryEvents"
-
 	CommandEnqueueDateRangePath = "/admin/command/enqueueDateRange"
 
 	CrawlDatePath  = "/admin/crawl/date"

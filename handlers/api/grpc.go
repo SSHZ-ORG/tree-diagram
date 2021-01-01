@@ -7,7 +7,7 @@ import (
 )
 
 type treeDiagramService struct {
-	pb.UnimplementedTreeDiagramServiceServer
+	pb.UnsafeTreeDiagramServiceServer
 }
 
 func GrpcServer() *grpcweb.WrappedGrpcServer {

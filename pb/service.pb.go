@@ -327,6 +327,116 @@ func (x *RenderActorsResponse) GetItems() map[string]*RenderActorsResponse_Respo
 	return nil
 }
 
+type QueryEventsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Offset   *int32   `protobuf:"varint,1,opt,name=offset" json:"offset,omitempty"`
+	ActorIds []string `protobuf:"bytes,2,rep,name=actor_ids,json=actorIds" json:"actor_ids,omitempty"`
+	PlaceId  *string  `protobuf:"bytes,3,opt,name=place_id,json=placeId" json:"place_id,omitempty"`
+}
+
+func (x *QueryEventsRequest) Reset() {
+	*x = QueryEventsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_service_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryEventsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryEventsRequest) ProtoMessage() {}
+
+func (x *QueryEventsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_service_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QueryEventsRequest.ProtoReflect.Descriptor instead.
+func (*QueryEventsRequest) Descriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *QueryEventsRequest) GetOffset() int32 {
+	if x != nil && x.Offset != nil {
+		return *x.Offset
+	}
+	return 0
+}
+
+func (x *QueryEventsRequest) GetActorIds() []string {
+	if x != nil {
+		return x.ActorIds
+	}
+	return nil
+}
+
+func (x *QueryEventsRequest) GetPlaceId() string {
+	if x != nil && x.PlaceId != nil {
+		return *x.PlaceId
+	}
+	return ""
+}
+
+type QueryEventsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Events []*QueryEventsResponse_Event `protobuf:"bytes,1,rep,name=events" json:"events,omitempty"`
+}
+
+func (x *QueryEventsResponse) Reset() {
+	*x = QueryEventsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_service_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryEventsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryEventsResponse) ProtoMessage() {}
+
+func (x *QueryEventsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_service_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QueryEventsResponse.ProtoReflect.Descriptor instead.
+func (*QueryEventsResponse) Descriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *QueryEventsResponse) GetEvents() []*QueryEventsResponse_Event {
+	if x != nil {
+		return x.Events
+	}
+	return nil
+}
+
 type RenderEventResponse_Snapshot struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -341,7 +451,7 @@ type RenderEventResponse_Snapshot struct {
 func (x *RenderEventResponse_Snapshot) Reset() {
 	*x = RenderEventResponse_Snapshot{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_service_proto_msgTypes[6]
+		mi := &file_service_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -354,7 +464,7 @@ func (x *RenderEventResponse_Snapshot) String() string {
 func (*RenderEventResponse_Snapshot) ProtoMessage() {}
 
 func (x *RenderEventResponse_Snapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[6]
+	mi := &file_service_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -410,7 +520,7 @@ type RenderEventResponse_PlaceNoteCountStats struct {
 func (x *RenderEventResponse_PlaceNoteCountStats) Reset() {
 	*x = RenderEventResponse_PlaceNoteCountStats{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_service_proto_msgTypes[7]
+		mi := &file_service_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -423,7 +533,7 @@ func (x *RenderEventResponse_PlaceNoteCountStats) String() string {
 func (*RenderEventResponse_PlaceNoteCountStats) ProtoMessage() {}
 
 func (x *RenderEventResponse_PlaceNoteCountStats) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[7]
+	mi := &file_service_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -465,7 +575,7 @@ type RenderActorsResponse_ResponseItem struct {
 func (x *RenderActorsResponse_ResponseItem) Reset() {
 	*x = RenderActorsResponse_ResponseItem{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_service_proto_msgTypes[8]
+		mi := &file_service_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -478,7 +588,7 @@ func (x *RenderActorsResponse_ResponseItem) String() string {
 func (*RenderActorsResponse_ResponseItem) ProtoMessage() {}
 
 func (x *RenderActorsResponse_ResponseItem) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[8]
+	mi := &file_service_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -520,7 +630,7 @@ type RenderActorsResponse_ResponseItem_Snapshot struct {
 func (x *RenderActorsResponse_ResponseItem_Snapshot) Reset() {
 	*x = RenderActorsResponse_ResponseItem_Snapshot{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_service_proto_msgTypes[10]
+		mi := &file_service_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -533,7 +643,7 @@ func (x *RenderActorsResponse_ResponseItem_Snapshot) String() string {
 func (*RenderActorsResponse_ResponseItem_Snapshot) ProtoMessage() {}
 
 func (x *RenderActorsResponse_ResponseItem_Snapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_service_proto_msgTypes[10]
+	mi := &file_service_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -559,6 +669,85 @@ func (x *RenderActorsResponse_ResponseItem_Snapshot) GetDate() string {
 func (x *RenderActorsResponse_ResponseItem_Snapshot) GetFavoriteCount() int32 {
 	if x != nil && x.FavoriteCount != nil {
 		return *x.FavoriteCount
+	}
+	return 0
+}
+
+type QueryEventsResponse_Event struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id            *string `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	Name          *string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
+	Date          *string `protobuf:"bytes,3,opt,name=date" json:"date,omitempty"`
+	Finished      *bool   `protobuf:"varint,4,opt,name=finished" json:"finished,omitempty"`
+	LastNoteCount *int32  `protobuf:"varint,5,opt,name=last_note_count,json=lastNoteCount" json:"last_note_count,omitempty"`
+}
+
+func (x *QueryEventsResponse_Event) Reset() {
+	*x = QueryEventsResponse_Event{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_service_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryEventsResponse_Event) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryEventsResponse_Event) ProtoMessage() {}
+
+func (x *QueryEventsResponse_Event) ProtoReflect() protoreflect.Message {
+	mi := &file_service_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QueryEventsResponse_Event.ProtoReflect.Descriptor instead.
+func (*QueryEventsResponse_Event) Descriptor() ([]byte, []int) {
+	return file_service_proto_rawDescGZIP(), []int{7, 0}
+}
+
+func (x *QueryEventsResponse_Event) GetId() string {
+	if x != nil && x.Id != nil {
+		return *x.Id
+	}
+	return ""
+}
+
+func (x *QueryEventsResponse_Event) GetName() string {
+	if x != nil && x.Name != nil {
+		return *x.Name
+	}
+	return ""
+}
+
+func (x *QueryEventsResponse_Event) GetDate() string {
+	if x != nil && x.Date != nil {
+		return *x.Date
+	}
+	return ""
+}
+
+func (x *QueryEventsResponse_Event) GetFinished() bool {
+	if x != nil && x.Finished != nil {
+		return *x.Finished
+	}
+	return false
+}
+
+func (x *QueryEventsResponse_Event) GetLastNoteCount() int32 {
+	if x != nil && x.LastNoteCount != nil {
+		return *x.LastNoteCount
 	}
 	return 0
 }
@@ -643,28 +832,54 @@ var file_service_proto_rawDesc = []byte{
 	0x72, 0x65, 0x65, 0x64, 0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65,
 	0x6e, 0x64, 0x65, 0x72, 0x41, 0x63, 0x74, 0x6f, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
 	0x73, 0x65, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x49, 0x74, 0x65, 0x6d, 0x52,
-	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x32, 0xa5, 0x02, 0x0a, 0x12, 0x54,
-	0x72, 0x65, 0x65, 0x44, 0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
-	0x65, 0x12, 0x58, 0x0a, 0x0b, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x45, 0x76, 0x65, 0x6e, 0x74,
-	0x12, 0x22, 0x2e, 0x74, 0x72, 0x65, 0x65, 0x64, 0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e, 0x70,
-	0x62, 0x2e, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71,
-	0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x74, 0x72, 0x65, 0x65, 0x64, 0x69, 0x61, 0x67, 0x72,
-	0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x45, 0x76, 0x65, 0x6e,
-	0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x58, 0x0a, 0x0b, 0x52,
-	0x65, 0x6e, 0x64, 0x65, 0x72, 0x50, 0x6c, 0x61, 0x63, 0x65, 0x12, 0x22, 0x2e, 0x74, 0x72, 0x65,
-	0x65, 0x64, 0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x6e, 0x64,
-	0x65, 0x72, 0x50, 0x6c, 0x61, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23,
-	0x2e, 0x74, 0x72, 0x65, 0x65, 0x64, 0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e,
-	0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x50, 0x6c, 0x61, 0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5b, 0x0a, 0x0c, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x41,
-	0x63, 0x74, 0x6f, 0x72, 0x73, 0x12, 0x23, 0x2e, 0x74, 0x72, 0x65, 0x65, 0x64, 0x69, 0x61, 0x67,
-	0x72, 0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x41, 0x63, 0x74,
-	0x6f, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x74, 0x72, 0x65,
-	0x65, 0x64, 0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x6e, 0x64,
-	0x65, 0x72, 0x41, 0x63, 0x74, 0x6f, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x00, 0x42, 0x25, 0x5a, 0x23, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
-	0x2f, 0x53, 0x53, 0x48, 0x5a, 0x2d, 0x4f, 0x52, 0x47, 0x2f, 0x74, 0x72, 0x65, 0x65, 0x2d, 0x64,
-	0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2f, 0x70, 0x62,
+	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x64, 0x0a, 0x12, 0x51, 0x75,
+	0x65, 0x72, 0x79, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x12, 0x16, 0x0a, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05,
+	0x52, 0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x61, 0x63, 0x74, 0x6f,
+	0x72, 0x5f, 0x69, 0x64, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x08, 0x61, 0x63, 0x74,
+	0x6f, 0x72, 0x49, 0x64, 0x73, 0x12, 0x19, 0x0a, 0x08, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x5f, 0x69,
+	0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x49, 0x64,
+	0x22, 0xde, 0x01, 0x0a, 0x13, 0x51, 0x75, 0x65, 0x72, 0x79, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x73,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x41, 0x0a, 0x06, 0x65, 0x76, 0x65, 0x6e,
+	0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x74, 0x72, 0x65, 0x65, 0x64,
+	0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x45,
+	0x76, 0x65, 0x6e, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e, 0x45, 0x76,
+	0x65, 0x6e, 0x74, 0x52, 0x06, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x1a, 0x83, 0x01, 0x0a, 0x05,
+	0x45, 0x76, 0x65, 0x6e, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x61, 0x74,
+	0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x61, 0x74, 0x65, 0x12, 0x1a, 0x0a,
+	0x08, 0x66, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x65, 0x64, 0x18, 0x04, 0x20, 0x01, 0x28, 0x08, 0x52,
+	0x08, 0x66, 0x69, 0x6e, 0x69, 0x73, 0x68, 0x65, 0x64, 0x12, 0x26, 0x0a, 0x0f, 0x6c, 0x61, 0x73,
+	0x74, 0x5f, 0x6e, 0x6f, 0x74, 0x65, 0x5f, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x05, 0x20, 0x01,
+	0x28, 0x05, 0x52, 0x0d, 0x6c, 0x61, 0x73, 0x74, 0x4e, 0x6f, 0x74, 0x65, 0x43, 0x6f, 0x75, 0x6e,
+	0x74, 0x32, 0xff, 0x02, 0x0a, 0x12, 0x54, 0x72, 0x65, 0x65, 0x44, 0x69, 0x61, 0x67, 0x72, 0x61,
+	0x6d, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x58, 0x0a, 0x0b, 0x52, 0x65, 0x6e, 0x64,
+	0x65, 0x72, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x12, 0x22, 0x2e, 0x74, 0x72, 0x65, 0x65, 0x64, 0x69,
+	0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x45,
+	0x76, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x74, 0x72,
+	0x65, 0x65, 0x64, 0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x6e,
+	0x64, 0x65, 0x72, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x12, 0x58, 0x0a, 0x0b, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x50, 0x6c, 0x61, 0x63,
+	0x65, 0x12, 0x22, 0x2e, 0x74, 0x72, 0x65, 0x65, 0x64, 0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e,
+	0x70, 0x62, 0x2e, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x50, 0x6c, 0x61, 0x63, 0x65, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x74, 0x72, 0x65, 0x65, 0x64, 0x69, 0x61, 0x67,
+	0x72, 0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x50, 0x6c, 0x61,
+	0x63, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x5b, 0x0a, 0x0c,
+	0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x41, 0x63, 0x74, 0x6f, 0x72, 0x73, 0x12, 0x23, 0x2e, 0x74,
+	0x72, 0x65, 0x65, 0x64, 0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65,
+	0x6e, 0x64, 0x65, 0x72, 0x41, 0x63, 0x74, 0x6f, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x24, 0x2e, 0x74, 0x72, 0x65, 0x65, 0x64, 0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e,
+	0x70, 0x62, 0x2e, 0x52, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x41, 0x63, 0x74, 0x6f, 0x72, 0x73, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x58, 0x0a, 0x0b, 0x51, 0x75, 0x65,
+	0x72, 0x79, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x12, 0x22, 0x2e, 0x74, 0x72, 0x65, 0x65, 0x64,
+	0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x45,
+	0x76, 0x65, 0x6e, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x74,
+	0x72, 0x65, 0x65, 0x64, 0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2e, 0x70, 0x62, 0x2e, 0x51, 0x75,
+	0x65, 0x72, 0x79, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x42, 0x25, 0x5a, 0x23, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x53, 0x53, 0x48, 0x5a, 0x2d, 0x4f, 0x52, 0x47, 0x2f, 0x74, 0x72, 0x65, 0x65, 0x2d,
+	0x64, 0x69, 0x61, 0x67, 0x72, 0x61, 0x6d, 0x2f, 0x70, 0x62,
 }
 
 var (
@@ -679,7 +894,7 @@ func file_service_proto_rawDescGZIP() []byte {
 	return file_service_proto_rawDescData
 }
 
-var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_service_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_service_proto_goTypes = []interface{}{
 	(*RenderEventRequest)(nil),                      // 0: treediagram.pb.RenderEventRequest
 	(*RenderEventResponse)(nil),                     // 1: treediagram.pb.RenderEventResponse
@@ -687,32 +902,38 @@ var file_service_proto_goTypes = []interface{}{
 	(*RenderPlaceResponse)(nil),                     // 3: treediagram.pb.RenderPlaceResponse
 	(*RenderActorsRequest)(nil),                     // 4: treediagram.pb.RenderActorsRequest
 	(*RenderActorsResponse)(nil),                    // 5: treediagram.pb.RenderActorsResponse
-	(*RenderEventResponse_Snapshot)(nil),            // 6: treediagram.pb.RenderEventResponse.Snapshot
-	(*RenderEventResponse_PlaceNoteCountStats)(nil), // 7: treediagram.pb.RenderEventResponse.PlaceNoteCountStats
-	(*RenderActorsResponse_ResponseItem)(nil),       // 8: treediagram.pb.RenderActorsResponse.ResponseItem
-	nil, // 9: treediagram.pb.RenderActorsResponse.ItemsEntry
-	(*RenderActorsResponse_ResponseItem_Snapshot)(nil), // 10: treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot
-	(*timestamppb.Timestamp)(nil),                      // 11: google.protobuf.Timestamp
+	(*QueryEventsRequest)(nil),                      // 6: treediagram.pb.QueryEventsRequest
+	(*QueryEventsResponse)(nil),                     // 7: treediagram.pb.QueryEventsResponse
+	(*RenderEventResponse_Snapshot)(nil),            // 8: treediagram.pb.RenderEventResponse.Snapshot
+	(*RenderEventResponse_PlaceNoteCountStats)(nil), // 9: treediagram.pb.RenderEventResponse.PlaceNoteCountStats
+	(*RenderActorsResponse_ResponseItem)(nil),       // 10: treediagram.pb.RenderActorsResponse.ResponseItem
+	nil, // 11: treediagram.pb.RenderActorsResponse.ItemsEntry
+	(*RenderActorsResponse_ResponseItem_Snapshot)(nil), // 12: treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot
+	(*QueryEventsResponse_Event)(nil),                  // 13: treediagram.pb.QueryEventsResponse.Event
+	(*timestamppb.Timestamp)(nil),                      // 14: google.protobuf.Timestamp
 }
 var file_service_proto_depIdxs = []int32{
-	6,  // 0: treediagram.pb.RenderEventResponse.snapshots:type_name -> treediagram.pb.RenderEventResponse.Snapshot
-	7,  // 1: treediagram.pb.RenderEventResponse.place_stats_total:type_name -> treediagram.pb.RenderEventResponse.PlaceNoteCountStats
-	7,  // 2: treediagram.pb.RenderEventResponse.place_stats_finished:type_name -> treediagram.pb.RenderEventResponse.PlaceNoteCountStats
-	9,  // 3: treediagram.pb.RenderActorsResponse.items:type_name -> treediagram.pb.RenderActorsResponse.ItemsEntry
-	11, // 4: treediagram.pb.RenderEventResponse.Snapshot.timestamp:type_name -> google.protobuf.Timestamp
-	10, // 5: treediagram.pb.RenderActorsResponse.ResponseItem.snapshots:type_name -> treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot
-	8,  // 6: treediagram.pb.RenderActorsResponse.ItemsEntry.value:type_name -> treediagram.pb.RenderActorsResponse.ResponseItem
-	0,  // 7: treediagram.pb.TreeDiagramService.RenderEvent:input_type -> treediagram.pb.RenderEventRequest
-	2,  // 8: treediagram.pb.TreeDiagramService.RenderPlace:input_type -> treediagram.pb.RenderPlaceRequest
-	4,  // 9: treediagram.pb.TreeDiagramService.RenderActors:input_type -> treediagram.pb.RenderActorsRequest
-	1,  // 10: treediagram.pb.TreeDiagramService.RenderEvent:output_type -> treediagram.pb.RenderEventResponse
-	3,  // 11: treediagram.pb.TreeDiagramService.RenderPlace:output_type -> treediagram.pb.RenderPlaceResponse
-	5,  // 12: treediagram.pb.TreeDiagramService.RenderActors:output_type -> treediagram.pb.RenderActorsResponse
-	10, // [10:13] is the sub-list for method output_type
-	7,  // [7:10] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	8,  // 0: treediagram.pb.RenderEventResponse.snapshots:type_name -> treediagram.pb.RenderEventResponse.Snapshot
+	9,  // 1: treediagram.pb.RenderEventResponse.place_stats_total:type_name -> treediagram.pb.RenderEventResponse.PlaceNoteCountStats
+	9,  // 2: treediagram.pb.RenderEventResponse.place_stats_finished:type_name -> treediagram.pb.RenderEventResponse.PlaceNoteCountStats
+	11, // 3: treediagram.pb.RenderActorsResponse.items:type_name -> treediagram.pb.RenderActorsResponse.ItemsEntry
+	13, // 4: treediagram.pb.QueryEventsResponse.events:type_name -> treediagram.pb.QueryEventsResponse.Event
+	14, // 5: treediagram.pb.RenderEventResponse.Snapshot.timestamp:type_name -> google.protobuf.Timestamp
+	12, // 6: treediagram.pb.RenderActorsResponse.ResponseItem.snapshots:type_name -> treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot
+	10, // 7: treediagram.pb.RenderActorsResponse.ItemsEntry.value:type_name -> treediagram.pb.RenderActorsResponse.ResponseItem
+	0,  // 8: treediagram.pb.TreeDiagramService.RenderEvent:input_type -> treediagram.pb.RenderEventRequest
+	2,  // 9: treediagram.pb.TreeDiagramService.RenderPlace:input_type -> treediagram.pb.RenderPlaceRequest
+	4,  // 10: treediagram.pb.TreeDiagramService.RenderActors:input_type -> treediagram.pb.RenderActorsRequest
+	6,  // 11: treediagram.pb.TreeDiagramService.QueryEvents:input_type -> treediagram.pb.QueryEventsRequest
+	1,  // 12: treediagram.pb.TreeDiagramService.RenderEvent:output_type -> treediagram.pb.RenderEventResponse
+	3,  // 13: treediagram.pb.TreeDiagramService.RenderPlace:output_type -> treediagram.pb.RenderPlaceResponse
+	5,  // 14: treediagram.pb.TreeDiagramService.RenderActors:output_type -> treediagram.pb.RenderActorsResponse
+	7,  // 15: treediagram.pb.TreeDiagramService.QueryEvents:output_type -> treediagram.pb.QueryEventsResponse
+	12, // [12:16] is the sub-list for method output_type
+	8,  // [8:12] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_service_proto_init() }
@@ -794,7 +1015,7 @@ func file_service_proto_init() {
 			}
 		}
 		file_service_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RenderEventResponse_Snapshot); i {
+			switch v := v.(*QueryEventsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -806,7 +1027,7 @@ func file_service_proto_init() {
 			}
 		}
 		file_service_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RenderEventResponse_PlaceNoteCountStats); i {
+			switch v := v.(*QueryEventsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -818,7 +1039,19 @@ func file_service_proto_init() {
 			}
 		}
 		file_service_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RenderActorsResponse_ResponseItem); i {
+			switch v := v.(*RenderEventResponse_Snapshot); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_service_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RenderEventResponse_PlaceNoteCountStats); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -830,7 +1063,31 @@ func file_service_proto_init() {
 			}
 		}
 		file_service_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RenderActorsResponse_ResponseItem); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_service_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RenderActorsResponse_ResponseItem_Snapshot); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_service_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryEventsResponse_Event); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -848,7 +1105,7 @@ func file_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_service_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

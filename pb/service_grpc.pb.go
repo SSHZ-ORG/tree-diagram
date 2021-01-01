@@ -20,6 +20,7 @@ type TreeDiagramServiceClient interface {
 	RenderEvent(ctx context.Context, in *RenderEventRequest, opts ...grpc.CallOption) (*RenderEventResponse, error)
 	RenderPlace(ctx context.Context, in *RenderPlaceRequest, opts ...grpc.CallOption) (*RenderPlaceResponse, error)
 	RenderActors(ctx context.Context, in *RenderActorsRequest, opts ...grpc.CallOption) (*RenderActorsResponse, error)
+	QueryEvents(ctx context.Context, in *QueryEventsRequest, opts ...grpc.CallOption) (*QueryEventsResponse, error)
 }
 
 type treeDiagramServiceClient struct {
@@ -57,6 +58,15 @@ func (c *treeDiagramServiceClient) RenderActors(ctx context.Context, in *RenderA
 	return out, nil
 }
 
+func (c *treeDiagramServiceClient) QueryEvents(ctx context.Context, in *QueryEventsRequest, opts ...grpc.CallOption) (*QueryEventsResponse, error) {
+	out := new(QueryEventsResponse)
+	err := c.cc.Invoke(ctx, "/treediagram.pb.TreeDiagramService/QueryEvents", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TreeDiagramServiceServer is the server API for TreeDiagramService service.
 // All implementations must embed UnimplementedTreeDiagramServiceServer
 // for forward compatibility
@@ -64,6 +74,7 @@ type TreeDiagramServiceServer interface {
 	RenderEvent(context.Context, *RenderEventRequest) (*RenderEventResponse, error)
 	RenderPlace(context.Context, *RenderPlaceRequest) (*RenderPlaceResponse, error)
 	RenderActors(context.Context, *RenderActorsRequest) (*RenderActorsResponse, error)
+	QueryEvents(context.Context, *QueryEventsRequest) (*QueryEventsResponse, error)
 	mustEmbedUnimplementedTreeDiagramServiceServer()
 }
 
@@ -79,6 +90,9 @@ func (UnimplementedTreeDiagramServiceServer) RenderPlace(context.Context, *Rende
 }
 func (UnimplementedTreeDiagramServiceServer) RenderActors(context.Context, *RenderActorsRequest) (*RenderActorsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderActors not implemented")
+}
+func (UnimplementedTreeDiagramServiceServer) QueryEvents(context.Context, *QueryEventsRequest) (*QueryEventsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QueryEvents not implemented")
 }
 func (UnimplementedTreeDiagramServiceServer) mustEmbedUnimplementedTreeDiagramServiceServer() {}
 
@@ -147,6 +161,24 @@ func _TreeDiagramService_RenderActors_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TreeDiagramService_QueryEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryEventsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TreeDiagramServiceServer).QueryEvents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/treediagram.pb.TreeDiagramService/QueryEvents",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TreeDiagramServiceServer).QueryEvents(ctx, req.(*QueryEventsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TreeDiagramService_ServiceDesc is the grpc.ServiceDesc for TreeDiagramService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -165,6 +197,10 @@ var TreeDiagramService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RenderActors",
 			Handler:    _TreeDiagramService_RenderActors_Handler,
+		},
+		{
+			MethodName: "QueryEvents",
+			Handler:    _TreeDiagramService_QueryEvents_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

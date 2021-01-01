@@ -8,7 +8,6 @@ import (
 	"github.com/SSHZ-ORG/tree-diagram/handlers"
 	"github.com/SSHZ-ORG/tree-diagram/handlers/api"
 	"github.com/julienschmidt/httprouter"
-	"github.com/rs/cors"
 	"google.golang.org/appengine"
 )
 
@@ -16,11 +15,9 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	r := httprouter.New()
-	api.RegisterAPI(r)
 	handlers.RegisterCommand(r)
 	handlers.RegisterCrawl(r)
 	handlers.RegisterCron(r)
-	c := cors.Default().Handler(r)
 
 	grpc := api.GrpcServer()
 
@@ -29,7 +26,7 @@ func main() {
 			grpc.ServeHTTP(resp, req)
 			return
 		}
-		c.ServeHTTP(resp, req)
+		r.ServeHTTP(resp, req)
 	}))
 	appengine.Main()
 }

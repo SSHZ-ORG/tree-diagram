@@ -10,7 +10,7 @@ require (
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/qedus/nds v1.0.0
-	github.com/rs/cors v1.7.0
+	github.com/rs/cors v1.7.0 // indirect
 	github.com/scylladb/go-set v1.0.2
 	github.com/tidwall/gjson v1.6.7
 	golang.org/x/net v0.0.0-20201224014010-6772e930b67b

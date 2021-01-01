@@ -54,8 +54,27 @@ message RenderActorsResponse {
     map<string, ResponseItem> items = 1;
 }
 
+message QueryEventsRequest {
+    optional int32 offset = 1;
+
+    repeated string actor_ids = 2;
+    optional string place_id = 3;
+}
+
+message QueryEventsResponse {
+    message Event {
+        optional string id = 1;
+        optional string name = 2;
+        optional string date = 3;
+        optional bool finished = 4;
+        optional int32 last_note_count = 5;
+    }
+    repeated Event events = 1;
+}
+
 service TreeDiagramService {
     rpc RenderEvent (RenderEventRequest) returns (RenderEventResponse) {}
     rpc RenderPlace (RenderPlaceRequest) returns (RenderPlaceResponse) {}
     rpc RenderActors (RenderActorsRequest) returns (RenderActorsResponse) {}
+    rpc QueryEvents (QueryEventsRequest) returns (QueryEventsResponse) {}
 }

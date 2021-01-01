@@ -2,16 +2,17 @@ package api
 
 import (
 	"context"
-	"net/http"
-	"strconv"
 
+	"cloud.google.com/go/civil"
 	"github.com/SSHZ-ORG/tree-diagram/apicache"
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/pb"
-	"github.com/julienschmidt/httprouter"
-	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 	"google.golang.org/protobuf/proto"
+)
+
+const (
+	queryPageSize = 10
 )
 
 func (t treeDiagramService) RenderEvent(ctx context.Context, req *pb.RenderEventRequest) (*pb.RenderEventResponse, error) {
@@ -41,47 +42,22 @@ func (t treeDiagramService) RenderEvent(ctx context.Context, req *pb.RenderEvent
 	return res, err
 }
 
-func queryEvents(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := appengine.NewContext(r)
-
-	err := r.ParseForm()
-	if err != nil {
-		log.Errorf(ctx, "r.ParseForm: %v", err)
-		http.Error(w, "Malformed Query", http.StatusBadRequest)
-		return
-	}
-
-	placeID := r.Form.Get("place")
-	actorIDs := r.Form["actor"]
-
-	offset := 0
-	if arg := r.Form.Get("offset"); arg != "" {
-		offset, err = strconv.Atoi(arg)
-		if err != nil {
-			http.Error(w, "Illegal arg offset", http.StatusBadRequest)
-			return
-		}
-	}
-
-	if arg := r.Form.Get("page"); arg != "" && offset == 0 {
-		page, err := strconv.Atoi(arg)
-		if err != nil {
-			http.Error(w, "Illegal arg page", http.StatusBadRequest)
-			return
-		}
-		offset = (page - 1) * queryPageSize
-	}
-
-	events, err := models.QueryEvents(ctx, placeID, actorIDs, queryPageSize, offset)
+func (t treeDiagramService) QueryEvents(ctx context.Context, req *pb.QueryEventsRequest) (*pb.QueryEventsResponse, error) {
+	events, err := models.QueryEvents(ctx, req.GetPlaceId(), req.GetActorIds(), queryPageSize, int(req.GetOffset()))
 	if err != nil {
 		log.Errorf(ctx, "models.QueryEvents: %+v", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
-	fes := make([]models.FrontendEvent, 0)
+	resp := &pb.QueryEventsResponse{}
 	for _, e := range events {
-		fes = append(fes, e.ToFrontendEvent())
+		resp.Events = append(resp.Events, &pb.QueryEventsResponse_Event{
+			Id:            &e.ID,
+			Name:          &e.Name,
+			Date:          proto.String(civil.DateOf(e.Date).String()),
+			Finished:      &e.Finished,
+			LastNoteCount: proto.Int32(int32(e.LastNoteCount)),
+		})
 	}
-	writeJSON(ctx, w, fes)
+	return resp, nil
 }
