@@ -4,8 +4,11 @@
     const servicepb = require('./service_grpc_web_pb');
     const pb = require('./service_pb');
 
-    let Highcharts = require('highcharts');
+    const Highcharts = require('highcharts');
     require('highcharts/modules/exporting')(Highcharts);
+    Highcharts.setOptions({
+        global: {timezoneOffset: new Date().getTimezoneOffset()},
+    });
 
     const treeDiagramService = new servicepb.TreeDiagramServicePromiseClient('https://treediagram.sshz.org');
 
@@ -72,12 +75,13 @@
                 },
                 yAxis: {title: {text: undefined}},
                 legend: {enabled: false},
+                tooltip: {xDateFormat: '%Y-%m-%d %H:%M:%S.%L'},
                 series: [
                     {
                         name: 'NoteCount',
                         type: 'areaspline',
                         data: response.getSnapshotsList().map(i => {
-                            const p = {x: i.getTimestamp().toDate(), y: i.getNoteCount()};
+                            const p = {x: i.getTimestamp().toDate().getTime(), y: i.getNoteCount()};
                             if (i.getAddedActorsList().length > 0 || i.getRemovedActorsList().length > 0) {
                                 let label = '';
                                 if (i.getAddedActorsList().length > 0) {
