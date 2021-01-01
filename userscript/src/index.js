@@ -14,12 +14,6 @@
 
     const header = '<h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>';
 
-    const plotLineNow = {
-        value: new Date(),
-        dashStyle: 'Dash',
-        label: {text: 'Now'},
-    };
-
     function htmlToElement(html) {
         const template = document.createElement('template');
         html = html.trim();
@@ -52,13 +46,17 @@
             finishedStatsSpan.innerHTML = `${response.getPlaceStatsFinished().getRank()}/${response.getPlaceStatsFinished().getTotal()}`;
 
             const ctx = document.getElementById('td_chart');
-            const plotLines = [plotLineNow];
+            const plotLines = [{
+                value: new Date().getTime(),
+                dashStyle: 'Dash',
+                label: {text: 'Now'},
+            }];
 
             const liveDate = new Date(response.getDate());
             liveDate.setUTCHours(3); // JST noon.
             if (response.getSnapshotsList().length > 0 && response.getSnapshotsList()[0].getTimestamp().toDate() <= liveDate) {
                 plotLines.push({
-                    value: liveDate,
+                    value: liveDate.getTime(),
                     dashStyle: 'LongDashDot',
                     label: {text: 'Live!'},
                 });
@@ -263,32 +261,20 @@
 
             const ctx = document.getElementById('td_chart');
 
-            const plotLines = [plotLineNow];
             Highcharts.chart(ctx, {
                 chart: {zoomType: 'x'},
                 credits: {enabled: false},
                 title: {text: undefined},
                 plotOptions: {areaspline: {threshold: null}},
-                xAxis: {
-                    type: 'datetime',
-                    plotLines: plotLines,
-                },
+                xAxis: {type: 'datetime'},
                 yAxis: {title: {text: undefined}},
                 legend: {enabled: false},
                 tooltip: {xDateFormat: '%Y-%m-%d'},
-                series: [
-                    {
-                        name: 'FavoriteCount',
-                        type: 'areaspline',
-                        data: actorSnapshotsToDataPoints(data.getSnapshotsList()),
-                    },
-                    {
-                        // Dummy series to make sure plotLines appear even if they are out of main data range.
-                        type: 'scatter',
-                        marker: {enabled: false},
-                        data: plotLines.map(i => ({x: i.value})),
-                    },
-                ],
+                series: [{
+                    name: 'FavoriteCount',
+                    type: 'areaspline',
+                    data: actorSnapshotsToDataPoints(data.getSnapshotsList()),
+                }],
             });
         });
     }
