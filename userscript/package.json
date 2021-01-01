@@ -1,0 +1,28 @@
+{
+  "name": "treediagram-userscript",
+  "version": "0.2.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "NODE_ENV=development webpack serve",
+    "build": "webpack && cp dist/* ../static/"
+  },
+  "keywords": [],
+  "author": "SSHZ.ORG",
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^4.44.2",
+    "webpack-cli": "^4.3.0",
+    "webpack-dev-server": "^3.11.1",
+    "webpack-userscript": "^2.5.6"
+  },
+  "dependencies": {
+    "chart.js": "^2.9.4",
+    "chartjs-plugin-annotation": "^0.5.7",
+    "chartjs-plugin-colorschemes": "^0.4.0",
+    "chartjs-plugin-datalabels": "^0.7.0",
+    "chartjs-plugin-zoom": "^0.7.7",
+    "google-protobuf": "^3.14.0",
+    "grpc-web": "^1.2.1"
+  }
+}
