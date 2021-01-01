@@ -7,6 +7,10 @@ require('chartjs-plugin-colorschemes')
 require('chartjs-plugin-datalabels')
 require('chartjs-plugin-zoom')
 
+let Highcharts = require('highcharts');
+require('highcharts/modules/exporting')(Highcharts);
+
+
 const treeDiagramService = new TreeDiagramServicePromiseClient('https://treediagram.sshz.org');
 
 const header = '<h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>';
@@ -21,6 +25,12 @@ const chartNowAnnotation = {
     borderDash: [2, 2],
 };
 
+const plotLineNow = {
+    value: new Date(),
+    dashStyle: 'Dash',
+    label: {text: 'Now'},
+};
+
 function htmlToElement(html) {
     const template = document.createElement('template');
     html = html.trim();
@@ -32,10 +42,7 @@ function eventPage(eventId) {
     const tdDom = htmlToElement(`
         <div>
             ${header}
-            <canvas id="td_chart"></canvas>
-            <button class="btn btn-block" type="button" id="td_chart_reset">
-                Reset Zoom
-            </button>
+            <div id="td_chart"></div>
             <div class="ma10 alert alert-info s">
                 Rank in Place:
                 <span class="label">Total</span>
@@ -56,119 +63,77 @@ function eventPage(eventId) {
         finishedStatsSpan.innerHTML = `${response.getPlaceStatsFinished().getRank()}/${response.getPlaceStatsFinished().getTotal()}`;
 
         const ctx = document.getElementById('td_chart');
-        const annotations = [chartNowAnnotation];
+        const plotLines = [plotLineNow];
 
         const liveDate = new Date(response.getDate());
         liveDate.setUTCHours(3); // JST noon.
         if (response.getSnapshotsList().length > 0 && response.getSnapshotsList()[0].getTimestamp().toDate() <= liveDate) {
-            annotations.push({
-                type: 'line',
-                mode: 'vertical',
-                scaleID: 'x-axis-0',
+            plotLines.push({
                 value: liveDate,
-                borderColor: 'rgba(0, 0, 0, 0.2)',
-                borderWidth: 1,
-                borderDash: [10, 10],
-                label: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                    cornerRadius: 0,
-                    position: 'bottom',
-                    enabled: true,
-                    content: 'Live!',
-                },
+                dashStyle: 'LongDashDot',
+                label: {text: 'Live!'},
             });
         }
 
-        const labels = response.getSnapshotsList().map(snapshot => {
-            if (snapshot.getAddedActorsList().length > 0 || snapshot.getRemovedActorsList().length > 0) {
-                let label = '';
-                if (snapshot.getAddedActorsList().length > 0) {
-                    label += '+';
-                }
-                if (snapshot.getRemovedActorsList().length > 0) {
-                    label += '-';
-                }
-                return label;
-            }
-            return undefined;
-        });
-
-        const config = {
-            type: 'line',
-            data: {
-                datasets: [{
-                    label: 'NoteCount',
-                    data: response.getSnapshotsList().map(i => {
-                        return {
-                            x: i.getTimestamp().toDate(),
-                            y: i.getNoteCount(),
-                        };
-                    }),
-                    cubicInterpolationMode: 'monotone',
-                    borderWidth: 1,
-                    datalabels: {
-                        display: context => labels[context.dataIndex] !== undefined,
-                        formatter: (value, context) => labels[context.dataIndex],
-                        align: 'top',
-                        backgroundColor: 'rgba(97, 191, 153, 0.5)', // #61BF99
-                        borderRadius: 20,
-                        color: 'white',
-                    },
-                }],
+        Highcharts.chart(ctx, {
+            chart: {zoomType: 'x'},
+            credits: {enabled: false},
+            title: {text: undefined},
+            plotOptions: {areaspline: {threshold: null}},
+            xAxis: {
+                type: 'datetime',
+                plotLines: plotLines,
             },
-            options: {
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        ticks: {
-                            maxRotation: 0,
-                        },
-                        gridLines: {
-                            zeroLineColor: 'rgba(0, 0, 0, 0.1)',
-                        },
-                    }],
-                },
-                legend: {
-                    display: false,
-                },
-                tooltips: {
-                    callbacks: {
-                        afterLabel: (tooltipItem, chartData) => {
-                            const snapshot = response.getSnapshotsList()[tooltipItem.index];
+            yAxis: {title: {text: undefined}},
+            legend: {enabled: false},
+            series: [
+                {
+                    name: 'NoteCount',
+                    type: 'areaspline',
+                    data: response.getSnapshotsList().map(i => {
+                        const p = {x: i.getTimestamp().toDate(), y: i.getNoteCount()};
+                        if (i.getAddedActorsList().length > 0 || i.getRemovedActorsList().length > 0) {
+                            let label = '';
+                            if (i.getAddedActorsList().length > 0) {
+                                label += '+';
+                            }
+                            if (i.getRemovedActorsList().length > 0) {
+                                label += '-';
+                            }
+                            p.dataLabels = {
+                                enabled: true,
+                                color: 'white',
+                                backgroundColor: 'rgba(97, 191, 153, 0.5)', // #61BF99
+                                borderRadius: 5,
+                                format: label,
+                                crop: false,
+                                overflow: 'allow',
+                            };
+                        }
+                        return p;
+                    }),
+                    tooltip: {
+                        pointFormatter: function () {
+                            let labels = [`NoteCount: <b>${this.y}</b>`];
+                            const snapshot = response.getSnapshotsList()[this.index];
 
-                            let labels = [];
                             if (snapshot.getAddedActorsList().length > 0) {
                                 labels.push('++: ' + snapshot.getAddedActorsList().join(', '));
                             }
                             if (snapshot.getRemovedActorsList().length > 0) {
                                 labels.push('--: ' + snapshot.getRemovedActorsList().join(', '));
                             }
-
-                            return labels.join('\n');
+                            return labels.join('<br/>');
                         },
                     },
                 },
-                annotation: { // As of chartjs-plugin-annotation 0.5.7, it does not support `plugins` property.
-                    annotations: annotations,
+                {
+                    // Dummy series to make sure plotLines appear even if they are out of main data range.
+                    type: 'scatter',
+                    marker: {enabled: false},
+                    data: plotLines.map(i => ({x: i.value})),
                 },
-                plugins: {
-                    zoom: {
-                        zoom: {
-                            enabled: true,
-                            drag: true,
-                            mode: 'x',
-                        },
-                    },
-                    colorschemes: {
-                        scheme: `tableau.ClassicMedium10`,
-                    },
-                },
-            },
-        };
-        const tdChart = new Chart(ctx, config);
-
-        document.getElementById('td_chart_reset').addEventListener('click', () => {
-            tdChart.resetZoom();
+            ],
         });
     });
 }
