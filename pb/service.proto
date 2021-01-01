@@ -29,6 +29,15 @@ message RenderEventResponse {
     optional PlaceNoteCountStats place_stats_finished = 4;
 }
 
+message RenderPlaceRequest {
+    optional string id = 1;
+}
+
+message RenderPlaceResponse {
+    optional int32 known_event_count = 1;
+}
+
 service TreeDiagramService {
     rpc RenderEvent (RenderEventRequest) returns (RenderEventResponse) {}
+    rpc RenderPlace (RenderPlaceRequest) returns (RenderPlaceResponse) {}
 }

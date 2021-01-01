@@ -18,6 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TreeDiagramServiceClient interface {
 	RenderEvent(ctx context.Context, in *RenderEventRequest, opts ...grpc.CallOption) (*RenderEventResponse, error)
+	RenderPlace(ctx context.Context, in *RenderPlaceRequest, opts ...grpc.CallOption) (*RenderPlaceResponse, error)
 }
 
 type treeDiagramServiceClient struct {
@@ -37,11 +38,21 @@ func (c *treeDiagramServiceClient) RenderEvent(ctx context.Context, in *RenderEv
 	return out, nil
 }
 
+func (c *treeDiagramServiceClient) RenderPlace(ctx context.Context, in *RenderPlaceRequest, opts ...grpc.CallOption) (*RenderPlaceResponse, error) {
+	out := new(RenderPlaceResponse)
+	err := c.cc.Invoke(ctx, "/treediagram.pb.TreeDiagramService/RenderPlace", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TreeDiagramServiceServer is the server API for TreeDiagramService service.
 // All implementations must embed UnimplementedTreeDiagramServiceServer
 // for forward compatibility
 type TreeDiagramServiceServer interface {
 	RenderEvent(context.Context, *RenderEventRequest) (*RenderEventResponse, error)
+	RenderPlace(context.Context, *RenderPlaceRequest) (*RenderPlaceResponse, error)
 	mustEmbedUnimplementedTreeDiagramServiceServer()
 }
 
@@ -51,6 +62,9 @@ type UnimplementedTreeDiagramServiceServer struct {
 
 func (UnimplementedTreeDiagramServiceServer) RenderEvent(context.Context, *RenderEventRequest) (*RenderEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderEvent not implemented")
+}
+func (UnimplementedTreeDiagramServiceServer) RenderPlace(context.Context, *RenderPlaceRequest) (*RenderPlaceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RenderPlace not implemented")
 }
 func (UnimplementedTreeDiagramServiceServer) mustEmbedUnimplementedTreeDiagramServiceServer() {}
 
@@ -83,6 +97,24 @@ func _TreeDiagramService_RenderEvent_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TreeDiagramService_RenderPlace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenderPlaceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TreeDiagramServiceServer).RenderPlace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/treediagram.pb.TreeDiagramService/RenderPlace",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TreeDiagramServiceServer).RenderPlace(ctx, req.(*RenderPlaceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TreeDiagramService_ServiceDesc is the grpc.ServiceDesc for TreeDiagramService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -93,6 +125,10 @@ var TreeDiagramService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RenderEvent",
 			Handler:    _TreeDiagramService_RenderEvent_Handler,
+		},
+		{
+			MethodName: "RenderPlace",
+			Handler:    _TreeDiagramService_RenderPlace_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

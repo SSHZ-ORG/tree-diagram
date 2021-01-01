@@ -1,11 +1,13 @@
 package models
 
 import (
+	"github.com/SSHZ-ORG/tree-diagram/pb"
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
+	"google.golang.org/protobuf/proto"
 )
 
 type Place struct {
@@ -73,16 +75,16 @@ type RenderPlaceResponse struct {
 }
 
 // Errors wrapped.
-func PrepareRenderPlaceResponse(ctx context.Context, placeID string) (*RenderPlaceResponse, error) {
+func PrepareRenderPlaceResponse(ctx context.Context, placeID string) (*pb.RenderPlaceResponse, error) {
 	key := getPlaceKey(ctx, placeID)
 
-	response := &RenderPlaceResponse{}
+	response := &pb.RenderPlaceResponse{}
 
 	kec, err := datastore.NewQuery(eventKind).KeysOnly().Filter("Place =", key).Count(ctx)
 	if err != nil {
 		return response, errors.Wrap(err, "Counting events failed")
 	}
-	response.KnownEventCount = kec
+	response.KnownEventCount = proto.Int32(int32(kec))
 
 	return response, nil
 }
