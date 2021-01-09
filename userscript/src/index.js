@@ -126,7 +126,7 @@
         });
     }
 
-    function createEventList(placeId, actorIds, totalCount, domToAppend, autoLoadFirstPage) {
+    function createEventList(filter, totalCount, domToAppend, autoLoadFirstPage) {
         let loadedCount = 0;
 
         const eventListDom = htmlToElement(`
@@ -150,11 +150,7 @@
             }
 
             loadMoreButtonDom.disabled = true;
-            const request = new pb.QueryEventsRequest().setOffset(loadedCount);
-            if (placeId !== "") {
-                request.setPlaceId(placeId);
-            }
-            actorIds.forEach(i => request.addActorIds(i.toString()));
+            const request = new pb.QueryEventsRequest().setOffset(loadedCount).setFilter(filter);
             treeDiagramService.queryEvents(request).then(response => {
                 response.getEventsList().forEach(e => {
                     const trDom = htmlToElement(`
@@ -203,7 +199,7 @@
 
         const request = new pb.RenderPlaceRequest().setId(placeId);
         treeDiagramService.renderPlace(request).then(response => {
-            createEventList(placeId, [], response.getKnownEventCount(), tdDom, false);
+            createEventList(new pb.QueryEventsRequest.EventFilter().setPlaceId(placeId), response.getKnownEventCount(), tdDom, false);
         });
     }
 
@@ -257,7 +253,7 @@
         treeDiagramService.renderActors(request).then(response => {
             const data = response.getItemsMap().get(actorId);
 
-            createEventList("", [actorId], data.getKnownEventCount(), tdDom, false);
+            createEventList(new pb.QueryEventsRequest.EventFilter().addActorIds(actorId), data.getKnownEventCount(), tdDom, false);
 
             const ctx = document.getElementById('td_chart');
 
@@ -380,7 +376,7 @@
                             const itemDom = htmlToElement(`
                                 <button class="btn" type="button"><i class="icon-plus"></i> ${item.name}</button>`);
                             itemDom.addEventListener('click', () => {
-                                addActor(item.id, item.name);
+                                addActor(item.id.toString(), item.name);
                             });
                             searchActorResultDom.appendChild(itemDom);
                         });
@@ -397,7 +393,7 @@
             const ctx = document.getElementById('td_chart');
 
             const request = new pb.RenderActorsRequest();
-            selectedActors.forEach(i => request.addId(i.toString()));
+            selectedActors.forEach(i => request.addId(i));
 
             treeDiagramService.renderActors(request).then(response => {
                 const series = [];
@@ -430,7 +426,9 @@
             if (eventListContainerDom.firstChild) {
                 eventListContainerDom.removeChild(eventListContainerDom.firstChild);
             }
-            createEventList("", selectedActors, undefined, eventListContainerDom, true);
+            const filter = new pb.QueryEventsRequest.EventFilter()
+            selectedActors.forEach(a => filter.addActorIds(a));
+            createEventList(filter, undefined, eventListContainerDom, true);
         }
     }
 

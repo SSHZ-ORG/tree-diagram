@@ -57,8 +57,11 @@ message RenderActorsResponse {
 message QueryEventsRequest {
     optional int32 offset = 1;
 
-    repeated string actor_ids = 2;
-    optional string place_id = 3;
+    message EventFilter {
+        repeated string actor_ids = 1;
+        optional string place_id = 2;
+    }
+    optional EventFilter filter = 4;
 }
 
 message QueryEventsResponse {

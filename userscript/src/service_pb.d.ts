@@ -243,13 +243,10 @@ export class QueryEventsRequest extends jspb.Message {
   getOffset(): number;
   setOffset(value: number): QueryEventsRequest;
 
-  getActorIdsList(): Array<string>;
-  setActorIdsList(value: Array<string>): QueryEventsRequest;
-  clearActorIdsList(): QueryEventsRequest;
-  addActorIds(value: string, index?: number): QueryEventsRequest;
-
-  getPlaceId(): string;
-  setPlaceId(value: string): QueryEventsRequest;
+  getFilter(): QueryEventsRequest.EventFilter | undefined;
+  setFilter(value?: QueryEventsRequest.EventFilter): QueryEventsRequest;
+  hasFilter(): boolean;
+  clearFilter(): QueryEventsRequest;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): QueryEventsRequest.AsObject;
@@ -262,9 +259,33 @@ export class QueryEventsRequest extends jspb.Message {
 export namespace QueryEventsRequest {
   export type AsObject = {
     offset: number,
-    actorIdsList: Array<string>,
-    placeId: string,
+    filter?: QueryEventsRequest.EventFilter.AsObject,
   }
+
+  export class EventFilter extends jspb.Message {
+    getActorIdsList(): Array<string>;
+    setActorIdsList(value: Array<string>): EventFilter;
+    clearActorIdsList(): EventFilter;
+    addActorIds(value: string, index?: number): EventFilter;
+
+    getPlaceId(): string;
+    setPlaceId(value: string): EventFilter;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): EventFilter.AsObject;
+    static toObject(includeInstance: boolean, msg: EventFilter): EventFilter.AsObject;
+    static serializeBinaryToWriter(message: EventFilter, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): EventFilter;
+    static deserializeBinaryFromReader(message: EventFilter, reader: jspb.BinaryReader): EventFilter;
+  }
+
+  export namespace EventFilter {
+    export type AsObject = {
+      actorIdsList: Array<string>,
+      placeId: string,
+    }
+  }
+
 }
 
 export class QueryEventsResponse extends jspb.Message {

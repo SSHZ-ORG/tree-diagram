@@ -49,7 +49,7 @@ func (t treeDiagramService) RenderEvent(ctx context.Context, req *pb.RenderEvent
 }
 
 func (t treeDiagramService) QueryEvents(ctx context.Context, req *pb.QueryEventsRequest) (*pb.QueryEventsResponse, error) {
-	events, err := models.QueryEvents(ctx, req.GetPlaceId(), req.GetActorIds(), queryPageSize, int(req.GetOffset()))
+	events, err := models.QueryEvents(ctx, req.GetFilter(), queryPageSize, int(req.GetOffset()))
 	if err != nil {
 		log.Errorf(ctx, "models.QueryEvents: %+v", err)
 		return nil, internalError

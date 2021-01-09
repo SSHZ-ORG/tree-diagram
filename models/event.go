@@ -309,14 +309,14 @@ func CleanupFinishedEvents(ctx context.Context, today civil.Date) error {
 }
 
 // Errors wrapped.
-func QueryEvents(ctx context.Context, placeID string, actorIDs []string, limit, offset int) ([]*Event, error) {
+func QueryEvents(ctx context.Context, filter *pb.QueryEventsRequest_EventFilter, limit, offset int) ([]*Event, error) {
 	query := datastore.NewQuery(eventKind).KeysOnly().Limit(limit).Offset(offset).Order("-LastNoteCount")
 
-	if placeID != "" {
-		query = query.Filter("Place =", getPlaceKey(ctx, placeID))
+	if filter.GetPlaceId() != "" {
+		query = query.Filter("Place =", getPlaceKey(ctx, filter.GetPlaceId()))
 	}
 
-	for _, actorID := range actorIDs {
+	for _, actorID := range filter.GetActorIds() {
 		query = query.Filter("Actors =", getActorKey(ctx, actorID))
 	}
 
