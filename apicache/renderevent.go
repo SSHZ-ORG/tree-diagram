@@ -2,7 +2,7 @@ package apicache
 
 import "golang.org/x/net/context"
 
-const renderEventKeyPrefix = keyPrefix + "RE3:"
+const renderEventKeyPrefix = keyPrefix + "RE4:"
 
 func renderEventKey(eid string) string {
 	return renderEventKeyPrefix + eid

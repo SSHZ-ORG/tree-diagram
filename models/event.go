@@ -413,7 +413,8 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*pb.Render
 		actorNames[aks[i].Encode()] = a.Name
 	}
 
-	lastActors := strset.New()
+	var lastActors []string
+	las := strset.New()
 	for _, s := range snapshots {
 		item := &pb.RenderEventResponse_Snapshot{
 			Timestamp: timestamppb.New(s.Timestamp),
@@ -421,20 +422,26 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*pb.Render
 		}
 
 		if len(s.Actors) > 0 {
-			newActors := strset.New()
+			var newActors []string
 			for _, ak := range s.Actors {
-				newActors.Add(ak.Encode())
+				newActors = append(newActors, ak.Encode())
 			}
 
-			strset.Difference(newActors, lastActors).Each(func(addedKey string) bool {
-				item.AddedActors = append(item.AddedActors, actorNames[addedKey])
-				return true
-			})
-			strset.Difference(lastActors, newActors).Each(func(removedKey string) bool {
-				item.RemovedActors = append(item.RemovedActors, actorNames[removedKey])
-				return true
-			})
+			for _, a := range newActors {
+				if !las.Has(a) {
+					item.AddedActors = append(item.AddedActors, actorNames[a])
+				}
+			}
+
+			nas := strset.New(newActors...)
+			for _, a := range lastActors {
+				if !nas.Has(a) {
+					item.RemovedActors = append(item.RemovedActors, actorNames[a])
+				}
+			}
+
 			lastActors = newActors
+			las = nas
 		}
 
 		response.Snapshots = append(response.Snapshots, item)
