@@ -9,7 +9,7 @@
   },
   "keywords": [],
   "author": "SSHZ.ORG",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "closure-webpack-plugin": "^2.3.0",
     "eslint": "^7.16.0",

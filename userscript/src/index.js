@@ -7,7 +7,7 @@
     const Highcharts = require('highcharts');
     require('highcharts/modules/exporting')(Highcharts);
     Highcharts.setOptions({
-        global: {timezoneOffset: new Date().getTimezoneOffset()},
+        time: {timezoneOffset: new Date().getTimezoneOffset()},
     });
 
     const treeDiagramService = new servicepb.TreeDiagramServicePromiseClient('https://treediagram.sshz.org');
@@ -94,6 +94,7 @@
                                     backgroundColor: 'rgba(97, 191, 153, 0.5)', // #61BF99
                                     borderRadius: 5,
                                     format: label,
+                                    allowOverlap: true,
                                     crop: false,
                                     overflow: 'allow',
                                 };
