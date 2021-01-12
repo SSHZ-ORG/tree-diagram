@@ -406,7 +406,8 @@
                     });
                 }
                 series.sort(function (a, b) {
-                    return a.data[a.data.length - 1].y - b.data[b.data.length - 1].y;
+                    const lastValue = (l) => l.length > 0 ? l[l.length - 1].y : 0;
+                    return lastValue(a.data) - lastValue(b.data);
                 });
                 series.reverse();
 
