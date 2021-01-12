@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	actorPageSize = 500
+	actorPageSize             = 500
+	minFavoriteCountThreshold = 10
 
 	actorSearchAPITemplate = "https://www.eventernote.com/api/actors/search?limit=%d&offset=%d&simple=1"
 )
@@ -65,11 +66,25 @@ func CrawlActorOnePage(ctx context.Context, offset int) (int, error) {
 	var oas, nas []*models.Actor
 	json.Get("results").ForEach(func(key, value gjson.Result) bool {
 		id := strconv.FormatInt(value.Get("id").Int(), 10)
-		if oa, ok := actorMap[id]; ok {
+		favoriteCount := int(value.Get("favorite_count").Int())
+		name := value.Get("name").String()
+
+		var oa *models.Actor
+		if knownActor, ok := actorMap[id]; ok {
+			// This Actor is already known.
+			oa = knownActor
+		} else if favoriteCount >= minFavoriteCountThreshold {
+			// This Actor is not yet known, but it has enough favorite count that might be interesting.
+			log.Infof(ctx, "Creating Actor %s during actor snapshotting.", id)
+			// Pretend that we know it before.
+			oa = &models.Actor{ID: id, Name: name}
+		}
+
+		if oa != nil {
 			na := &models.Actor{
 				ID:                id,
-				Name:              value.Get("name").String(),
-				LastFavoriteCount: int(value.Get("favorite_count").Int()),
+				Name:              name,
+				LastFavoriteCount: favoriteCount,
 				LastUpdateTime:    ts,
 			}
 			if oa.LastUpdateTime.IsZero() || !oa.Equal(na) {
