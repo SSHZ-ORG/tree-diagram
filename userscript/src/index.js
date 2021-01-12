@@ -136,7 +136,7 @@
                 <tbody id="td_event_list_tbody"></tbody>
             </table>
             <button class="btn btn-block" type="button" id="td_event_list_load_more_button" disabled>
-                Load More (<span id="td_event_list_loaded_indicator">0</span> / ${totalCount || 'Unknown'})
+                Load More (<span id="td_event_list_loaded_indicator">0</span> / ${totalCount === undefined ? 'Unknown' : totalCount})
             </button>
         </div>`);
         domToAppend.appendChild(eventListDom);
@@ -145,8 +145,14 @@
         const loadMoreButtonDom = document.getElementById('td_event_list_load_more_button');
         const loadedIndicatorDom = document.getElementById('td_event_list_loaded_indicator');
 
+        function enableLoadMoreButton() {
+            if (totalCount === undefined || totalCount > loadedCount) {
+                loadMoreButtonDom.disabled = false;
+            }
+        }
+
         function loadMore() {
-            if (totalCount && loadedCount >= totalCount) {
+            if (totalCount !== undefined && loadedCount >= totalCount) {
                 return;
             }
 
@@ -171,17 +177,12 @@
                 });
 
                 loadedIndicatorDom.innerText = loadedCount.toString();
-
-                if ((!totalCount) || loadedCount < totalCount) {
-                    loadMoreButtonDom.disabled = false;
-                }
+                enableLoadMoreButton();
             });
         }
 
         loadMoreButtonDom.addEventListener('click', loadMore);
-        if ((!totalCount) || totalCount > 0) {
-            loadMoreButtonDom.disabled = false;
-        }
+        enableLoadMoreButton();
 
         if (autoLoadFirstPage) {
             loadMore();
