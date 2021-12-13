@@ -11,28 +11,28 @@ export class TreeDiagramServiceClient {
   renderEvent(
     request: service_pb.RenderEventRequest,
     metadata: grpcWeb.Metadata | undefined,
-    callback: (err: grpcWeb.Error,
+    callback: (err: grpcWeb.RpcError,
                response: service_pb.RenderEventResponse) => void
   ): grpcWeb.ClientReadableStream<service_pb.RenderEventResponse>;
 
   renderPlace(
     request: service_pb.RenderPlaceRequest,
     metadata: grpcWeb.Metadata | undefined,
-    callback: (err: grpcWeb.Error,
+    callback: (err: grpcWeb.RpcError,
                response: service_pb.RenderPlaceResponse) => void
   ): grpcWeb.ClientReadableStream<service_pb.RenderPlaceResponse>;
 
   renderActors(
     request: service_pb.RenderActorsRequest,
     metadata: grpcWeb.Metadata | undefined,
-    callback: (err: grpcWeb.Error,
+    callback: (err: grpcWeb.RpcError,
                response: service_pb.RenderActorsResponse) => void
   ): grpcWeb.ClientReadableStream<service_pb.RenderActorsResponse>;
 
   queryEvents(
     request: service_pb.QueryEventsRequest,
     metadata: grpcWeb.Metadata | undefined,
-    callback: (err: grpcWeb.Error,
+    callback: (err: grpcWeb.RpcError,
                response: service_pb.QueryEventsResponse) => void
   ): grpcWeb.ClientReadableStream<service_pb.QueryEventsResponse>;
 

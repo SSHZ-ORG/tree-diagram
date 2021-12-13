@@ -226,10 +226,8 @@
                 dates.shift();
                 copy.shift();
             }
-            dataPoints.push({
-                x: date.getTime(),
-                y: lastFavoriteCount,
-            });
+            // Using array instead of object to make Highcharts Turbo mode happy.
+            dataPoints.push([date.getTime(), lastFavoriteCount]);
         }
         return dataPoints;
     }

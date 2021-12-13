@@ -24,7 +24,7 @@ proto.treediagram.pb = require('./service_pb.js');
 /**
  * @param {string} hostname
  * @param {?Object} credentials
- * @param {?Object} options
+ * @param {?grpc.web.ClientOptions} options
  * @constructor
  * @struct
  * @final
@@ -32,7 +32,7 @@ proto.treediagram.pb = require('./service_pb.js');
 proto.treediagram.pb.TreeDiagramServiceClient =
     function(hostname, credentials, options) {
   if (!options) options = {};
-  options['format'] = 'binary';
+  options.format = 'binary';
 
   /**
    * @private @const {!grpc.web.GrpcWebClientBase} The client
@@ -50,7 +50,7 @@ proto.treediagram.pb.TreeDiagramServiceClient =
 /**
  * @param {string} hostname
  * @param {?Object} credentials
- * @param {?Object} options
+ * @param {?grpc.web.ClientOptions} options
  * @constructor
  * @struct
  * @final
@@ -58,7 +58,7 @@ proto.treediagram.pb.TreeDiagramServiceClient =
 proto.treediagram.pb.TreeDiagramServicePromiseClient =
     function(hostname, credentials, options) {
   if (!options) options = {};
-  options['format'] = 'binary';
+  options.format = 'binary';
 
   /**
    * @private @const {!grpc.web.GrpcWebClientBase} The client
@@ -96,30 +96,11 @@ const methodDescriptor_TreeDiagramService_RenderEvent = new grpc.web.MethodDescr
 
 
 /**
- * @const
- * @type {!grpc.web.AbstractClientBase.MethodInfo<
- *   !proto.treediagram.pb.RenderEventRequest,
- *   !proto.treediagram.pb.RenderEventResponse>}
- */
-const methodInfo_TreeDiagramService_RenderEvent = new grpc.web.AbstractClientBase.MethodInfo(
-  proto.treediagram.pb.RenderEventResponse,
-  /**
-   * @param {!proto.treediagram.pb.RenderEventRequest} request
-   * @return {!Uint8Array}
-   */
-  function(request) {
-    return request.serializeBinary();
-  },
-  proto.treediagram.pb.RenderEventResponse.deserializeBinary
-);
-
-
-/**
  * @param {!proto.treediagram.pb.RenderEventRequest} request The
  *     request proto
  * @param {?Object<string, string>} metadata User defined
  *     call metadata
- * @param {function(?grpc.web.Error, ?proto.treediagram.pb.RenderEventResponse)}
+ * @param {function(?grpc.web.RpcError, ?proto.treediagram.pb.RenderEventResponse)}
  *     callback The callback function(error, response)
  * @return {!grpc.web.ClientReadableStream<!proto.treediagram.pb.RenderEventResponse>|undefined}
  *     The XHR Node Readable Stream
@@ -138,7 +119,7 @@ proto.treediagram.pb.TreeDiagramServiceClient.prototype.renderEvent =
 /**
  * @param {!proto.treediagram.pb.RenderEventRequest} request The
  *     request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!Promise<!proto.treediagram.pb.RenderEventResponse>}
  *     Promise that resolves to the response
@@ -176,30 +157,11 @@ const methodDescriptor_TreeDiagramService_RenderPlace = new grpc.web.MethodDescr
 
 
 /**
- * @const
- * @type {!grpc.web.AbstractClientBase.MethodInfo<
- *   !proto.treediagram.pb.RenderPlaceRequest,
- *   !proto.treediagram.pb.RenderPlaceResponse>}
- */
-const methodInfo_TreeDiagramService_RenderPlace = new grpc.web.AbstractClientBase.MethodInfo(
-  proto.treediagram.pb.RenderPlaceResponse,
-  /**
-   * @param {!proto.treediagram.pb.RenderPlaceRequest} request
-   * @return {!Uint8Array}
-   */
-  function(request) {
-    return request.serializeBinary();
-  },
-  proto.treediagram.pb.RenderPlaceResponse.deserializeBinary
-);
-
-
-/**
  * @param {!proto.treediagram.pb.RenderPlaceRequest} request The
  *     request proto
  * @param {?Object<string, string>} metadata User defined
  *     call metadata
- * @param {function(?grpc.web.Error, ?proto.treediagram.pb.RenderPlaceResponse)}
+ * @param {function(?grpc.web.RpcError, ?proto.treediagram.pb.RenderPlaceResponse)}
  *     callback The callback function(error, response)
  * @return {!grpc.web.ClientReadableStream<!proto.treediagram.pb.RenderPlaceResponse>|undefined}
  *     The XHR Node Readable Stream
@@ -218,7 +180,7 @@ proto.treediagram.pb.TreeDiagramServiceClient.prototype.renderPlace =
 /**
  * @param {!proto.treediagram.pb.RenderPlaceRequest} request The
  *     request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!Promise<!proto.treediagram.pb.RenderPlaceResponse>}
  *     Promise that resolves to the response
@@ -256,30 +218,11 @@ const methodDescriptor_TreeDiagramService_RenderActors = new grpc.web.MethodDesc
 
 
 /**
- * @const
- * @type {!grpc.web.AbstractClientBase.MethodInfo<
- *   !proto.treediagram.pb.RenderActorsRequest,
- *   !proto.treediagram.pb.RenderActorsResponse>}
- */
-const methodInfo_TreeDiagramService_RenderActors = new grpc.web.AbstractClientBase.MethodInfo(
-  proto.treediagram.pb.RenderActorsResponse,
-  /**
-   * @param {!proto.treediagram.pb.RenderActorsRequest} request
-   * @return {!Uint8Array}
-   */
-  function(request) {
-    return request.serializeBinary();
-  },
-  proto.treediagram.pb.RenderActorsResponse.deserializeBinary
-);
-
-
-/**
  * @param {!proto.treediagram.pb.RenderActorsRequest} request The
  *     request proto
  * @param {?Object<string, string>} metadata User defined
  *     call metadata
- * @param {function(?grpc.web.Error, ?proto.treediagram.pb.RenderActorsResponse)}
+ * @param {function(?grpc.web.RpcError, ?proto.treediagram.pb.RenderActorsResponse)}
  *     callback The callback function(error, response)
  * @return {!grpc.web.ClientReadableStream<!proto.treediagram.pb.RenderActorsResponse>|undefined}
  *     The XHR Node Readable Stream
@@ -298,7 +241,7 @@ proto.treediagram.pb.TreeDiagramServiceClient.prototype.renderActors =
 /**
  * @param {!proto.treediagram.pb.RenderActorsRequest} request The
  *     request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!Promise<!proto.treediagram.pb.RenderActorsResponse>}
  *     Promise that resolves to the response
@@ -336,30 +279,11 @@ const methodDescriptor_TreeDiagramService_QueryEvents = new grpc.web.MethodDescr
 
 
 /**
- * @const
- * @type {!grpc.web.AbstractClientBase.MethodInfo<
- *   !proto.treediagram.pb.QueryEventsRequest,
- *   !proto.treediagram.pb.QueryEventsResponse>}
- */
-const methodInfo_TreeDiagramService_QueryEvents = new grpc.web.AbstractClientBase.MethodInfo(
-  proto.treediagram.pb.QueryEventsResponse,
-  /**
-   * @param {!proto.treediagram.pb.QueryEventsRequest} request
-   * @return {!Uint8Array}
-   */
-  function(request) {
-    return request.serializeBinary();
-  },
-  proto.treediagram.pb.QueryEventsResponse.deserializeBinary
-);
-
-
-/**
  * @param {!proto.treediagram.pb.QueryEventsRequest} request The
  *     request proto
  * @param {?Object<string, string>} metadata User defined
  *     call metadata
- * @param {function(?grpc.web.Error, ?proto.treediagram.pb.QueryEventsResponse)}
+ * @param {function(?grpc.web.RpcError, ?proto.treediagram.pb.QueryEventsResponse)}
  *     callback The callback function(error, response)
  * @return {!grpc.web.ClientReadableStream<!proto.treediagram.pb.QueryEventsResponse>|undefined}
  *     The XHR Node Readable Stream
@@ -378,7 +302,7 @@ proto.treediagram.pb.TreeDiagramServiceClient.prototype.queryEvents =
 /**
  * @param {!proto.treediagram.pb.QueryEventsRequest} request The
  *     request proto
- * @param {?Object<string, string>} metadata User defined
+ * @param {?Object<string, string>=} metadata User defined
  *     call metadata
  * @return {!Promise<!proto.treediagram.pb.QueryEventsResponse>}
  *     Promise that resolves to the response
