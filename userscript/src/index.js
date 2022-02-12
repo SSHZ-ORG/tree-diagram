@@ -75,12 +75,13 @@
 
             const snapshots = [];
             for (let compressedSnapshot of compressedSnapshots) {
-                for (let timestamp of compressedSnapshot.getTimestampsList()) {
+                for (let i = 0; i < compressedSnapshot.getTimestampsList().length; i++) {
+                    const timestamp = compressedSnapshot.getTimestampsList()[i];
                     snapshots.push({
                         time: timestamp.toDate().getTime(),
                         noteCount: compressedSnapshot.getNoteCount(),
-                        addedActors: compressedSnapshot.getAddedActorsList(),
-                        removedActors: compressedSnapshot.getRemovedActorsList(),
+                        addedActors: i === 0 ? compressedSnapshot.getAddedActorsList() : [],
+                        removedActors: i === 0 ? compressedSnapshot.getRemovedActorsList() : [],
                     });
                 }
             }
