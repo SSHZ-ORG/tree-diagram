@@ -14,6 +14,16 @@
 
     const header = '<h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>';
 
+    function formatDate(date) {
+        return `${date.getYear()}-${date.getMonth().toString().padStart(2, '0')}-${date.getDay().toString().padStart(2, '0')}`;
+    }
+
+    function convertToJsDate(date, utcHours) {
+        // This explodes if date.year is between 0 and 99.
+        // Empty value in BE can cause year to be 0001, so we will wrongly think it's some time in 1901 here.
+        return new Date(Date.UTC(date.getYear(), date.getMonth() - 1, date.getDay(), utcHours));
+    }
+
     function htmlToElement(html) {
         const template = document.createElement('template');
         html = html.trim();
@@ -52,8 +62,7 @@
                 label: {text: 'Now'},
             }];
 
-            const liveDate = new Date(response.getDate());
-            liveDate.setUTCHours(3); // JST noon.
+            const liveDate = convertToJsDate(response.getDate(), 3);// JST noon.
             if (response.getSnapshotsList().length > 0 && response.getSnapshotsList()[0].getTimestamp().toDate() <= liveDate) {
                 plotLines.push({
                     value: liveDate.getTime(),
@@ -163,7 +172,7 @@
                     const trDom = htmlToElement(`
                     <tr>
                         <td>${loadedCount + 1}</td>
-                        <td nowrap>${e.getDate()}</td>
+                        <td nowrap>${formatDate(e.getDate())}</td>
                         <td><a href="/events/${e.getId()}" target="_blank">${e.getName()}</a></td>
                         <td>${e.getLastNoteCount()}</td>
                     </tr>`);
@@ -210,11 +219,8 @@
             return [];
         }
 
-        const dates = snapshots.map(s => {
-            const d = new Date(s.getDate());
-            d.setUTCHours(-3); // JST 6am.
-            return d;
-        });
+        // JST 6am.
+        const dates = snapshots.map(s => convertToJsDate(s.getDate(), -3));
 
         const dataPoints = [];
         const copy = snapshots.slice();

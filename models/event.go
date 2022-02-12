@@ -8,6 +8,7 @@ import (
 	"cloud.google.com/go/civil"
 	"github.com/SSHZ-ORG/tree-diagram/models/cache"
 	"github.com/SSHZ-ORG/tree-diagram/pb"
+	"github.com/SSHZ-ORG/tree-diagram/utils"
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"github.com/scylladb/go-set/strset"
@@ -347,7 +348,9 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*pb.Render
 		}
 		return nil, errors.Wrap(err, "nds.Get failed")
 	}
-	response.Date = proto.String(civil.DateOf(e.Date).String())
+	date := civil.DateOf(e.Date)
+	response.DateStr = proto.String(date.String())
+	response.Date = utils.ToProtoDate(date)
 
 	var errTotal, errFinished error
 	wg := sync.WaitGroup{}

@@ -7,6 +7,7 @@ import (
 	"github.com/SSHZ-ORG/tree-diagram/apicache"
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/pb"
+	"github.com/SSHZ-ORG/tree-diagram/utils"
 	"google.golang.org/appengine/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -57,10 +58,12 @@ func (t treeDiagramService) QueryEvents(ctx context.Context, req *pb.QueryEvents
 
 	resp := &pb.QueryEventsResponse{}
 	for _, e := range events {
+		date := civil.DateOf(e.Date)
 		resp.Events = append(resp.Events, &pb.QueryEventsResponse_Event{
 			Id:            &e.ID,
 			Name:          &e.Name,
-			Date:          proto.String(civil.DateOf(e.Date).String()),
+			DateStr:       proto.String(date.String()),
+			Date:          utils.ToProtoDate(date),
 			Finished:      &e.Finished,
 			LastNoteCount: proto.Int32(int32(e.LastNoteCount)),
 		})

@@ -3,9 +3,43 @@ import * as jspb from 'google-protobuf'
 import * as google_protobuf_timestamp_pb from 'google-protobuf/google/protobuf/timestamp_pb';
 
 
+export class Date extends jspb.Message {
+  getYear(): number;
+  setYear(value: number): Date;
+  hasYear(): boolean;
+  clearYear(): Date;
+
+  getMonth(): number;
+  setMonth(value: number): Date;
+  hasMonth(): boolean;
+  clearMonth(): Date;
+
+  getDay(): number;
+  setDay(value: number): Date;
+  hasDay(): boolean;
+  clearDay(): Date;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Date.AsObject;
+  static toObject(includeInstance: boolean, msg: Date): Date.AsObject;
+  static serializeBinaryToWriter(message: Date, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Date;
+  static deserializeBinaryFromReader(message: Date, reader: jspb.BinaryReader): Date;
+}
+
+export namespace Date {
+  export type AsObject = {
+    year?: number,
+    month?: number,
+    day?: number,
+  }
+}
+
 export class RenderEventRequest extends jspb.Message {
   getId(): string;
   setId(value: string): RenderEventRequest;
+  hasId(): boolean;
+  clearId(): RenderEventRequest;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RenderEventRequest.AsObject;
@@ -17,13 +51,20 @@ export class RenderEventRequest extends jspb.Message {
 
 export namespace RenderEventRequest {
   export type AsObject = {
-    id: string,
+    id?: string,
   }
 }
 
 export class RenderEventResponse extends jspb.Message {
-  getDate(): string;
-  setDate(value: string): RenderEventResponse;
+  getDateStr(): string;
+  setDateStr(value: string): RenderEventResponse;
+  hasDateStr(): boolean;
+  clearDateStr(): RenderEventResponse;
+
+  getDate(): Date | undefined;
+  setDate(value?: Date): RenderEventResponse;
+  hasDate(): boolean;
+  clearDate(): RenderEventResponse;
 
   getSnapshotsList(): Array<RenderEventResponse.Snapshot>;
   setSnapshotsList(value: Array<RenderEventResponse.Snapshot>): RenderEventResponse;
@@ -50,7 +91,8 @@ export class RenderEventResponse extends jspb.Message {
 
 export namespace RenderEventResponse {
   export type AsObject = {
-    date: string,
+    dateStr?: string,
+    date?: Date.AsObject,
     snapshotsList: Array<RenderEventResponse.Snapshot.AsObject>,
     placeStatsTotal?: RenderEventResponse.PlaceNoteCountStats.AsObject,
     placeStatsFinished?: RenderEventResponse.PlaceNoteCountStats.AsObject,
@@ -64,6 +106,8 @@ export namespace RenderEventResponse {
 
     getNoteCount(): number;
     setNoteCount(value: number): Snapshot;
+    hasNoteCount(): boolean;
+    clearNoteCount(): Snapshot;
 
     getAddedActorsList(): Array<string>;
     setAddedActorsList(value: Array<string>): Snapshot;
@@ -86,7 +130,7 @@ export namespace RenderEventResponse {
   export namespace Snapshot {
     export type AsObject = {
       timestamp?: google_protobuf_timestamp_pb.Timestamp.AsObject,
-      noteCount: number,
+      noteCount?: number,
       addedActorsList: Array<string>,
       removedActorsList: Array<string>,
     }
@@ -96,9 +140,13 @@ export namespace RenderEventResponse {
   export class PlaceNoteCountStats extends jspb.Message {
     getTotal(): number;
     setTotal(value: number): PlaceNoteCountStats;
+    hasTotal(): boolean;
+    clearTotal(): PlaceNoteCountStats;
 
     getRank(): number;
     setRank(value: number): PlaceNoteCountStats;
+    hasRank(): boolean;
+    clearRank(): PlaceNoteCountStats;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): PlaceNoteCountStats.AsObject;
@@ -110,8 +158,8 @@ export namespace RenderEventResponse {
 
   export namespace PlaceNoteCountStats {
     export type AsObject = {
-      total: number,
-      rank: number,
+      total?: number,
+      rank?: number,
     }
   }
 
@@ -120,6 +168,8 @@ export namespace RenderEventResponse {
 export class RenderPlaceRequest extends jspb.Message {
   getId(): string;
   setId(value: string): RenderPlaceRequest;
+  hasId(): boolean;
+  clearId(): RenderPlaceRequest;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RenderPlaceRequest.AsObject;
@@ -131,13 +181,15 @@ export class RenderPlaceRequest extends jspb.Message {
 
 export namespace RenderPlaceRequest {
   export type AsObject = {
-    id: string,
+    id?: string,
   }
 }
 
 export class RenderPlaceResponse extends jspb.Message {
   getKnownEventCount(): number;
   setKnownEventCount(value: number): RenderPlaceResponse;
+  hasKnownEventCount(): boolean;
+  clearKnownEventCount(): RenderPlaceResponse;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): RenderPlaceResponse.AsObject;
@@ -149,7 +201,7 @@ export class RenderPlaceResponse extends jspb.Message {
 
 export namespace RenderPlaceResponse {
   export type AsObject = {
-    knownEventCount: number,
+    knownEventCount?: number,
   }
 }
 
@@ -193,6 +245,8 @@ export namespace RenderActorsResponse {
   export class ResponseItem extends jspb.Message {
     getKnownEventCount(): number;
     setKnownEventCount(value: number): ResponseItem;
+    hasKnownEventCount(): boolean;
+    clearKnownEventCount(): ResponseItem;
 
     getSnapshotsList(): Array<RenderActorsResponse.ResponseItem.Snapshot>;
     setSnapshotsList(value: Array<RenderActorsResponse.ResponseItem.Snapshot>): ResponseItem;
@@ -209,16 +263,25 @@ export namespace RenderActorsResponse {
 
   export namespace ResponseItem {
     export type AsObject = {
-      knownEventCount: number,
+      knownEventCount?: number,
       snapshotsList: Array<RenderActorsResponse.ResponseItem.Snapshot.AsObject>,
     }
 
     export class Snapshot extends jspb.Message {
-      getDate(): string;
-      setDate(value: string): Snapshot;
+      getDateStr(): string;
+      setDateStr(value: string): Snapshot;
+      hasDateStr(): boolean;
+      clearDateStr(): Snapshot;
+
+      getDate(): Date | undefined;
+      setDate(value?: Date): Snapshot;
+      hasDate(): boolean;
+      clearDate(): Snapshot;
 
       getFavoriteCount(): number;
       setFavoriteCount(value: number): Snapshot;
+      hasFavoriteCount(): boolean;
+      clearFavoriteCount(): Snapshot;
 
       serializeBinary(): Uint8Array;
       toObject(includeInstance?: boolean): Snapshot.AsObject;
@@ -230,8 +293,9 @@ export namespace RenderActorsResponse {
 
     export namespace Snapshot {
       export type AsObject = {
-        date: string,
-        favoriteCount: number,
+        dateStr?: string,
+        date?: Date.AsObject,
+        favoriteCount?: number,
       }
     }
 
@@ -242,6 +306,8 @@ export namespace RenderActorsResponse {
 export class QueryEventsRequest extends jspb.Message {
   getOffset(): number;
   setOffset(value: number): QueryEventsRequest;
+  hasOffset(): boolean;
+  clearOffset(): QueryEventsRequest;
 
   getFilter(): QueryEventsRequest.EventFilter | undefined;
   setFilter(value?: QueryEventsRequest.EventFilter): QueryEventsRequest;
@@ -258,7 +324,7 @@ export class QueryEventsRequest extends jspb.Message {
 
 export namespace QueryEventsRequest {
   export type AsObject = {
-    offset: number,
+    offset?: number,
     filter?: QueryEventsRequest.EventFilter.AsObject,
   }
 
@@ -270,6 +336,8 @@ export namespace QueryEventsRequest {
 
     getPlaceId(): string;
     setPlaceId(value: string): EventFilter;
+    hasPlaceId(): boolean;
+    clearPlaceId(): EventFilter;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): EventFilter.AsObject;
@@ -282,7 +350,7 @@ export namespace QueryEventsRequest {
   export namespace EventFilter {
     export type AsObject = {
       actorIdsList: Array<string>,
-      placeId: string,
+      placeId?: string,
     }
   }
 
@@ -310,18 +378,33 @@ export namespace QueryEventsResponse {
   export class Event extends jspb.Message {
     getId(): string;
     setId(value: string): Event;
+    hasId(): boolean;
+    clearId(): Event;
 
     getName(): string;
     setName(value: string): Event;
+    hasName(): boolean;
+    clearName(): Event;
 
-    getDate(): string;
-    setDate(value: string): Event;
+    getDateStr(): string;
+    setDateStr(value: string): Event;
+    hasDateStr(): boolean;
+    clearDateStr(): Event;
+
+    getDate(): Date | undefined;
+    setDate(value?: Date): Event;
+    hasDate(): boolean;
+    clearDate(): Event;
 
     getFinished(): boolean;
     setFinished(value: boolean): Event;
+    hasFinished(): boolean;
+    clearFinished(): Event;
 
     getLastNoteCount(): number;
     setLastNoteCount(value: number): Event;
+    hasLastNoteCount(): boolean;
+    clearLastNoteCount(): Event;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Event.AsObject;
@@ -333,11 +416,12 @@ export namespace QueryEventsResponse {
 
   export namespace Event {
     export type AsObject = {
-      id: string,
-      name: string,
-      date: string,
-      finished: boolean,
-      lastNoteCount: number,
+      id?: string,
+      name?: string,
+      dateStr?: string,
+      date?: Date.AsObject,
+      finished?: boolean,
+      lastNoteCount?: number,
     }
   }
 
