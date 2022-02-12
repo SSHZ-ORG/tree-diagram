@@ -61,19 +61,6 @@ func getLatestCompressedSnapshotKey(ctx context.Context, eventKey *datastore.Key
 	return keys[0], nil
 }
 
-func (c *compressedEventSnapshot) decompress() []*EventSnapshot {
-	var ss []*EventSnapshot
-	for _, ts := range c.Timestamps {
-		ss = append(ss, &EventSnapshot{
-			EventID:   c.EventID,
-			Timestamp: ts,
-			NoteCount: c.NoteCount,
-		})
-	}
-	ss[0].Actors = c.Actors
-	return ss
-}
-
 func (c *compressedEventSnapshot) isConsistent(e *Event) bool {
 	if c == nil || e == nil {
 		return false

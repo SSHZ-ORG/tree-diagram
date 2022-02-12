@@ -61,11 +61,6 @@ export class RenderEventResponse extends jspb.Message {
   hasDate(): boolean;
   clearDate(): RenderEventResponse;
 
-  getSnapshotsList(): Array<RenderEventResponse.Snapshot>;
-  setSnapshotsList(value: Array<RenderEventResponse.Snapshot>): RenderEventResponse;
-  clearSnapshotsList(): RenderEventResponse;
-  addSnapshots(value?: RenderEventResponse.Snapshot, index?: number): RenderEventResponse.Snapshot;
-
   getCompressedSnapshotsList(): Array<RenderEventResponse.CompressedSnapshot>;
   setCompressedSnapshotsList(value: Array<RenderEventResponse.CompressedSnapshot>): RenderEventResponse;
   clearCompressedSnapshotsList(): RenderEventResponse;
@@ -92,50 +87,10 @@ export class RenderEventResponse extends jspb.Message {
 export namespace RenderEventResponse {
   export type AsObject = {
     date?: Date.AsObject,
-    snapshotsList: Array<RenderEventResponse.Snapshot.AsObject>,
     compressedSnapshotsList: Array<RenderEventResponse.CompressedSnapshot.AsObject>,
     placeStatsTotal?: RenderEventResponse.PlaceNoteCountStats.AsObject,
     placeStatsFinished?: RenderEventResponse.PlaceNoteCountStats.AsObject,
   }
-
-  export class Snapshot extends jspb.Message {
-    getTimestamp(): google_protobuf_timestamp_pb.Timestamp | undefined;
-    setTimestamp(value?: google_protobuf_timestamp_pb.Timestamp): Snapshot;
-    hasTimestamp(): boolean;
-    clearTimestamp(): Snapshot;
-
-    getNoteCount(): number;
-    setNoteCount(value: number): Snapshot;
-    hasNoteCount(): boolean;
-    clearNoteCount(): Snapshot;
-
-    getAddedActorsList(): Array<string>;
-    setAddedActorsList(value: Array<string>): Snapshot;
-    clearAddedActorsList(): Snapshot;
-    addAddedActors(value: string, index?: number): Snapshot;
-
-    getRemovedActorsList(): Array<string>;
-    setRemovedActorsList(value: Array<string>): Snapshot;
-    clearRemovedActorsList(): Snapshot;
-    addRemovedActors(value: string, index?: number): Snapshot;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): Snapshot.AsObject;
-    static toObject(includeInstance: boolean, msg: Snapshot): Snapshot.AsObject;
-    static serializeBinaryToWriter(message: Snapshot, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): Snapshot;
-    static deserializeBinaryFromReader(message: Snapshot, reader: jspb.BinaryReader): Snapshot;
-  }
-
-  export namespace Snapshot {
-    export type AsObject = {
-      timestamp?: google_protobuf_timestamp_pb.Timestamp.AsObject,
-      noteCount?: number,
-      addedActorsList: Array<string>,
-      removedActorsList: Array<string>,
-    }
-  }
-
 
   export class CompressedSnapshot extends jspb.Message {
     getTimestampsList(): Array<google_protobuf_timestamp_pb.Timestamp>;

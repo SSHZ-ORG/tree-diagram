@@ -17,18 +17,9 @@ message RenderEventRequest {
 }
 
 message RenderEventResponse {
-    reserved 1;
+    reserved 1, 2;
 
     optional Date date = 5;
-
-    message Snapshot {
-        optional .google.protobuf.Timestamp timestamp = 1;
-        optional int32 note_count = 2;
-
-        repeated string added_actors = 3;
-        repeated string removed_actors = 4;
-    }
-    repeated Snapshot snapshots = 2;
 
     message CompressedSnapshot {
         repeated .google.protobuf.Timestamp timestamps = 1;
