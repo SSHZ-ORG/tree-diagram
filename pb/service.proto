@@ -30,6 +30,15 @@ message RenderEventResponse {
     }
     repeated Snapshot snapshots = 2;
 
+    message CompressedSnapshot {
+        repeated .google.protobuf.Timestamp timestamps = 1;
+        optional int32 note_count = 2;
+
+        repeated string added_actors = 3;
+        repeated string removed_actors = 4;
+    }
+    repeated CompressedSnapshot compressed_snapshots = 6;
+
     message PlaceNoteCountStats {
         optional int32 total = 1;
         optional int32 rank = 2;

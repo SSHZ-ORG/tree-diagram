@@ -387,13 +387,18 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*pb.Render
 		}
 	}()
 
-	snapshots, err := getSnapshotsForEvent(ctx, key)
+	compressedSnapshots, err := getCompressedSnapshots(ctx, key)
 	if err != nil {
 		return nil, err
 	}
 
+	var snapshots []*EventSnapshot
+	for _, ces := range compressedSnapshots {
+		snapshots = append(snapshots, ces.decompress()...)
+	}
+
 	akSet := strset.New()
-	for _, s := range snapshots {
+	for _, s := range compressedSnapshots {
 		for _, ak := range s.Actors {
 			akSet.Add(ak.Encode())
 		}
@@ -416,6 +421,42 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*pb.Render
 
 	var lastActors []string
 	las := strset.New()
+	for _, s := range compressedSnapshots {
+		item := &pb.RenderEventResponse_CompressedSnapshot{
+			NoteCount: proto.Int32(int32(s.NoteCount)),
+		}
+		for _, ts := range s.Timestamps {
+			item.Timestamps = append(item.Timestamps, timestamppb.New(ts))
+		}
+
+		if len(s.Actors) > 0 {
+			var newActors []string
+			for _, ak := range s.Actors {
+				newActors = append(newActors, ak.Encode())
+			}
+
+			for _, a := range newActors {
+				if !las.Has(a) {
+					item.AddedActors = append(item.AddedActors, actorNames[a])
+				}
+			}
+
+			nas := strset.New(newActors...)
+			for _, a := range lastActors {
+				if !nas.Has(a) {
+					item.RemovedActors = append(item.RemovedActors, actorNames[a])
+				}
+			}
+
+			lastActors = newActors
+			las = nas
+		}
+
+		response.CompressedSnapshots = append(response.CompressedSnapshots, item)
+	}
+
+	// Deprecated logic. Just process it again for now.
+	lastActors, las = nil, strset.New()
 	for _, s := range snapshots {
 		item := &pb.RenderEventResponse_Snapshot{
 			Timestamp: timestamppb.New(s.Timestamp),

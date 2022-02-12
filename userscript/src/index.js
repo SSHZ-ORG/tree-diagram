@@ -62,13 +62,27 @@
                 label: {text: 'Now'},
             }];
 
+            const compressedSnapshots = response.getCompressedSnapshotsList();
+
             const liveDate = convertToJsDate(response.getDate(), 3);// JST noon.
-            if (response.getSnapshotsList().length > 0 && response.getSnapshotsList()[0].getTimestamp().toDate() <= liveDate) {
+            if (compressedSnapshots.length > 0 && compressedSnapshots[0].getTimestampsList()[0].toDate() <= liveDate) {
                 plotLines.push({
                     value: liveDate.getTime(),
                     dashStyle: 'LongDashDot',
                     label: {text: 'Live!'},
                 });
+            }
+
+            const snapshots = [];
+            for (let compressedSnapshot of compressedSnapshots) {
+                for (let timestamp of compressedSnapshot.getTimestampsList()) {
+                    snapshots.push({
+                        time: timestamp.toDate().getTime(),
+                        noteCount: compressedSnapshot.getNoteCount(),
+                        addedActors: compressedSnapshot.getAddedActorsList(),
+                        removedActors: compressedSnapshot.getRemovedActorsList(),
+                    });
+                }
             }
 
             Highcharts.chart(ctx, {
@@ -87,14 +101,14 @@
                     {
                         name: 'NoteCount',
                         type: 'areaspline',
-                        data: response.getSnapshotsList().map(i => {
-                            const p = {x: i.getTimestamp().toDate().getTime(), y: i.getNoteCount()};
-                            if (i.getAddedActorsList().length > 0 || i.getRemovedActorsList().length > 0) {
+                        data: snapshots.map(snapshot => {
+                            const p = {x: snapshot.time, y: snapshot.noteCount};
+                            if (snapshot.addedActors.length > 0 || snapshot.removedActors.length > 0) {
                                 let label = '';
-                                if (i.getAddedActorsList().length > 0) {
+                                if (snapshot.addedActors.length > 0) {
                                     label += '+';
                                 }
-                                if (i.getRemovedActorsList().length > 0) {
+                                if (snapshot.removedActors.length > 0) {
                                     label += '-';
                                 }
                                 p.dataLabels = {
@@ -113,13 +127,13 @@
                         tooltip: {
                             pointFormatter: function () {
                                 let labels = [`NoteCount: <b>${this.y}</b>`];
-                                const snapshot = response.getSnapshotsList()[this.index];
+                                const snapshot = snapshots[this.index];
 
-                                if (snapshot.getAddedActorsList().length > 0) {
-                                    labels.push('++: ' + snapshot.getAddedActorsList().join(', '));
+                                if (snapshot.addedActors.length > 0) {
+                                    labels.push('++: ' + snapshot.addedActors.join(', '));
                                 }
-                                if (snapshot.getRemovedActorsList().length > 0) {
-                                    labels.push('--: ' + snapshot.getRemovedActorsList().join(', '));
+                                if (snapshot.removedActors.length > 0) {
+                                    labels.push('--: ' + snapshot.removedActors.join(', '));
                                 }
                                 return labels.join('<br/>');
                             },

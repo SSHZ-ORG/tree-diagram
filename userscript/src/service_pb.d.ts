@@ -66,6 +66,11 @@ export class RenderEventResponse extends jspb.Message {
   clearSnapshotsList(): RenderEventResponse;
   addSnapshots(value?: RenderEventResponse.Snapshot, index?: number): RenderEventResponse.Snapshot;
 
+  getCompressedSnapshotsList(): Array<RenderEventResponse.CompressedSnapshot>;
+  setCompressedSnapshotsList(value: Array<RenderEventResponse.CompressedSnapshot>): RenderEventResponse;
+  clearCompressedSnapshotsList(): RenderEventResponse;
+  addCompressedSnapshots(value?: RenderEventResponse.CompressedSnapshot, index?: number): RenderEventResponse.CompressedSnapshot;
+
   getPlaceStatsTotal(): RenderEventResponse.PlaceNoteCountStats | undefined;
   setPlaceStatsTotal(value?: RenderEventResponse.PlaceNoteCountStats): RenderEventResponse;
   hasPlaceStatsTotal(): boolean;
@@ -88,6 +93,7 @@ export namespace RenderEventResponse {
   export type AsObject = {
     date?: Date.AsObject,
     snapshotsList: Array<RenderEventResponse.Snapshot.AsObject>,
+    compressedSnapshotsList: Array<RenderEventResponse.CompressedSnapshot.AsObject>,
     placeStatsTotal?: RenderEventResponse.PlaceNoteCountStats.AsObject,
     placeStatsFinished?: RenderEventResponse.PlaceNoteCountStats.AsObject,
   }
@@ -124,6 +130,45 @@ export namespace RenderEventResponse {
   export namespace Snapshot {
     export type AsObject = {
       timestamp?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+      noteCount?: number,
+      addedActorsList: Array<string>,
+      removedActorsList: Array<string>,
+    }
+  }
+
+
+  export class CompressedSnapshot extends jspb.Message {
+    getTimestampsList(): Array<google_protobuf_timestamp_pb.Timestamp>;
+    setTimestampsList(value: Array<google_protobuf_timestamp_pb.Timestamp>): CompressedSnapshot;
+    clearTimestampsList(): CompressedSnapshot;
+    addTimestamps(value?: google_protobuf_timestamp_pb.Timestamp, index?: number): google_protobuf_timestamp_pb.Timestamp;
+
+    getNoteCount(): number;
+    setNoteCount(value: number): CompressedSnapshot;
+    hasNoteCount(): boolean;
+    clearNoteCount(): CompressedSnapshot;
+
+    getAddedActorsList(): Array<string>;
+    setAddedActorsList(value: Array<string>): CompressedSnapshot;
+    clearAddedActorsList(): CompressedSnapshot;
+    addAddedActors(value: string, index?: number): CompressedSnapshot;
+
+    getRemovedActorsList(): Array<string>;
+    setRemovedActorsList(value: Array<string>): CompressedSnapshot;
+    clearRemovedActorsList(): CompressedSnapshot;
+    addRemovedActors(value: string, index?: number): CompressedSnapshot;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): CompressedSnapshot.AsObject;
+    static toObject(includeInstance: boolean, msg: CompressedSnapshot): CompressedSnapshot.AsObject;
+    static serializeBinaryToWriter(message: CompressedSnapshot, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): CompressedSnapshot;
+    static deserializeBinaryFromReader(message: CompressedSnapshot, reader: jspb.BinaryReader): CompressedSnapshot;
+  }
+
+  export namespace CompressedSnapshot {
+    export type AsObject = {
+      timestampsList: Array<google_protobuf_timestamp_pb.Timestamp.AsObject>,
       noteCount?: number,
       addedActorsList: Array<string>,
       removedActorsList: Array<string>,
