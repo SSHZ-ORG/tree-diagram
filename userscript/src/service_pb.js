@@ -784,7 +784,6 @@ proto.treediagram.pb.RenderEventResponse.prototype.toObject = function(opt_inclu
  */
 proto.treediagram.pb.RenderEventResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    dateStr: (f = jspb.Message.getField(msg, 1)) == null ? undefined : f,
     date: (f = msg.getDate()) && proto.treediagram.pb.Date.toObject(includeInstance, f),
     snapshotsList: jspb.Message.toObjectList(msg.getSnapshotsList(),
     proto.treediagram.pb.RenderEventResponse.Snapshot.toObject, includeInstance),
@@ -826,10 +825,6 @@ proto.treediagram.pb.RenderEventResponse.deserializeBinaryFromReader = function(
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setDateStr(value);
-      break;
     case 5:
       var value = new proto.treediagram.pb.Date;
       reader.readMessage(value,proto.treediagram.pb.Date.deserializeBinaryFromReader);
@@ -879,13 +874,6 @@ proto.treediagram.pb.RenderEventResponse.prototype.serializeBinary = function() 
  */
 proto.treediagram.pb.RenderEventResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = /** @type {string} */ (jspb.Message.getField(message, 1));
-  if (f != null) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
   f = message.getDate();
   if (f != null) {
     writer.writeMessage(
@@ -1418,42 +1406,6 @@ proto.treediagram.pb.RenderEventResponse.PlaceNoteCountStats.prototype.clearRank
  */
 proto.treediagram.pb.RenderEventResponse.PlaceNoteCountStats.prototype.hasRank = function() {
   return jspb.Message.getField(this, 2) != null;
-};
-
-
-/**
- * optional string date_str = 1;
- * @return {string}
- */
-proto.treediagram.pb.RenderEventResponse.prototype.getDateStr = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.treediagram.pb.RenderEventResponse} returns this
- */
-proto.treediagram.pb.RenderEventResponse.prototype.setDateStr = function(value) {
-  return jspb.Message.setField(this, 1, value);
-};
-
-
-/**
- * Clears the field making it undefined.
- * @return {!proto.treediagram.pb.RenderEventResponse} returns this
- */
-proto.treediagram.pb.RenderEventResponse.prototype.clearDateStr = function() {
-  return jspb.Message.setField(this, 1, undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {boolean}
- */
-proto.treediagram.pb.RenderEventResponse.prototype.hasDateStr = function() {
-  return jspb.Message.getField(this, 1) != null;
 };
 
 
@@ -2335,7 +2287,6 @@ proto.treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot.prototype.toObje
  */
 proto.treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot.toObject = function(includeInstance, msg) {
   var f, obj = {
-    dateStr: (f = jspb.Message.getField(msg, 1)) == null ? undefined : f,
     date: (f = msg.getDate()) && proto.treediagram.pb.Date.toObject(includeInstance, f),
     favoriteCount: (f = jspb.Message.getField(msg, 2)) == null ? undefined : f
   };
@@ -2374,10 +2325,6 @@ proto.treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot.deserializeBinar
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 1:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setDateStr(value);
-      break;
     case 3:
       var value = new proto.treediagram.pb.Date;
       reader.readMessage(value,proto.treediagram.pb.Date.deserializeBinaryFromReader);
@@ -2416,13 +2363,6 @@ proto.treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot.prototype.serial
  */
 proto.treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = /** @type {string} */ (jspb.Message.getField(message, 1));
-  if (f != null) {
-    writer.writeString(
-      1,
-      f
-    );
-  }
   f = message.getDate();
   if (f != null) {
     writer.writeMessage(
@@ -2438,42 +2378,6 @@ proto.treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot.serializeBinaryT
       f
     );
   }
-};
-
-
-/**
- * optional string date_str = 1;
- * @return {string}
- */
-proto.treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot.prototype.getDateStr = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot} returns this
- */
-proto.treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot.prototype.setDateStr = function(value) {
-  return jspb.Message.setField(this, 1, value);
-};
-
-
-/**
- * Clears the field making it undefined.
- * @return {!proto.treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot} returns this
- */
-proto.treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot.prototype.clearDateStr = function() {
-  return jspb.Message.setField(this, 1, undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {boolean}
- */
-proto.treediagram.pb.RenderActorsResponse.ResponseItem.Snapshot.prototype.hasDateStr = function() {
-  return jspb.Message.getField(this, 1) != null;
 };
 
 
@@ -3205,7 +3109,6 @@ proto.treediagram.pb.QueryEventsResponse.Event.toObject = function(includeInstan
   var f, obj = {
     id: (f = jspb.Message.getField(msg, 1)) == null ? undefined : f,
     name: (f = jspb.Message.getField(msg, 2)) == null ? undefined : f,
-    dateStr: (f = jspb.Message.getField(msg, 3)) == null ? undefined : f,
     date: (f = msg.getDate()) && proto.treediagram.pb.Date.toObject(includeInstance, f),
     finished: (f = jspb.Message.getBooleanField(msg, 4)) == null ? undefined : f,
     lastNoteCount: (f = jspb.Message.getField(msg, 5)) == null ? undefined : f
@@ -3252,10 +3155,6 @@ proto.treediagram.pb.QueryEventsResponse.Event.deserializeBinaryFromReader = fun
     case 2:
       var value = /** @type {string} */ (reader.readString());
       msg.setName(value);
-      break;
-    case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setDateStr(value);
       break;
     case 6:
       var value = new proto.treediagram.pb.Date;
@@ -3310,13 +3209,6 @@ proto.treediagram.pb.QueryEventsResponse.Event.serializeBinaryToWriter = functio
   if (f != null) {
     writer.writeString(
       2,
-      f
-    );
-  }
-  f = /** @type {string} */ (jspb.Message.getField(message, 3));
-  if (f != null) {
-    writer.writeString(
-      3,
       f
     );
   }
@@ -3414,42 +3306,6 @@ proto.treediagram.pb.QueryEventsResponse.Event.prototype.clearName = function() 
  */
 proto.treediagram.pb.QueryEventsResponse.Event.prototype.hasName = function() {
   return jspb.Message.getField(this, 2) != null;
-};
-
-
-/**
- * optional string date_str = 3;
- * @return {string}
- */
-proto.treediagram.pb.QueryEventsResponse.Event.prototype.getDateStr = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.treediagram.pb.QueryEventsResponse.Event} returns this
- */
-proto.treediagram.pb.QueryEventsResponse.Event.prototype.setDateStr = function(value) {
-  return jspb.Message.setField(this, 3, value);
-};
-
-
-/**
- * Clears the field making it undefined.
- * @return {!proto.treediagram.pb.QueryEventsResponse.Event} returns this
- */
-proto.treediagram.pb.QueryEventsResponse.Event.prototype.clearDateStr = function() {
-  return jspb.Message.setField(this, 3, undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {boolean}
- */
-proto.treediagram.pb.QueryEventsResponse.Event.prototype.hasDateStr = function() {
-  return jspb.Message.getField(this, 3) != null;
 };
 
 

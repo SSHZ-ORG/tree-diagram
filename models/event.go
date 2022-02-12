@@ -348,9 +348,7 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*pb.Render
 		}
 		return nil, errors.Wrap(err, "nds.Get failed")
 	}
-	date := civil.DateOf(e.Date)
-	response.DateStr = proto.String(date.String())
-	response.Date = utils.ToProtoDate(date)
+	response.Date = utils.ToProtoDate(civil.DateOf(e.Date))
 
 	var errTotal, errFinished error
 	wg := sync.WaitGroup{}

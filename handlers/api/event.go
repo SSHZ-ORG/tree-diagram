@@ -58,12 +58,10 @@ func (t treeDiagramService) QueryEvents(ctx context.Context, req *pb.QueryEvents
 
 	resp := &pb.QueryEventsResponse{}
 	for _, e := range events {
-		date := civil.DateOf(e.Date)
 		resp.Events = append(resp.Events, &pb.QueryEventsResponse_Event{
 			Id:            &e.ID,
 			Name:          &e.Name,
-			DateStr:       proto.String(date.String()),
-			Date:          utils.ToProtoDate(date),
+			Date:          utils.ToProtoDate(civil.DateOf(e.Date)),
 			Finished:      &e.Finished,
 			LastNoteCount: proto.Int32(int32(e.LastNoteCount)),
 		})

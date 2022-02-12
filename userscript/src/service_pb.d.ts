@@ -56,11 +56,6 @@ export namespace RenderEventRequest {
 }
 
 export class RenderEventResponse extends jspb.Message {
-  getDateStr(): string;
-  setDateStr(value: string): RenderEventResponse;
-  hasDateStr(): boolean;
-  clearDateStr(): RenderEventResponse;
-
   getDate(): Date | undefined;
   setDate(value?: Date): RenderEventResponse;
   hasDate(): boolean;
@@ -91,7 +86,6 @@ export class RenderEventResponse extends jspb.Message {
 
 export namespace RenderEventResponse {
   export type AsObject = {
-    dateStr?: string,
     date?: Date.AsObject,
     snapshotsList: Array<RenderEventResponse.Snapshot.AsObject>,
     placeStatsTotal?: RenderEventResponse.PlaceNoteCountStats.AsObject,
@@ -268,11 +262,6 @@ export namespace RenderActorsResponse {
     }
 
     export class Snapshot extends jspb.Message {
-      getDateStr(): string;
-      setDateStr(value: string): Snapshot;
-      hasDateStr(): boolean;
-      clearDateStr(): Snapshot;
-
       getDate(): Date | undefined;
       setDate(value?: Date): Snapshot;
       hasDate(): boolean;
@@ -293,7 +282,6 @@ export namespace RenderActorsResponse {
 
     export namespace Snapshot {
       export type AsObject = {
-        dateStr?: string,
         date?: Date.AsObject,
         favoriteCount?: number,
       }
@@ -386,11 +374,6 @@ export namespace QueryEventsResponse {
     hasName(): boolean;
     clearName(): Event;
 
-    getDateStr(): string;
-    setDateStr(value: string): Event;
-    hasDateStr(): boolean;
-    clearDateStr(): Event;
-
     getDate(): Date | undefined;
     setDate(value?: Date): Event;
     hasDate(): boolean;
@@ -418,7 +401,6 @@ export namespace QueryEventsResponse {
     export type AsObject = {
       id?: string,
       name?: string,
-      dateStr?: string,
       date?: Date.AsObject,
       finished?: boolean,
       lastNoteCount?: number,
