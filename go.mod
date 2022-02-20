@@ -3,23 +3,18 @@ module github.com/SSHZ-ORG/tree-diagram
 go 1.15
 
 require (
-	cloud.google.com/go v0.74.0
-	github.com/PuerkitoBio/goquery v1.7.0
-	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/improbable-eng/grpc-web v0.13.1-0.20201223164706-7c2c243aa833
+	cloud.google.com/go v0.100.2
+	github.com/PuerkitoBio/goquery v1.8.0
+	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/qedus/nds v1.0.0
-	github.com/rs/cors v1.7.0 // indirect
 	github.com/scylladb/go-set v1.0.2
 	github.com/tidwall/gjson v1.14.0
-	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
-	golang.org/x/oauth2 v0.0.0-20201208152858-08078c50e5b5
-	google.golang.org/api v0.36.0
+	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
+	google.golang.org/api v0.69.0
 	google.golang.org/appengine/v2 v2.0.1
-	google.golang.org/grpc v1.34.0
+	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.27.1
 )
 
