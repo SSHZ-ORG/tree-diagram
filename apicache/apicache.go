@@ -1,10 +1,11 @@
 package apicache
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/memcache"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/memcache"
 )
 
 const keyPrefix = "TDAPI:"

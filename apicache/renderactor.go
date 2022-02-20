@@ -1,6 +1,6 @@
 package apicache
 
-import "golang.org/x/net/context"
+import "context"
 
 const renderActorKeyPrefix = keyPrefix + "RA2:"
 

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -12,10 +13,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"github.com/scylladb/go-set/strset"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/datastore"
+	"google.golang.org/appengine/v2/log"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )

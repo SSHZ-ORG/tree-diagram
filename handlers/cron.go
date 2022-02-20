@@ -13,8 +13,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/datastore/v1"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/log"
 )
 
 const (

@@ -1,13 +1,13 @@
 package api
 
 import (
+	"context"
 	"sync"
 
 	"github.com/SSHZ-ORG/tree-diagram/apicache"
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/pb"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/v2/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"

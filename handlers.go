@@ -8,7 +8,7 @@ import (
 	"github.com/SSHZ-ORG/tree-diagram/handlers"
 	"github.com/SSHZ-ORG/tree-diagram/handlers/api"
 	"github.com/julienschmidt/httprouter"
-	"google.golang.org/appengine"
+	"google.golang.org/appengine/v2"
 )
 
 func main() {

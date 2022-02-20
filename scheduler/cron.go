@@ -1,12 +1,12 @@
 package scheduler
 
 import (
+	"context"
 	"net/url"
 
 	"github.com/SSHZ-ORG/tree-diagram/paths"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/taskqueue"
+	"google.golang.org/appengine/v2/taskqueue"
 )
 
 const oneOffQueueName = "one-off-queue"

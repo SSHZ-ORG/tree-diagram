@@ -5,7 +5,7 @@ import (
 
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/pb"
-	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/v2/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

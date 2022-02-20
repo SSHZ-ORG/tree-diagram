@@ -1,12 +1,13 @@
 package models
 
 import (
+	"context"
+
 	"github.com/SSHZ-ORG/tree-diagram/pb"
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2"
+	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/protobuf/proto"
 )
 

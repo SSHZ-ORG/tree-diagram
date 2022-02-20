@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -13,9 +14,8 @@ import (
 	"github.com/SSHZ-ORG/tree-diagram/models"
 	"github.com/SSHZ-ORG/tree-diagram/utils"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/log"
-	"google.golang.org/appengine/urlfetch"
+	"google.golang.org/appengine/v2/log"
+	"google.golang.org/appengine/v2/urlfetch"
 )
 
 const (

@@ -1,6 +1,6 @@
 package apicache
 
-import "golang.org/x/net/context"
+import "context"
 
 const renderEventKeyPrefix = keyPrefix + "RE5:"
 

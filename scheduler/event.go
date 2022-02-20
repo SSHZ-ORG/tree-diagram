@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"context"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -9,8 +10,7 @@ import (
 	"cloud.google.com/go/civil"
 	"github.com/SSHZ-ORG/tree-diagram/paths"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/taskqueue"
+	"google.golang.org/appengine/v2/taskqueue"
 )
 
 type EventDateQueue string

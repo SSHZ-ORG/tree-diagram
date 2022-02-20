@@ -1,5 +1,7 @@
 module github.com/SSHZ-ORG/tree-diagram
 
+go 1.15
+
 require (
 	cloud.google.com/go v0.74.0
 	github.com/PuerkitoBio/goquery v1.7.0
@@ -13,12 +15,12 @@ require (
 	github.com/rs/cors v1.7.0 // indirect
 	github.com/scylladb/go-set v1.0.2
 	github.com/tidwall/gjson v1.14.0
-	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
+	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
 	golang.org/x/oauth2 v0.0.0-20201208152858-08078c50e5b5
 	google.golang.org/api v0.36.0
-	google.golang.org/appengine v1.6.7
+	google.golang.org/appengine/v2 v2.0.1
 	google.golang.org/grpc v1.34.0
 	google.golang.org/protobuf v1.27.1
 )
 
-go 1.11
+replace github.com/qedus/nds => github.com/SSHZ-ORG/nds v1.0.1-0.20220220041449-5427bae4887c

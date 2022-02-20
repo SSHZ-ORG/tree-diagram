@@ -1,13 +1,13 @@
 package models
 
 import (
+	"context"
 	"time"
 
 	"github.com/SSHZ-ORG/tree-diagram/models/cache"
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
-	"golang.org/x/net/context"
-	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/v2/datastore"
 )
 
 type compressedEventSnapshot struct {
