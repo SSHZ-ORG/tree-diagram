@@ -77,12 +77,11 @@ message QueryEventsRequest {
 
 message QueryEventsResponse {
     message Event {
-        reserved 3;
+        reserved 3, 4;
 
         optional string id = 1;
         optional string name = 2;
         optional Date date = 6;
-        optional bool finished = 4;
         optional int32 last_note_count = 5;
     }
     repeated Event events = 1;

@@ -3112,7 +3112,6 @@ proto.treediagram.pb.QueryEventsResponse.Event.toObject = function(includeInstan
     id: (f = jspb.Message.getField(msg, 1)) == null ? undefined : f,
     name: (f = jspb.Message.getField(msg, 2)) == null ? undefined : f,
     date: (f = msg.getDate()) && proto.treediagram.pb.Date.toObject(includeInstance, f),
-    finished: (f = jspb.Message.getBooleanField(msg, 4)) == null ? undefined : f,
     lastNoteCount: (f = jspb.Message.getField(msg, 5)) == null ? undefined : f
   };
 
@@ -3162,10 +3161,6 @@ proto.treediagram.pb.QueryEventsResponse.Event.deserializeBinaryFromReader = fun
       var value = new proto.treediagram.pb.Date;
       reader.readMessage(value,proto.treediagram.pb.Date.deserializeBinaryFromReader);
       msg.setDate(value);
-      break;
-    case 4:
-      var value = /** @type {boolean} */ (reader.readBool());
-      msg.setFinished(value);
       break;
     case 5:
       var value = /** @type {number} */ (reader.readInt32());
@@ -3220,13 +3215,6 @@ proto.treediagram.pb.QueryEventsResponse.Event.serializeBinaryToWriter = functio
       6,
       f,
       proto.treediagram.pb.Date.serializeBinaryToWriter
-    );
-  }
-  f = /** @type {boolean} */ (jspb.Message.getField(message, 4));
-  if (f != null) {
-    writer.writeBool(
-      4,
-      f
     );
   }
   f = /** @type {number} */ (jspb.Message.getField(message, 5));
@@ -3345,42 +3333,6 @@ proto.treediagram.pb.QueryEventsResponse.Event.prototype.clearDate = function() 
  */
 proto.treediagram.pb.QueryEventsResponse.Event.prototype.hasDate = function() {
   return jspb.Message.getField(this, 6) != null;
-};
-
-
-/**
- * optional bool finished = 4;
- * @return {boolean}
- */
-proto.treediagram.pb.QueryEventsResponse.Event.prototype.getFinished = function() {
-  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 4, false));
-};
-
-
-/**
- * @param {boolean} value
- * @return {!proto.treediagram.pb.QueryEventsResponse.Event} returns this
- */
-proto.treediagram.pb.QueryEventsResponse.Event.prototype.setFinished = function(value) {
-  return jspb.Message.setField(this, 4, value);
-};
-
-
-/**
- * Clears the field making it undefined.
- * @return {!proto.treediagram.pb.QueryEventsResponse.Event} returns this
- */
-proto.treediagram.pb.QueryEventsResponse.Event.prototype.clearFinished = function() {
-  return jspb.Message.setField(this, 4, undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {boolean}
- */
-proto.treediagram.pb.QueryEventsResponse.Event.prototype.hasFinished = function() {
-  return jspb.Message.getField(this, 4) != null;
 };
 
 

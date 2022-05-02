@@ -41,30 +41,8 @@ type Event struct {
 	LastUpdateTime time.Time
 }
 
-type FrontendEvent struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-
-	Date     string `json:"date"`
-	Finished bool   `json:"finished"`
-
-	LastNoteCount int `json:"lastNoteCount"`
-}
-
 func (e Event) debugName() string {
 	return fmt.Sprintf("[%s] %s", e.ID, e.Name)
-}
-
-func (e Event) ToFrontendEvent() FrontendEvent {
-	return FrontendEvent{
-		ID:   e.ID,
-		Name: e.Name,
-
-		Date:     civil.DateOf(e.Date).String(),
-		Finished: e.Finished,
-
-		LastNoteCount: e.LastNoteCount,
-	}
 }
 
 const (

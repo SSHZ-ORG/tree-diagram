@@ -190,7 +190,8 @@ import Highcharts, {Options, PointOptionsObject} from "highcharts";
                         <td>${e.getLastNoteCount()}</td>
                     </tr>`) as HTMLTableRowElement;
 
-                    if (!e.getFinished()) {
+                    const liveDate = convertToJsDate(e.getDate(), 15); // next day 0:00 JST.
+                    if (liveDate > new Date()) {
                         trDom.classList.add('warning');
                     }
 

@@ -379,11 +379,6 @@ export namespace QueryEventsResponse {
     hasDate(): boolean;
     clearDate(): Event;
 
-    getFinished(): boolean;
-    setFinished(value: boolean): Event;
-    hasFinished(): boolean;
-    clearFinished(): Event;
-
     getLastNoteCount(): number;
     setLastNoteCount(value: number): Event;
     hasLastNoteCount(): boolean;
@@ -402,7 +397,6 @@ export namespace QueryEventsResponse {
       id?: string,
       name?: string,
       date?: Date.AsObject,
-      finished?: boolean,
       lastNoteCount?: number,
     }
   }
