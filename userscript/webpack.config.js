@@ -5,7 +5,19 @@ const dev = process.env.NODE_ENV === 'development'
 
 module.exports = {
     mode: dev ? 'development' : 'production',
-    entry: path.resolve(__dirname, 'src', 'index.js'),
+    entry: path.resolve(__dirname, 'src', 'index.ts'),
+    module: {
+        rules: [
+            {
+                test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: /node_modules/,
+            },
+        ],
+    },
+    resolve: {
+        extensions: ['.tsx', '.ts', '.js'],
+    },
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: 'treediagram.user.js'
@@ -28,7 +40,7 @@ module.exports = {
         minimizer: [
             new ClosurePlugin({mode: 'STANDARD'}, {
                 strict_mode_input: false,
-                languageOut: 'ECMASCRIPT_2015'
+                languageOut: 'ECMASCRIPT_2019'
             })
         ]
     }

@@ -1,11 +1,10 @@
+import * as servicepb from "./service_grpc_web_pb";
+import * as pb from "./service_pb";
+import Highcharts, {Options, PointOptionsObject} from "highcharts";
+
 (function () {
     'use strict';
 
-    const servicepb = require('./service_grpc_web_pb');
-    const pb = require('./service_pb');
-
-    const Highcharts = require('highcharts');
-    require('highcharts/modules/exporting')(Highcharts);
     Highcharts.setOptions({
         time: {timezoneOffset: new Date().getTimezoneOffset()},
     });
@@ -14,24 +13,24 @@
 
     const header = '<h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>';
 
-    function formatDate(date) {
+    function formatDate(date: pb.Date): string {
         return `${date.getYear()}-${date.getMonth().toString().padStart(2, '0')}-${date.getDay().toString().padStart(2, '0')}`;
     }
 
-    function convertToJsDate(date, utcHours) {
+    function convertToJsDate(date: pb.Date, utcHours: number): Date {
         // This explodes if date.year is between 0 and 99.
         // Empty value in BE can cause year to be 0001, so we will wrongly think it's some time in 1901 here.
         return new Date(Date.UTC(date.getYear(), date.getMonth() - 1, date.getDay(), utcHours));
     }
 
-    function htmlToElement(html) {
+    function htmlToElement(html: string) {
         const template = document.createElement('template');
         html = html.trim();
         template.innerHTML = html;
-        return template.content.firstChild;
+        return template.content.firstChild as HTMLElement;
     }
 
-    function eventPage(eventId) {
+    function eventPage(eventId: string) {
         const tdDom = htmlToElement(`
         <div>
             ${header}
@@ -55,7 +54,6 @@
             const finishedStatsSpan = document.getElementById('td_place_stats_finished');
             finishedStatsSpan.innerHTML = `${response.getPlaceStatsFinished().getRank()}/${response.getPlaceStatsFinished().getTotal()}`;
 
-            const ctx = document.getElementById('td_chart');
             const plotLines = [{
                 value: new Date().getTime(),
                 dashStyle: 'Dash',
@@ -64,7 +62,7 @@
 
             const compressedSnapshots = response.getCompressedSnapshotsList();
 
-            const liveDate = convertToJsDate(response.getDate(), 3);// JST noon.
+            const liveDate = convertToJsDate(response.getDate(), 3); // JST noon.
             if (compressedSnapshots.length > 0 && compressedSnapshots[0].getTimestampsList()[0].toDate() <= liveDate) {
                 plotLines.push({
                     value: liveDate.getTime(),
@@ -73,7 +71,7 @@
                 });
             }
 
-            const snapshots = [];
+            const snapshots: { time: number, noteCount: number, addedActors: string[], removedActors: string[] }[] = [];
             for (let compressedSnapshot of compressedSnapshots) {
                 for (let i = 0; i < compressedSnapshot.getTimestampsList().length; i++) {
                     const timestamp = compressedSnapshot.getTimestampsList()[i];
@@ -86,7 +84,7 @@
                 }
             }
 
-            Highcharts.chart(ctx, {
+            Highcharts.chart('td_chart', {
                 chart: {zoomType: 'x'},
                 credits: {enabled: false},
                 title: {text: undefined},
@@ -103,7 +101,7 @@
                         name: 'NoteCount',
                         type: 'areaspline',
                         data: snapshots.map(snapshot => {
-                            const p = {x: snapshot.time, y: snapshot.noteCount};
+                            const p: PointOptionsObject = {x: snapshot.time, y: snapshot.noteCount};
                             if (snapshot.addedActors.length > 0 || snapshot.removedActors.length > 0) {
                                 let label = '';
                                 if (snapshot.addedActors.length > 0) {
@@ -147,11 +145,11 @@
                         data: plotLines.map(i => ({x: i.value})),
                     },
                 ],
-            });
+            } as Options);
         });
     }
 
-    function createEventList(filter, totalCount, domToAppend, autoLoadFirstPage) {
+    function createEventList(filter: pb.QueryEventsRequest.EventFilter, totalCount: number | undefined, domToAppend: HTMLElement, autoLoadFirstPage: boolean) {
         let loadedCount = 0;
 
         const eventListDom = htmlToElement(`
@@ -166,7 +164,7 @@
         domToAppend.appendChild(eventListDom);
 
         const tbodyDom = document.getElementById('td_event_list_tbody');
-        const loadMoreButtonDom = document.getElementById('td_event_list_load_more_button');
+        const loadMoreButtonDom = document.getElementById('td_event_list_load_more_button') as HTMLButtonElement;
         const loadedIndicatorDom = document.getElementById('td_event_list_loaded_indicator');
 
         function enableLoadMoreButton() {
@@ -190,7 +188,7 @@
                         <td nowrap>${formatDate(e.getDate())}</td>
                         <td><a href="/events/${e.getId()}" target="_blank">${e.getName()}</a></td>
                         <td>${e.getLastNoteCount()}</td>
-                    </tr>`);
+                    </tr>`) as HTMLTableRowElement;
 
                     if (!e.getFinished()) {
                         trDom.classList.add('warning');
@@ -213,12 +211,12 @@
         }
     }
 
-    function placePage(placeId) {
+    function placePage(placeId: string) {
         const tdDom = htmlToElement(`
         <div>
             ${header}
             <h3>Top Event List</h3>
-        </div>`);
+        </div>`) as HTMLDivElement;
 
         const placeDetailsTableDom = document.getElementsByClassName('gb_place_detail_table')[0] || document.getElementsByClassName('mod_places_detail')[0];
         placeDetailsTableDom.parentNode.insertBefore(tdDom, placeDetailsTableDom.nextSibling);
@@ -229,7 +227,7 @@
         });
     }
 
-    function actorSnapshotsToDataPoints(snapshots) {
+    function actorSnapshotsToDataPoints(snapshots: pb.RenderActorsResponse.ResponseItem.Snapshot[]): [number, number][] {
         if (snapshots.length === 0) {
             return [];
         }
@@ -237,7 +235,7 @@
         // JST 6am.
         const dates = snapshots.map(s => convertToJsDate(s.getDate(), -3));
 
-        const dataPoints = [];
+        const dataPoints: [number, number][] = [];
         const copy = snapshots.slice();
         let lastFavoriteCount = 0;
 
@@ -253,12 +251,12 @@
         return dataPoints;
     }
 
-    function actorPage(actorId) {
+    function actorPage(actorId: string) {
         const tdDom = htmlToElement(`
         <div>
             ${header}
             <h3>Top Event List</h3>
-        </div>`);
+        </div>`) as HTMLDivElement;
 
         const actorTitleDom = document.getElementsByClassName('gb_actors_title')[0] || document.getElementsByClassName('gb_blur_title')[0];
         actorTitleDom.parentNode.insertBefore(tdDom, actorTitleDom.nextSibling);
@@ -276,9 +274,7 @@
 
             createEventList(new pb.QueryEventsRequest.EventFilter().addActorIds(actorId), data.getKnownEventCount(), tdDom, false);
 
-            const ctx = document.getElementById('td_chart');
-
-            Highcharts.chart(ctx, {
+            Highcharts.chart('td_chart', {
                 chart: {zoomType: 'x'},
                 credits: {enabled: false},
                 title: {text: undefined},
@@ -292,7 +288,7 @@
                     type: 'areaspline',
                     data: actorSnapshotsToDataPoints(data.getSnapshotsList()),
                 }],
-            });
+            } as Options);
         });
     }
 
@@ -347,14 +343,14 @@
         const contentDom = document.getElementsByClassName('gb_ad_footer').length > 0 ? document.getElementsByClassName('gb_ad_footer')[0].previousElementSibling : document.getElementById('container');
         contentDom.replaceWith(tdDom);
 
-        const selectedActors = [];
-        const actorNames = {};
+        const selectedActors: string[] = [];
+        const actorNames: Record<string, string> = {};
         const selectedActorsDom = document.getElementById('td_selected_actors');
         const searchActorResultDom = document.getElementById('td_search_actor_result');
         const actorFavoritesChartContainerDom = document.getElementById('td_actor_favorites_chart_container');
         const eventListContainerDom = document.getElementById('td_event_list_container');
 
-        const inputDom = document.getElementById('td_search_actor_input');
+        const inputDom = document.getElementById('td_search_actor_input') as HTMLInputElement;
         inputDom.addEventListener('keyup', () => {
             searchActor(inputDom.value);
         });
@@ -362,13 +358,13 @@
         document.getElementById('td_compare_actors').addEventListener('click', compareActors);
         document.getElementById('td_run_query').addEventListener('click', runQuery);
 
-        function addActor(id, name) {
+        function addActor(id: string, name: string) {
             if (selectedActors.some(i => i === id)) return;
             selectedActors.push(id);
             actorNames[id] = name;
 
             const buttonDom = htmlToElement(`
-                <button class="btn" type="button"><i class="icon-minus"></i> ${name}</button>`);
+                <button class="btn" type="button"><i class="icon-minus"></i> ${name}</button>`) as HTMLButtonElement;
             selectedActorsDom.appendChild(buttonDom);
 
             buttonDom.addEventListener('click', () => {
@@ -376,24 +372,25 @@
             });
         }
 
-        function removeActor(id, liDom) {
+        function removeActor(id: string, el: HTMLElement) {
             const index = selectedActors.indexOf(id);
             if (index > -1) {
                 selectedActors.splice(index, 1);
-                liDom.remove();
+                el.remove();
             }
         }
 
-        function searchActor(keyword) {
+        function searchActor(keyword: string) {
             if (!keyword) return;
             fetch(`/api/actors/search?&simple=1&limit=20&keyword=${keyword}`)
                 .then(response => response.json())
                 .then(data => {
+                    if (inputDom.value !== keyword) return;
                     while (searchActorResultDom.firstChild) {
                         searchActorResultDom.removeChild(searchActorResultDom.firstChild);
                     }
                     if (data.results) {
-                        data.results.forEach(item => {
+                        data.results.forEach((item: { name: string, id: number }) => {
                             const itemDom = htmlToElement(`
                                 <button class="btn" type="button"><i class="icon-plus"></i> ${item.name}</button>`);
                             itemDom.addEventListener('click', () => {
@@ -411,13 +408,12 @@
             }
 
             actorFavoritesChartContainerDom.appendChild(htmlToElement(`<div id="td_chart"></div>`));
-            const ctx = document.getElementById('td_chart');
 
             const request = new pb.RenderActorsRequest();
             selectedActors.forEach(i => request.addId(i));
 
             treeDiagramService.renderActors(request).then(response => {
-                const series = [];
+                const series: { name: string, type: 'spline', data: [number, number][] }[] = [];
                 for (const [actorId, res] of response.getItemsMap().entries()) {
                     series.push({
                         name: `${actorNames[actorId]}`,
@@ -425,13 +421,13 @@
                         data: actorSnapshotsToDataPoints(res.getSnapshotsList()),
                     });
                 }
+                const lastValue = (l: [number, number][]) => l.length > 0 ? l[l.length - 1][1] : 0;
                 series.sort(function (a, b) {
-                    const lastValue = (l) => l.length > 0 ? l[l.length - 1].y : 0;
                     return lastValue(a.data) - lastValue(b.data);
                 });
                 series.reverse();
 
-                Highcharts.chart(ctx, {
+                Highcharts.chart('td_chart', {
                     chart: {zoomType: 'x'},
                     credits: {enabled: false},
                     title: {text: undefined},
@@ -440,7 +436,7 @@
                     yAxis: {title: {text: undefined}},
                     series: series,
                     tooltip: {xDateFormat: '%Y-%m-%d', shared: true},
-                });
+                } as Options);
             });
         }
 
