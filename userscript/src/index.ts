@@ -1,6 +1,6 @@
-import * as servicepb from "./service_grpc_web_pb";
 import * as pb from "./service_pb";
 import Highcharts, {Options, PointOptionsObject} from "highcharts";
+import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
 (function () {
     'use strict';
@@ -9,7 +9,7 @@ import Highcharts, {Options, PointOptionsObject} from "highcharts";
         time: {timezoneOffset: new Date().getTimezoneOffset()},
     });
 
-    const treeDiagramService = new servicepb.TreeDiagramServicePromiseClient('https://treediagram.sshz.org');
+    const treeDiagramService = new TreeDiagramServiceClient('https://treediagram.sshz.org');
 
     const header = '<h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>';
 
@@ -71,7 +71,7 @@ import Highcharts, {Options, PointOptionsObject} from "highcharts";
         }
 
         const request = new pb.RenderEventRequest().setId(eventId);
-        treeDiagramService.renderEvent(request).then(response => {
+        treeDiagramService.renderEvent(request, null).then(response => {
             const totalStatsSpan = document.getElementById('td_place_stats_total');
             totalStatsSpan.innerHTML = `${response.getPlaceStatsTotal().getRank()}/${response.getPlaceStatsTotal().getTotal()}`;
             const finishedStatsSpan = document.getElementById('td_place_stats_finished');
@@ -203,7 +203,7 @@ import Highcharts, {Options, PointOptionsObject} from "highcharts";
 
             loadMoreButtonDom.disabled = true;
             const request = new pb.QueryEventsRequest().setOffset(loadedCount).setFilter(filter);
-            treeDiagramService.queryEvents(request).then(response => {
+            treeDiagramService.queryEvents(request, null).then(response => {
                 response.getEventsList().forEach(e => {
                     const trDom = htmlToElement(`
                     <tr>
@@ -246,7 +246,7 @@ import Highcharts, {Options, PointOptionsObject} from "highcharts";
         placeDetailsTableDom.parentNode.insertBefore(tdDom, placeDetailsTableDom.nextSibling);
 
         const request = new pb.RenderPlaceRequest().setId(placeId);
-        treeDiagramService.renderPlace(request).then(response => {
+        treeDiagramService.renderPlace(request, null).then(response => {
             createEventList(new pb.QueryEventsRequest.EventFilter().setPlaceId(placeId), response.getKnownEventCount(), tdDom, false);
         });
     }
@@ -293,7 +293,7 @@ import Highcharts, {Options, PointOptionsObject} from "highcharts";
         favoriteUsersDom.parentNode.insertBefore(graphDom, favoriteUsersDom);
 
         const request = new pb.RenderActorsRequest().addId(actorId);
-        treeDiagramService.renderActors(request).then(response => {
+        treeDiagramService.renderActors(request, null).then(response => {
             const data = response.getItemsMap().get(actorId);
 
             createEventList(new pb.QueryEventsRequest.EventFilter().addActorIds(actorId), data.getKnownEventCount(), tdDom, false);
@@ -447,7 +447,7 @@ import Highcharts, {Options, PointOptionsObject} from "highcharts";
         const request = new pb.RenderActorsRequest();
         actorIds.forEach(i => request.addId(i));
 
-        treeDiagramService.renderActors(request).then(response => {
+        treeDiagramService.renderActors(request, null).then(response => {
             const series: { name: string, type: 'spline', data: [number, number][] }[] = [];
             for (const [actorId, res] of response.getItemsMap().entries()) {
                 series.push({
