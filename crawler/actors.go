@@ -33,7 +33,8 @@ func CrawlActorOnePage(ctx context.Context, offset int) (int, error) {
 
 	log.Infof(ctx, "Crawling actor API page %v", url)
 
-	ctxWithTimeout, _ := context.WithTimeout(ctx, crawlHTTPTimeout)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, crawlHTTPTimeout)
+	defer cancel()
 	client := urlfetch.Client(ctxWithTimeout)
 	res, err := client.Get(url)
 	if err != nil {

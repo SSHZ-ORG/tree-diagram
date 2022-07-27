@@ -44,7 +44,8 @@ func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 
 	log.Infof(ctx, "Crawling event search page %v", url)
 
-	ctxWithTimeout, _ := context.WithTimeout(ctx, crawlHTTPTimeout)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, crawlHTTPTimeout)
+	defer cancel()
 	client := urlfetch.Client(ctxWithTimeout)
 	res, err := client.Get(url)
 	if err != nil {
