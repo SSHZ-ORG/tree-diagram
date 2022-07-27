@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/SSHZ-ORG/tree-diagram/handlers"
 	"github.com/SSHZ-ORG/tree-diagram/handlers/api"
 	"github.com/julienschmidt/httprouter"
@@ -20,10 +21,15 @@ func main() {
 	handlers.RegisterCron(r)
 
 	grpc := api.GrpcServer()
+	gzip := gziphandler.GzipHandler(grpc)
 
 	http.Handle("/", http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-		if grpc.IsGrpcWebRequest(req) || grpc.IsAcceptableGrpcCorsRequest(req) {
+		if grpc.IsAcceptableGrpcCorsRequest(req) {
 			grpc.ServeHTTP(resp, req)
+			return
+		}
+		if grpc.IsGrpcWebRequest(req) {
+			gzip.ServeHTTP(resp, req)
 			return
 		}
 		r.ServeHTTP(resp, req)
