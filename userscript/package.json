@@ -1,6 +1,6 @@
 {
   "name": "treediagram-userscript",
-  "version": "0.2.2.10",
+  "version": "0.2.3.0",
   "description": "",
   "main": "index.ts",
   "scripts": {

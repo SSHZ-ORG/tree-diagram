@@ -47,6 +47,29 @@ import Highcharts, {Options, PointOptionsObject} from "highcharts";
         const entryAreaDom = document.getElementById('entry_area') || document.getElementsByClassName('mod_events_detail')[0];
         entryAreaDom.parentNode.insertBefore(tdDom, entryAreaDom.nextSibling);
 
+        const actorsUlDom = document.getElementsByClassName("actors");
+        if (actorsUlDom.length > 0) {
+            // Support only desktop layout
+            actorsUlDom[0].parentElement.appendChild(htmlToElement(`
+            <div>
+                <button class="btn btn-block" type="button" id="td_event_compare_actors">Compare Favorites</button>
+                <div id="td_event_actor_favorites_chart_container"></div>
+            </div>`));
+
+            const buttonEl = document.getElementById("td_event_compare_actors");
+            buttonEl.addEventListener('click', () => {
+                const actorIds = [];
+                const actorNames: Record<string, string> = {};
+                for (let liDom of actorsUlDom[0].children) {
+                    const aDom = liDom.children[0] as HTMLAnchorElement;
+                    const actorId = aDom.href.substring(aDom.href.lastIndexOf("/") + 1);
+                    actorIds.push(actorId);
+                    actorNames[actorId] = aDom.text;
+                }
+                compareActors(document.getElementById("td_event_actor_favorites_chart_container"), actorIds, actorNames, () => buttonEl.remove());
+            });
+        }
+
         const request = new pb.RenderEventRequest().setId(eventId);
         treeDiagramService.renderEvent(request).then(response => {
             const totalStatsSpan = document.getElementById('td_place_stats_total');
@@ -356,7 +379,8 @@ import Highcharts, {Options, PointOptionsObject} from "highcharts";
             searchActor(inputDom.value);
         });
 
-        document.getElementById('td_compare_actors').addEventListener('click', compareActors);
+        document.getElementById('td_compare_actors').addEventListener('click', () =>
+            compareActors(actorFavoritesChartContainerDom, selectedActors, actorNames));
         document.getElementById('td_run_query').addEventListener('click', runQuery);
 
         function addActor(id: string, name: string) {
@@ -403,44 +427,6 @@ import Highcharts, {Options, PointOptionsObject} from "highcharts";
                 });
         }
 
-        function compareActors() {
-            while (actorFavoritesChartContainerDom.firstChild) {
-                actorFavoritesChartContainerDom.removeChild(actorFavoritesChartContainerDom.firstChild);
-            }
-
-            actorFavoritesChartContainerDom.appendChild(htmlToElement(`<div id="td_chart"></div>`));
-
-            const request = new pb.RenderActorsRequest();
-            selectedActors.forEach(i => request.addId(i));
-
-            treeDiagramService.renderActors(request).then(response => {
-                const series: { name: string, type: 'spline', data: [number, number][] }[] = [];
-                for (const [actorId, res] of response.getItemsMap().entries()) {
-                    series.push({
-                        name: `${actorNames[actorId]}`,
-                        type: 'spline',
-                        data: actorSnapshotsToDataPoints(res.getSnapshotsList()),
-                    });
-                }
-                const lastValue = (l: [number, number][]) => l.length > 0 ? l[l.length - 1][1] : 0;
-                series.sort(function (a, b) {
-                    return lastValue(a.data) - lastValue(b.data);
-                });
-                series.reverse();
-
-                Highcharts.chart('td_chart', {
-                    chart: {zoomType: 'x'},
-                    credits: {enabled: false},
-                    title: {text: undefined},
-                    plotOptions: {spline: {threshold: null}},
-                    xAxis: {type: 'datetime'},
-                    yAxis: {title: {text: undefined}},
-                    series: series,
-                    tooltip: {xDateFormat: '%Y-%m-%d', shared: true},
-                } as Options);
-            });
-        }
-
         function runQuery() {
             if (eventListContainerDom.firstChild) {
                 eventListContainerDom.removeChild(eventListContainerDom.firstChild);
@@ -449,6 +435,46 @@ import Highcharts, {Options, PointOptionsObject} from "highcharts";
             selectedActors.forEach(a => filter.addActorIds(a));
             createEventList(filter, undefined, eventListContainerDom, true);
         }
+    }
+
+    function compareActors(containerDom: HTMLElement, actorIds: string[], actorNames: Record<string, string>, callback?: () => void) {
+        while (containerDom.firstChild) {
+            containerDom.removeChild(containerDom.firstChild);
+        }
+
+        containerDom.appendChild(htmlToElement(`<div id="td_chart_compare_actors"></div>`));
+
+        const request = new pb.RenderActorsRequest();
+        actorIds.forEach(i => request.addId(i));
+
+        treeDiagramService.renderActors(request).then(response => {
+            const series: { name: string, type: 'spline', data: [number, number][] }[] = [];
+            for (const [actorId, res] of response.getItemsMap().entries()) {
+                series.push({
+                    name: `${actorNames[actorId]}`,
+                    type: 'spline',
+                    data: actorSnapshotsToDataPoints(res.getSnapshotsList()),
+                });
+            }
+            const lastValue = (l: [number, number][]) => l.length > 0 ? l[l.length - 1][1] : 0;
+            series.sort(function (a, b) {
+                return lastValue(a.data) - lastValue(b.data);
+            });
+            series.reverse();
+
+            Highcharts.chart('td_chart_compare_actors', {
+                chart: {zoomType: 'x'},
+                credits: {enabled: false},
+                title: {text: undefined},
+                plotOptions: {spline: {threshold: null}},
+                xAxis: {type: 'datetime'},
+                yAxis: {title: {text: undefined}},
+                series: series,
+                tooltip: {xDateFormat: '%Y-%m-%d', shared: true},
+            } as Options);
+
+            if (callback) callback();
+        });
     }
 
     function addTreeDiagramPageLink() {
