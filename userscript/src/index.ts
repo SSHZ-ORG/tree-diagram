@@ -279,6 +279,33 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         return dataPoints;
     }
 
+    function renderActorPage(actorId: string, renderChartTo: string, eventListDom?: HTMLElement) {
+        const request = new pb.RenderActorsRequest().addId(actorId);
+        treeDiagramService.renderActors(request, null).then(response => {
+            const data = response.getItemsMap().get(actorId);
+
+            if (eventListDom) {
+                createEventList(new pb.QueryEventsRequest.EventFilter().addActorIds(actorId), data.getKnownEventCount(), eventListDom, false);
+            }
+
+            Highcharts.chart(renderChartTo, {
+                chart: {zoomType: 'x'},
+                credits: {enabled: false},
+                title: {text: undefined},
+                plotOptions: {areaspline: {threshold: null}},
+                xAxis: {type: 'datetime'},
+                yAxis: {title: {text: undefined}},
+                legend: {enabled: false},
+                tooltip: {xDateFormat: '%Y-%m-%d'},
+                series: [{
+                    name: 'FavoriteCount',
+                    type: 'areaspline',
+                    data: actorSnapshotsToDataPoints(data.getSnapshotsList()),
+                }],
+            } as Options);
+        });
+    }
+
     function actorPage(actorId: string) {
         const tdDom = htmlToElement(`
         <div>
@@ -296,28 +323,23 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         const favoriteUsersDom = document.getElementsByClassName('gb_users_icon')[0] || document.getElementsByClassName('gb_listusericon')[0];
         favoriteUsersDom.parentNode.insertBefore(graphDom, favoriteUsersDom);
 
-        const request = new pb.RenderActorsRequest().addId(actorId);
-        treeDiagramService.renderActors(request, null).then(response => {
-            const data = response.getItemsMap().get(actorId);
+        renderActorPage(actorId, 'td_chart', tdDom);
+    }
 
-            createEventList(new pb.QueryEventsRequest.EventFilter().addActorIds(actorId), data.getKnownEventCount(), tdDom, false);
+    function actorEventsPage(actorId: string) {
+        const graphDom = htmlToElement(`
+        <div>
+            <div id="td_chart"></div>
+        </div>`);
 
-            Highcharts.chart('td_chart', {
-                chart: {zoomType: 'x'},
-                credits: {enabled: false},
-                title: {text: undefined},
-                plotOptions: {areaspline: {threshold: null}},
-                xAxis: {type: 'datetime'},
-                yAxis: {title: {text: undefined}},
-                legend: {enabled: false},
-                tooltip: {xDateFormat: '%Y-%m-%d'},
-                series: [{
-                    name: 'FavoriteCount',
-                    type: 'areaspline',
-                    data: actorSnapshotsToDataPoints(data.getSnapshotsList()),
-                }],
-            } as Options);
-        });
+        const sidebarContentDom = document.getElementsByClassName('gb_ad_lrec')[0];
+        if (sidebarContentDom) {
+            sidebarContentDom.parentNode.insertBefore(graphDom, sidebarContentDom);
+        } else {
+            document.getElementsByClassName('mod_page')[0].appendChild(graphDom);
+        }
+
+        renderActorPage(actorId, 'td_chart');
     }
 
     function userPage() {
@@ -512,6 +534,12 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         const actorPageMatch = url.match(actorPageRegex);
         if (actorPageMatch) {
             return actorPage(actorPageMatch[1]);
+        }
+
+        const actorEventsPageRegex = /^https:\/\/www.eventernote.com\/actors\/(?:.+\/)?(\d+)\/?(events\/?(\?.*)?)?$/;
+        const actorEventsPageMatch = url.match(actorEventsPageRegex);
+        if (actorEventsPageMatch) {
+            return actorEventsPage(actorEventsPageMatch[1]);
         }
 
         const userPageRegex = /^https:\/\/www.eventernote.com\/users(?:\/.+)?$/;

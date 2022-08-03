@@ -40,7 +40,7 @@ module.exports = {
         minimizer: [
             new ClosurePlugin({mode: 'STANDARD'}, {
                 strict_mode_input: false,
-                languageOut: 'ECMASCRIPT_2019'
+                language_out: 'ECMASCRIPT_2019'
             })
         ]
     }
