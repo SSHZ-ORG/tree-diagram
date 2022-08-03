@@ -7,6 +7,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
     Highcharts.setOptions({
         time: {timezoneOffset: new Date().getTimezoneOffset()},
+        accessibility: {enabled: false},
     });
 
     const treeDiagramService = new TreeDiagramServiceClient('https://treediagram.sshz.org');
@@ -209,7 +210,10 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                     <tr>
                         <td>${loadedCount + 1}</td>
                         <td nowrap>${formatDate(e.getDate())}</td>
-                        <td><a href="/events/${e.getId()}" target="_blank">${e.getName()}</a></td>
+                        <td>
+                            <a href="/events/${e.getId()}"><i class="icon icon-screenshot"></i></a>
+                            <a href="/events/${e.getId()}" target="_blank">${e.getName()}</a>
+                        </td>
                         <td>${e.getLastNoteCount()}</td>
                     </tr>`) as HTMLTableRowElement;
 
