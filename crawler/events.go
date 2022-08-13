@@ -40,7 +40,7 @@ func CrawlDateOnePage(ctx context.Context, date civil.Date, pageNo int) (bool, e
 // Errors wrapped.
 func crawlEventSearchPage(ctx context.Context, url string) (int, error) {
 	ts := time.Now()
-	today := civil.DateOf(ts.In(utils.JST()))
+	today := civil.DateOf(ts.In(utils.JST))
 
 	log.Infof(ctx, "Crawling event search page %v", url)
 
@@ -222,5 +222,5 @@ func parseDetailedTime(s string, date civil.Date) (time.Time, error) {
 
 	civilTime := civil.TimeOf(t)
 
-	return civil.DateTime{Date: date, Time: civilTime}.In(utils.JST()), nil
+	return civil.DateTime{Date: date, Time: civilTime}.In(utils.JST), nil
 }

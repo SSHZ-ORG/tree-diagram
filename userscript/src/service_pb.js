@@ -2579,6 +2579,7 @@ proto.treediagram.pb.QueryEventsRequest.prototype.toObject = function(opt_includ
 proto.treediagram.pb.QueryEventsRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     offset: (f = jspb.Message.getField(msg, 1)) == null ? undefined : f,
+    limit: (f = jspb.Message.getField(msg, 5)) == null ? undefined : f,
     filter: (f = msg.getFilter()) && proto.treediagram.pb.QueryEventsRequest.EventFilter.toObject(includeInstance, f)
   };
 
@@ -2620,6 +2621,10 @@ proto.treediagram.pb.QueryEventsRequest.deserializeBinaryFromReader = function(m
       var value = /** @type {number} */ (reader.readInt32());
       msg.setOffset(value);
       break;
+    case 5:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setLimit(value);
+      break;
     case 4:
       var value = new proto.treediagram.pb.QueryEventsRequest.EventFilter;
       reader.readMessage(value,proto.treediagram.pb.QueryEventsRequest.EventFilter.deserializeBinaryFromReader);
@@ -2658,6 +2663,13 @@ proto.treediagram.pb.QueryEventsRequest.serializeBinaryToWriter = function(messa
   if (f != null) {
     writer.writeInt32(
       1,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 5));
+  if (f != null) {
+    writer.writeInt32(
+      5,
       f
     );
   }
@@ -2913,6 +2925,42 @@ proto.treediagram.pb.QueryEventsRequest.prototype.hasOffset = function() {
 
 
 /**
+ * optional int32 limit = 5;
+ * @return {number}
+ */
+proto.treediagram.pb.QueryEventsRequest.prototype.getLimit = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.treediagram.pb.QueryEventsRequest} returns this
+ */
+proto.treediagram.pb.QueryEventsRequest.prototype.setLimit = function(value) {
+  return jspb.Message.setField(this, 5, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.treediagram.pb.QueryEventsRequest} returns this
+ */
+proto.treediagram.pb.QueryEventsRequest.prototype.clearLimit = function() {
+  return jspb.Message.setField(this, 5, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.treediagram.pb.QueryEventsRequest.prototype.hasLimit = function() {
+  return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
  * optional EventFilter filter = 4;
  * @return {?proto.treediagram.pb.QueryEventsRequest.EventFilter}
  */
@@ -2989,7 +3037,8 @@ proto.treediagram.pb.QueryEventsResponse.prototype.toObject = function(opt_inclu
 proto.treediagram.pb.QueryEventsResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
     eventsList: jspb.Message.toObjectList(msg.getEventsList(),
-    proto.treediagram.pb.QueryEventsResponse.Event.toObject, includeInstance)
+    proto.treediagram.pb.QueryEventsResponse.Event.toObject, includeInstance),
+    hasNext: (f = jspb.Message.getBooleanField(msg, 2)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -3031,6 +3080,10 @@ proto.treediagram.pb.QueryEventsResponse.deserializeBinaryFromReader = function(
       reader.readMessage(value,proto.treediagram.pb.QueryEventsResponse.Event.deserializeBinaryFromReader);
       msg.addEvents(value);
       break;
+    case 2:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setHasNext(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -3066,6 +3119,13 @@ proto.treediagram.pb.QueryEventsResponse.serializeBinaryToWriter = function(mess
       1,
       f,
       proto.treediagram.pb.QueryEventsResponse.Event.serializeBinaryToWriter
+    );
+  }
+  f = /** @type {boolean} */ (jspb.Message.getField(message, 2));
+  if (f != null) {
+    writer.writeBool(
+      2,
+      f
     );
   }
 };
@@ -3401,6 +3461,42 @@ proto.treediagram.pb.QueryEventsResponse.prototype.addEvents = function(opt_valu
  */
 proto.treediagram.pb.QueryEventsResponse.prototype.clearEventsList = function() {
   return this.setEventsList([]);
+};
+
+
+/**
+ * optional bool has_next = 2;
+ * @return {boolean}
+ */
+proto.treediagram.pb.QueryEventsResponse.prototype.getHasNext = function() {
+  return /** @type {boolean} */ (jspb.Message.getBooleanFieldWithDefault(this, 2, false));
+};
+
+
+/**
+ * @param {boolean} value
+ * @return {!proto.treediagram.pb.QueryEventsResponse} returns this
+ */
+proto.treediagram.pb.QueryEventsResponse.prototype.setHasNext = function(value) {
+  return jspb.Message.setField(this, 2, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.treediagram.pb.QueryEventsResponse} returns this
+ */
+proto.treediagram.pb.QueryEventsResponse.prototype.clearHasNext = function() {
+  return jspb.Message.setField(this, 2, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.treediagram.pb.QueryEventsResponse.prototype.hasHasNext = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 

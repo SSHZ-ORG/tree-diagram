@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	queryPageSize = 10
+	queryDefaultPageSize = 10
+	queryMaxPageSize     = 50
 )
 
 func (t treeDiagramService) RenderEvent(ctx context.Context, req *pb.RenderEventRequest) (*pb.RenderEventResponse, error) {
@@ -50,13 +51,24 @@ func (t treeDiagramService) RenderEvent(ctx context.Context, req *pb.RenderEvent
 }
 
 func (t treeDiagramService) QueryEvents(ctx context.Context, req *pb.QueryEventsRequest) (*pb.QueryEventsResponse, error) {
-	events, err := models.QueryEvents(ctx, req.GetFilter(), queryPageSize, int(req.GetOffset()))
+	if req.GetLimit() < 0 || req.GetLimit() > queryMaxPageSize {
+		return nil, status.Error(codes.InvalidArgument, "invalid limit")
+	}
+
+	pageSize := queryDefaultPageSize
+	if req.GetLimit() > 0 {
+		pageSize = int(req.GetLimit())
+	}
+
+	events, hasNext, err := models.QueryEvents(ctx, req.GetFilter(), pageSize, int(req.GetOffset()))
 	if err != nil {
 		log.Errorf(ctx, "models.QueryEvents: %+v", err)
 		return nil, internalError
 	}
 
-	resp := &pb.QueryEventsResponse{}
+	resp := &pb.QueryEventsResponse{
+		HasNext: &hasNext,
+	}
 	for _, e := range events {
 		resp.Events = append(resp.Events, &pb.QueryEventsResponse_Event{
 			Id:            &e.ID,

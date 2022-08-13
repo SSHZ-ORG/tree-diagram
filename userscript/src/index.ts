@@ -182,7 +182,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                 <tbody id="td_event_list_tbody"></tbody>
             </table>
             <button class="btn btn-block" type="button" id="td_event_list_load_more_button" disabled>
-                Load More (<span id="td_event_list_loaded_indicator">0</span> / ${totalCount === undefined ? 'Unknown' : totalCount})
+                Load More (<span id="td_event_list_loaded_indicator">0</span> / <span id="td_event_list_total_indicator">${totalCount === undefined ? 'Unknown' : totalCount}</span>)
             </button>
         </div>`);
         domToAppend.appendChild(eventListDom);
@@ -190,6 +190,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         const tbodyDom = document.getElementById('td_event_list_tbody');
         const loadMoreButtonDom = document.getElementById('td_event_list_load_more_button') as HTMLButtonElement;
         const loadedIndicatorDom = document.getElementById('td_event_list_loaded_indicator');
+        const totalIndicatorDom = document.getElementById('td_event_list_total_indicator');
 
         function enableLoadMoreButton() {
             if (totalCount === undefined || totalCount > loadedCount) {
@@ -227,7 +228,12 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                 });
 
                 loadedIndicatorDom.innerText = loadedCount.toString();
-                enableLoadMoreButton();
+
+                if (response.getHasNext()) {
+                    enableLoadMoreButton();
+                } else {
+                    totalIndicatorDom.innerText = loadedCount.toString();
+                }
             });
         }
 

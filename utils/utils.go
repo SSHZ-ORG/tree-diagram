@@ -8,13 +8,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func JST() *time.Location {
+var JST = func() *time.Location {
 	l, _ := time.LoadLocation("Asia/Tokyo")
 	return l
-}
+}()
 
 func JSTToday() civil.Date {
-	return civil.DateOf(time.Now().In(JST()))
+	return civil.DateOf(time.Now().In(JST))
 }
 
 func ToProtoDate(d civil.Date) *pb.Date {

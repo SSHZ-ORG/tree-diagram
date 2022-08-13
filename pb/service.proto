@@ -66,7 +66,10 @@ message RenderActorsResponse {
 }
 
 message QueryEventsRequest {
+    reserved 2, 3;
+
     optional int32 offset = 1;
+    optional int32 limit = 5;
 
     message EventFilter {
         repeated string actor_ids = 1;
@@ -85,6 +88,8 @@ message QueryEventsResponse {
         optional int32 last_note_count = 5;
     }
     repeated Event events = 1;
+
+    optional bool has_next = 2;
 }
 
 service TreeDiagramService {

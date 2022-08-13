@@ -297,6 +297,11 @@ export class QueryEventsRequest extends jspb.Message {
   hasOffset(): boolean;
   clearOffset(): QueryEventsRequest;
 
+  getLimit(): number;
+  setLimit(value: number): QueryEventsRequest;
+  hasLimit(): boolean;
+  clearLimit(): QueryEventsRequest;
+
   getFilter(): QueryEventsRequest.EventFilter | undefined;
   setFilter(value?: QueryEventsRequest.EventFilter): QueryEventsRequest;
   hasFilter(): boolean;
@@ -313,6 +318,7 @@ export class QueryEventsRequest extends jspb.Message {
 export namespace QueryEventsRequest {
   export type AsObject = {
     offset?: number,
+    limit?: number,
     filter?: QueryEventsRequest.EventFilter.AsObject,
   }
 
@@ -350,6 +356,11 @@ export class QueryEventsResponse extends jspb.Message {
   clearEventsList(): QueryEventsResponse;
   addEvents(value?: QueryEventsResponse.Event, index?: number): QueryEventsResponse.Event;
 
+  getHasNext(): boolean;
+  setHasNext(value: boolean): QueryEventsResponse;
+  hasHasNext(): boolean;
+  clearHasNext(): QueryEventsResponse;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): QueryEventsResponse.AsObject;
   static toObject(includeInstance: boolean, msg: QueryEventsResponse): QueryEventsResponse.AsObject;
@@ -361,6 +372,7 @@ export class QueryEventsResponse extends jspb.Message {
 export namespace QueryEventsResponse {
   export type AsObject = {
     eventsList: Array<QueryEventsResponse.Event.AsObject>,
+    hasNext?: boolean,
   }
 
   export class Event extends jspb.Message {

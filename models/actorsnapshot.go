@@ -65,7 +65,7 @@ func getFrontendSnapshotsForActor(ctx context.Context, ak *datastore.Key) ([]*pb
 	var fass []*pb.RenderActorsResponse_ResponseItem_Snapshot
 	for _, s := range snapshots {
 		fass = append(fass, &pb.RenderActorsResponse_ResponseItem_Snapshot{
-			Date:          utils.ToProtoDate(civil.DateOf(s.Timestamp.In(utils.JST()))),
+			Date:          utils.ToProtoDate(civil.DateOf(s.Timestamp.In(utils.JST))),
 			FavoriteCount: proto.Int32(int32(s.FavoriteCount)),
 		})
 	}

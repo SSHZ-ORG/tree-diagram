@@ -288,8 +288,8 @@ func CleanupFinishedEvents(ctx context.Context, today civil.Date) error {
 }
 
 // Errors wrapped.
-func QueryEvents(ctx context.Context, filter *pb.QueryEventsRequest_EventFilter, limit, offset int) ([]*Event, error) {
-	query := datastore.NewQuery(eventKind).KeysOnly().Limit(limit).Offset(offset).Order("-LastNoteCount")
+func QueryEvents(ctx context.Context, filter *pb.QueryEventsRequest_EventFilter, limit, offset int) ([]*Event, bool, error) {
+	query := datastore.NewQuery(eventKind).KeysOnly().Limit(limit + 1).Offset(offset).Order("-LastNoteCount")
 
 	if filter.GetPlaceId() != "" {
 		query = query.Filter("Place =", getPlaceKey(ctx, filter.GetPlaceId()))
@@ -301,13 +301,19 @@ func QueryEvents(ctx context.Context, filter *pb.QueryEventsRequest_EventFilter,
 
 	keys, err := query.GetAll(ctx, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "query.GetAll failed")
+		return nil, false, errors.Wrap(err, "query.GetAll failed")
+	}
+
+	hasNext := false
+	if len(keys) > limit {
+		hasNext = true
+		keys = keys[:limit]
 	}
 
 	es := make([]*Event, len(keys))
 	err = nds.GetMulti(ctx, keys, es)
 
-	return es, errors.Wrap(err, "nds.GetMulti failed")
+	return es, hasNext, errors.Wrap(err, "nds.GetMulti failed")
 }
 
 // Errors wrapped.
