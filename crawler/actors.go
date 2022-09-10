@@ -82,12 +82,7 @@ func CrawlActorOnePage(ctx context.Context, offset int) (int, error) {
 		}
 
 		if oa != nil {
-			na := &models.Actor{
-				ID:                id,
-				Name:              name,
-				LastFavoriteCount: favoriteCount,
-				LastUpdateTime:    ts,
-			}
+			na := models.MakeActor(id, name, favoriteCount, ts)
 			if oa.LastUpdateTime.IsZero() || !oa.Equal(na) {
 				updatedActorIDs = append(updatedActorIDs, id)
 				oas = append(oas, oa)

@@ -22,6 +22,9 @@ type Actor struct {
 
 	// The last time we see FavoriteCount changed. Does not care about Name change. Ignored in Equal().
 	LastUpdateTime time.Time
+
+	// Ignored in Equal().
+	ModelVersion int
 }
 
 func (a Actor) debugName() string {
@@ -41,10 +44,23 @@ func (a *Actor) Equal(o *Actor) bool {
 	return a == o
 }
 
-const actorKind = "Actor"
+const (
+	actorKind                = "Actor"
+	actorCurrentModelVersion = 1
+)
 
 func getActorKey(ctx context.Context, id string) *datastore.Key {
 	return datastore.NewKey(ctx, actorKind, id, 0, nil)
+}
+
+func MakeActor(id, name string, favoriteCount int, updateTime time.Time) *Actor {
+	return &Actor{
+		ID:                id,
+		Name:              name,
+		LastFavoriteCount: favoriteCount,
+		LastUpdateTime:    updateTime,
+		ModelVersion:      actorCurrentModelVersion,
+	}
 }
 
 // Errors wrapped.
@@ -55,7 +71,11 @@ func EnsureActors(ctx context.Context, actors map[string]string) (map[string]*da
 	for id, name := range actors {
 		key := getActorKey(ctx, id)
 		keys = append(keys, key)
-		as = append(as, &Actor{ID: id, Name: name})
+		as = append(as, &Actor{
+			ID:           id,
+			Name:         name,
+			ModelVersion: actorCurrentModelVersion,
+		})
 		keysMap[id] = key
 	}
 
