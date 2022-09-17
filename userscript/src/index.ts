@@ -11,6 +11,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
     });
 
     const treeDiagramService = new TreeDiagramServiceClient('https://treediagram.sshz.org');
+    const renderActorsMax = 100;
 
     const header = '<h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>';
 
@@ -49,7 +50,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         entryAreaDom.parentNode.insertBefore(tdDom, entryAreaDom.nextSibling);
 
         const actorsUlDom = document.getElementsByClassName("actors");
-        if (actorsUlDom.length > 0) {
+        if (actorsUlDom.length > 0 && actorsUlDom[0].children.length <= renderActorsMax) {
             // Support only desktop layout
             actorsUlDom[0].parentElement.appendChild(htmlToElement(`
             <div>
@@ -351,10 +352,32 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
     function userPage() {
         const favoriteActorsDom = document.getElementsByClassName('gb_actors_list')[0] || document.getElementsByClassName('favorite_actor')[0];
         if (favoriteActorsDom) {
+            const actorIds: string[] = [];
+            const actorNames: Record<string, string> = {};
+
             const actorDoms = favoriteActorsDom.getElementsByTagName('li');
             for (let i = 0; i < actorDoms.length; i++) {
                 let count = actorDoms[i].className.match(/c(\d+)/)[1];
-                actorDoms[i].getElementsByTagName('a')[0].textContent += ` (${count})`;
+                const aEl = actorDoms[i].getElementsByTagName('a')[0];
+                const splited = aEl.href.split('/');
+                const actorId = splited[splited.length - 1];
+                actorIds.push(actorId);
+                actorNames[actorId] = aEl.textContent;
+                aEl.textContent += ` (${count})`;
+            }
+
+            const containerForCompareActors = document.getElementsByClassName('span8')[0] || document.getElementsByClassName('mod_page')[0];
+            if (actorIds.length <= renderActorsMax && containerForCompareActors) {
+                containerForCompareActors.appendChild(htmlToElement(`
+                    <div>
+                        <button class="btn btn-block" type="button" id="td_user_compare_actors">Compare Favorites</button>
+                        <div id="td_user_actor_favorites_chart_container"></div>
+                    </div>`));
+
+                const buttonEl = document.getElementById("td_user_compare_actors");
+                buttonEl.addEventListener('click', () => {
+                    compareActors(document.getElementById("td_user_actor_favorites_chart_container"), actorIds, actorNames, () => buttonEl.remove());
+                });
             }
         }
     }

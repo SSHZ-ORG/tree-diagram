@@ -265,27 +265,20 @@ accepts@~1.3.4, accepts@~1.3.5, accepts@~1.3.7:
     mime-types "~2.1.34"
     negotiator "0.6.3"
 
-acorn-dynamic-import@^2.0.0:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/acorn-dynamic-import/-/acorn-dynamic-import-2.0.2.tgz#c752bd210bef679501b6c6cb7fc84f8f47158cc4"
-  integrity sha1-x1K9IQvvZ5UBtsbLf8hPj0cVjMQ=
-  dependencies:
-    acorn "^4.0.3"
-
 acorn-jsx@^5.3.1:
   version "5.3.2"
   resolved "https://registry.yarnpkg.com/acorn-jsx/-/acorn-jsx-5.3.2.tgz#7ed5bb55908b3b2f1bc55c6af1653bada7f07937"
   integrity sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==
 
-acorn@^4.0.3:
-  version "4.0.13"
-  resolved "https://registry.yarnpkg.com/acorn/-/acorn-4.0.13.tgz#105495ae5361d697bd195c825192e1ad7f253787"
-  integrity sha1-EFSVrlNh1pe9GVyCUZLhrX8lN4c=
+acorn-walk@^8.2.0:
+  version "8.2.0"
+  resolved "https://registry.yarnpkg.com/acorn-walk/-/acorn-walk-8.2.0.tgz#741210f2e2426454508853a2f44d0ab83b7f69c1"
+  integrity sha512-k+iyHEuPgSw6SbuDpGQM+06HQUa04DZ3o+F6CSzXMvvI5KMvnaEqXe+YVe555R9nn6GPt404fos4wcgpw12SDA==
 
-acorn@^5.0.0:
-  version "5.7.4"
-  resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.7.4.tgz#3e8d8a9947d0599a1796d10225d7432f4a4acf5e"
-  integrity sha512-1D++VG7BhrtvQpNbBzovKNc1FLGGEE/oGe7b9xJm/RFHMBeUaUGpluV9RLjZa47YFdPcDAenEYuq9pQPcMdLJg==
+acorn@8.x:
+  version "8.8.0"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.8.0.tgz#88c0187620435c7f6015803f5539dae05a9dbea8"
+  integrity sha512-QOxyigPVrpZ2GXT+PFyZTl6TtOFc5egxHIP9IlQ+RbupQuX4RkT/Bee4/kQuC02Xkzg84JcT7oLYtDIQxp+v7w==
 
 acorn@^6.4.1:
   version "6.4.2"
@@ -813,7 +806,15 @@ caseless@~0.12.0:
   resolved "https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
-chalk@2.x, chalk@^2.0.0:
+chalk@4.x, chalk@^4.0.0, chalk@^4.1.0:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/chalk/-/chalk-4.1.2.tgz#aac4e2b7734a740867aeb16bf02aad556a1e7a01"
+  integrity sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==
+  dependencies:
+    ansi-styles "^4.1.0"
+    supports-color "^7.1.0"
+
+chalk@^2.0.0:
   version "2.4.2"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"
   integrity sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==
@@ -821,14 +822,6 @@ chalk@2.x, chalk@^2.0.0:
     ansi-styles "^3.2.1"
     escape-string-regexp "^1.0.5"
     supports-color "^5.3.0"
-
-chalk@^4.0.0, chalk@^4.1.0:
-  version "4.1.2"
-  resolved "https://registry.yarnpkg.com/chalk/-/chalk-4.1.2.tgz#aac4e2b7734a740867aeb16bf02aad556a1e7a01"
-  integrity sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==
-  dependencies:
-    ansi-styles "^4.1.0"
-    supports-color "^7.1.0"
 
 chokidar@^2.1.8:
   version "2.1.8"
@@ -934,13 +927,13 @@ cloneable-readable@^1.0.0:
     process-nextick-args "^2.0.0"
     readable-stream "^2.3.5"
 
-closure-webpack-plugin@^2.3.0:
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/closure-webpack-plugin/-/closure-webpack-plugin-2.5.0.tgz#c4c5d7e8c02dbefb67c5b482b50bd36e88bb56b0"
-  integrity sha512-mp18Dss/NEj6EazNsT7EiRUCR4wXWFawrIe9Mm2epqELkJWZldVOs+vSPz8y1T2qB4pBYwQuQK2jruDXksOBkg==
+closure-webpack-plugin@^2.6.1:
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/closure-webpack-plugin/-/closure-webpack-plugin-2.6.1.tgz#5b9a700b81a95f844baf4de75026f19f91f43914"
+  integrity sha512-oLzxOCqPdvfeX70AG+mkx+uzEutcE2aX7K/SeuA44t2X/arc+B7lMlNvkf3rIvs0ffhqO2DcSEw56GmjWHDK+Q==
   dependencies:
-    acorn "^5.0.0"
-    acorn-dynamic-import "^2.0.0"
+    acorn "8.x"
+    acorn-walk "^8.2.0"
     schema-utils "1.x"
     unquoted-property-validator "^1.0.2"
     webpack-sources "1.x"
@@ -2028,40 +2021,40 @@ globby@^6.1.0:
     pify "^2.0.0"
     pinkie-promise "^2.0.0"
 
-google-closure-compiler-java@^20220719.0.0:
-  version "20220719.0.0"
-  resolved "https://registry.yarnpkg.com/google-closure-compiler-java/-/google-closure-compiler-java-20220719.0.0.tgz#a6dc7c7a7e58670d17467c64a77b2fd94418e38e"
-  integrity sha512-tjWdQSkFqxaFCgzUBaiJj2CxrWUYV0Ij2txp9Um+GyvrzMeX9rqHSUeW4I9cGpOrXkamvWCyAig4Yi0NZXApdg==
+google-closure-compiler-java@^20220905.0.0:
+  version "20220905.0.0"
+  resolved "https://registry.yarnpkg.com/google-closure-compiler-java/-/google-closure-compiler-java-20220905.0.0.tgz#53d4b081c63fac09b6589729f5f359c8ec3ce27e"
+  integrity sha512-wxGxNla/0UDS1Lm0cRxEy85KhVRd0vNlsTclnIJ9f1gRWzvvTsJ4lwz+PdT60R6y2hKAOBvydIJHh+B8XJastA==
 
-google-closure-compiler-linux@^20220719.0.0:
-  version "20220719.0.0"
-  resolved "https://registry.yarnpkg.com/google-closure-compiler-linux/-/google-closure-compiler-linux-20220719.0.0.tgz#85ebdf3da6aaeee094295d6fc2be23324cf386c9"
-  integrity sha512-Em8QEAH7RC8T41QgTZC2keO0gsNdQgburXuXoF6gv2ySD/kJvNqrlZCCqLZMZUF6iuCpu3PgnMahdd3IrLpprA==
+google-closure-compiler-linux@^20220905.0.0:
+  version "20220905.0.0"
+  resolved "https://registry.yarnpkg.com/google-closure-compiler-linux/-/google-closure-compiler-linux-20220905.0.0.tgz#4cefd19938b522c1ac9b8254a44ecfffcb3354d8"
+  integrity sha512-kH09S66sz9+6wZmYM22VX8vG8KhCKJwFwXCfHx/ZOU6DBEzni6KfWrP+87CzTmZFEivclBhWAndm5HgNhSOEXQ==
 
-google-closure-compiler-osx@^20220719.0.0:
-  version "20220719.0.0"
-  resolved "https://registry.yarnpkg.com/google-closure-compiler-osx/-/google-closure-compiler-osx-20220719.0.0.tgz#e97246adffc109a64bd79bcfdf964c78664c66da"
-  integrity sha512-NwOLgq0ftq0kY1jum6vrafwUMQrCJEpJu6wv5fW/TnYUprPJb1J0T7c4Su8wSm9rdvpqkkqWWMGpfb9RJBuM0g==
+google-closure-compiler-osx@^20220905.0.0:
+  version "20220905.0.0"
+  resolved "https://registry.yarnpkg.com/google-closure-compiler-osx/-/google-closure-compiler-osx-20220905.0.0.tgz#0e685fb886db298af88b96ba683a04601f8c168b"
+  integrity sha512-4uo2GAz77gI8nDt4OA8VUYh/FNdjmTLOIRDazl7si+BOjgp9bC6C3E/88o+YHETsVtrPmZk57/W7vH0lftyTAw==
 
-google-closure-compiler-windows@^20220719.0.0:
-  version "20220719.0.0"
-  resolved "https://registry.yarnpkg.com/google-closure-compiler-windows/-/google-closure-compiler-windows-20220719.0.0.tgz#1177d2d27515d7d0867cdc4e258b32b499a6c005"
-  integrity sha512-Qi88lkU7a45SzCwdd9CV1D6paiiF7cEpBefkJIaNKi9MBfOZueHZH7Y8/56rdMhJLRjv5VMCGoJY4xH6FcXkvg==
+google-closure-compiler-windows@^20220905.0.0:
+  version "20220905.0.0"
+  resolved "https://registry.yarnpkg.com/google-closure-compiler-windows/-/google-closure-compiler-windows-20220905.0.0.tgz#89b8767c4b6d95b4e8d13cc01bc6e4acdc5700dd"
+  integrity sha512-TZKHu6RHnrmgV90Gyen8+TGc0vgjgds80ErR+al5CqmfP9p+AskBbOe5CWZJht0bANrUhaeBMCrbs+7loFv06Q==
 
-google-closure-compiler@^20220719.0.0:
-  version "20220719.0.0"
-  resolved "https://registry.yarnpkg.com/google-closure-compiler/-/google-closure-compiler-20220719.0.0.tgz#234a53e0a09ea04ae04df6bab877e9c833afbd8f"
-  integrity sha512-0KTxUoX8WBZGeprvZfzp+czdi6wJ5wfJnG4RsIMEPFLR67fW4f+ghh04WSBLBt8kgT64NxaZGESjq23v0dbYNg==
+google-closure-compiler@^20220905.0.0:
+  version "20220905.0.0"
+  resolved "https://registry.yarnpkg.com/google-closure-compiler/-/google-closure-compiler-20220905.0.0.tgz#3e31cc164cea63789c04fca67f89661efec749de"
+  integrity sha512-idZavy2vn91HCmqEepjmLFjfOdYoRsh9PggUbazUpjAOrBQz0HOm3WjOICMiywre+EnY1QGss0srEBtFtukM6w==
   dependencies:
-    chalk "2.x"
-    google-closure-compiler-java "^20220719.0.0"
+    chalk "4.x"
+    google-closure-compiler-java "^20220905.0.0"
     minimist "1.x"
     vinyl "2.x"
     vinyl-sourcemaps-apply "^0.2.0"
   optionalDependencies:
-    google-closure-compiler-linux "^20220719.0.0"
-    google-closure-compiler-osx "^20220719.0.0"
-    google-closure-compiler-windows "^20220719.0.0"
+    google-closure-compiler-linux "^20220905.0.0"
+    google-closure-compiler-osx "^20220905.0.0"
+    google-closure-compiler-windows "^20220905.0.0"
 
 google-protobuf@^3.20.1:
   version "3.20.1"
@@ -2173,10 +2166,10 @@ hash.js@^1.0.0, hash.js@^1.0.3:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.1"
 
-highcharts@^10.2.0:
-  version "10.2.0"
-  resolved "https://registry.yarnpkg.com/highcharts/-/highcharts-10.2.0.tgz#646b1c80fb4add9e35e5813bd87419ccdf1fc6b7"
-  integrity sha512-MvLo4dzR2Vo7Y85dsqJ07uabBXSSIRKRRdW4l9IGP55h2jYWNm/m9JBszVVxySH5Lda6g+Ins9NdGppZJpjNCA==
+highcharts@^10.2.1:
+  version "10.2.1"
+  resolved "https://registry.yarnpkg.com/highcharts/-/highcharts-10.2.1.tgz#8723b53a5461c12b61f3ff268c28ff80187b9bf1"
+  integrity sha512-4QwLQwWc0XdBHXc2Uy6IJisAUir+sgQIMyFqYZc3BD9iFSFUdllLkRyoed6y33aPb73LAMZE2qLB5SuLqFE/fg==
 
 hmac-drbg@^1.0.1:
   version "1.0.1"

@@ -75,8 +75,8 @@ func prepareRenderActor(ctx context.Context, aids []string) (map[string]*pb.Rend
 }
 
 func (t treeDiagramService) RenderActors(ctx context.Context, req *pb.RenderActorsRequest) (*pb.RenderActorsResponse, error) {
-	if len(req.GetId()) > 50 {
-		return nil, status.Error(codes.InvalidArgument, "At most 50 actors can be fetched in one request")
+	if len(req.GetId()) > 100 {
+		return nil, status.Error(codes.InvalidArgument, "At most 100 actors can be fetched in one request")
 	}
 
 	for _, id := range req.GetId() {
