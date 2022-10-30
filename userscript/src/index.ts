@@ -6,6 +6,16 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
     'use strict';
 
     Highcharts.setOptions({
+        chart: {
+            panning: {enabled: true},
+            panKey: "alt",
+        },
+        credits: {enabled: false},
+        title: {text: undefined},
+        plotOptions: {
+            areaspline: {threshold: null},
+            spline: {threshold: null},
+        },
         time: {timezoneOffset: new Date().getTimezoneOffset()},
         accessibility: {enabled: false},
     });
@@ -111,9 +121,6 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
             Highcharts.chart('td_chart', {
                 chart: {zoomType: 'x'},
-                credits: {enabled: false},
-                title: {text: undefined},
-                plotOptions: {areaspline: {threshold: null}},
                 xAxis: {
                     type: 'datetime',
                     plotLines: plotLines,
@@ -297,9 +304,6 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
             Highcharts.chart(renderChartTo, {
                 chart: {zoomType: 'x'},
-                credits: {enabled: false},
-                title: {text: undefined},
-                plotOptions: {areaspline: {threshold: null}},
                 xAxis: {type: 'datetime'},
                 yAxis: {title: {text: undefined}},
                 legend: {enabled: false},
@@ -519,9 +523,6 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
             Highcharts.chart('td_chart_compare_actors', {
                 chart: {zoomType: 'x'},
-                credits: {enabled: false},
-                title: {text: undefined},
-                plotOptions: {spline: {threshold: null}},
                 xAxis: {type: 'datetime'},
                 yAxis: {title: {text: undefined}},
                 series: series,
