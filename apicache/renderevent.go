@@ -2,7 +2,7 @@ package apicache
 
 import "context"
 
-const renderEventKeyPrefix = keyPrefix + "RE5:"
+const renderEventKeyPrefix = keyPrefix + "RE6:"
 
 func renderEventKey(eid string) string {
 	return renderEventKeyPrefix + eid

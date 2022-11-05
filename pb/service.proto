@@ -19,14 +19,21 @@ message RenderEventRequest {
 message RenderEventResponse {
     reserved 1, 2;
 
+    message ActorInfo {
+        optional string id = 1;
+        optional string name = 2;
+    }
+
     optional Date date = 5;
 
     message CompressedSnapshot {
+        reserved 3, 4;
+
         repeated .google.protobuf.Timestamp timestamps = 1;
         optional int32 note_count = 2;
 
-        repeated string added_actors = 3;
-        repeated string removed_actors = 4;
+        repeated ActorInfo added_actors = 5;
+        repeated ActorInfo removed_actors = 6;
     }
     repeated CompressedSnapshot compressed_snapshots = 6;
 

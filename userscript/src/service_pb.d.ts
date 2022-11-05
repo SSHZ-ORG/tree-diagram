@@ -92,6 +92,33 @@ export namespace RenderEventResponse {
     placeStatsFinished?: RenderEventResponse.PlaceNoteCountStats.AsObject,
   }
 
+  export class ActorInfo extends jspb.Message {
+    getId(): string;
+    setId(value: string): ActorInfo;
+    hasId(): boolean;
+    clearId(): ActorInfo;
+
+    getName(): string;
+    setName(value: string): ActorInfo;
+    hasName(): boolean;
+    clearName(): ActorInfo;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ActorInfo.AsObject;
+    static toObject(includeInstance: boolean, msg: ActorInfo): ActorInfo.AsObject;
+    static serializeBinaryToWriter(message: ActorInfo, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ActorInfo;
+    static deserializeBinaryFromReader(message: ActorInfo, reader: jspb.BinaryReader): ActorInfo;
+  }
+
+  export namespace ActorInfo {
+    export type AsObject = {
+      id?: string,
+      name?: string,
+    }
+  }
+
+
   export class CompressedSnapshot extends jspb.Message {
     getTimestampsList(): Array<google_protobuf_timestamp_pb.Timestamp>;
     setTimestampsList(value: Array<google_protobuf_timestamp_pb.Timestamp>): CompressedSnapshot;
@@ -103,15 +130,15 @@ export namespace RenderEventResponse {
     hasNoteCount(): boolean;
     clearNoteCount(): CompressedSnapshot;
 
-    getAddedActorsList(): Array<string>;
-    setAddedActorsList(value: Array<string>): CompressedSnapshot;
+    getAddedActorsList(): Array<RenderEventResponse.ActorInfo>;
+    setAddedActorsList(value: Array<RenderEventResponse.ActorInfo>): CompressedSnapshot;
     clearAddedActorsList(): CompressedSnapshot;
-    addAddedActors(value: string, index?: number): CompressedSnapshot;
+    addAddedActors(value?: RenderEventResponse.ActorInfo, index?: number): RenderEventResponse.ActorInfo;
 
-    getRemovedActorsList(): Array<string>;
-    setRemovedActorsList(value: Array<string>): CompressedSnapshot;
+    getRemovedActorsList(): Array<RenderEventResponse.ActorInfo>;
+    setRemovedActorsList(value: Array<RenderEventResponse.ActorInfo>): CompressedSnapshot;
     clearRemovedActorsList(): CompressedSnapshot;
-    addRemovedActors(value: string, index?: number): CompressedSnapshot;
+    addRemovedActors(value?: RenderEventResponse.ActorInfo, index?: number): RenderEventResponse.ActorInfo;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): CompressedSnapshot.AsObject;
@@ -125,8 +152,8 @@ export namespace RenderEventResponse {
     export type AsObject = {
       timestampsList: Array<google_protobuf_timestamp_pb.Timestamp.AsObject>,
       noteCount?: number,
-      addedActorsList: Array<string>,
-      removedActorsList: Array<string>,
+      addedActorsList: Array<RenderEventResponse.ActorInfo.AsObject>,
+      removedActorsList: Array<RenderEventResponse.ActorInfo.AsObject>,
     }
   }
 

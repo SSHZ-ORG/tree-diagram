@@ -113,8 +113,8 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                     snapshots.push({
                         time: timestamp.toDate().getTime(),
                         noteCount: compressedSnapshot.getNoteCount(),
-                        addedActors: i === 0 ? compressedSnapshot.getAddedActorsList() : [],
-                        removedActors: i === 0 ? compressedSnapshot.getRemovedActorsList() : [],
+                        addedActors: i === 0 ? compressedSnapshot.getAddedActorsList().map(a => a.getName()) : [],
+                        removedActors: i === 0 ? compressedSnapshot.getRemovedActorsList().map(a => a.getName()) : [],
                     });
                 }
             }

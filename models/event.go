@@ -389,13 +389,16 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*pb.Render
 		return true
 	})
 
-	actorNames := make(map[string]string)
+	actorInfos := make(map[string]*pb.RenderEventResponse_ActorInfo)
 	actors, err := getActors(ctx, aks)
 	if err != nil {
 		return response, err
 	}
 	for i, a := range actors {
-		actorNames[aks[i].Encode()] = a.Name
+		actorInfos[aks[i].Encode()] = &pb.RenderEventResponse_ActorInfo{
+			Id:   &a.ID,
+			Name: &a.Name,
+		}
 	}
 
 	var lastActors []string
@@ -416,14 +419,14 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*pb.Render
 
 			for _, a := range newActors {
 				if !las.Has(a) {
-					item.AddedActors = append(item.AddedActors, actorNames[a])
+					item.AddedActors = append(item.AddedActors, actorInfos[a])
 				}
 			}
 
 			nas := strset.New(newActors...)
 			for _, a := range lastActors {
 				if !nas.Has(a) {
-					item.RemovedActors = append(item.RemovedActors, actorNames[a])
+					item.RemovedActors = append(item.RemovedActors, actorInfos[a])
 				}
 			}
 
