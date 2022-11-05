@@ -60,25 +60,25 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         entryAreaDom.parentNode.insertBefore(tdDom, entryAreaDom.nextSibling);
 
         const actorsUlDom = document.getElementsByClassName("actors");
+        const actorNames = new Map<string, string>();
         if (actorsUlDom.length > 0 && actorsUlDom[0].children.length <= renderActorsMax) {
-            // Support only desktop layout
+            // Support only desktop layout.
+            // Note that if we find more actors from the RPC call below, the renderActorsMax check might be wrong.
             actorsUlDom[0].parentElement.appendChild(htmlToElement(`
             <div>
                 <button class="btn btn-block" type="button" id="td_event_compare_actors">Compare Favorites</button>
                 <div id="td_event_actor_favorites_chart_container"></div>
             </div>`));
 
+            for (let liDom of actorsUlDom[0].children) {
+                const aDom = liDom.children[0] as HTMLAnchorElement;
+                const actorId = aDom.href.substring(aDom.href.lastIndexOf("/") + 1);
+                actorNames.set(actorId, aDom.text);
+            }
+
             const buttonEl = document.getElementById("td_event_compare_actors");
             buttonEl.addEventListener('click', () => {
-                const actorIds = [];
-                const actorNames: Record<string, string> = {};
-                for (let liDom of actorsUlDom[0].children) {
-                    const aDom = liDom.children[0] as HTMLAnchorElement;
-                    const actorId = aDom.href.substring(aDom.href.lastIndexOf("/") + 1);
-                    actorIds.push(actorId);
-                    actorNames[actorId] = aDom.text;
-                }
-                compareActors(document.getElementById("td_event_actor_favorites_chart_container"), actorIds, actorNames, () => buttonEl.remove());
+                compareActors(document.getElementById("td_event_actor_favorites_chart_container"), actorNames, () => buttonEl.remove());
             });
         }
 
@@ -107,14 +107,23 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
             }
 
             const snapshots: { time: number, noteCount: number, addedActors: string[], removedActors: string[] }[] = [];
-            for (let compressedSnapshot of compressedSnapshots) {
-                for (let i = 0; i < compressedSnapshot.getTimestampsList().length; i++) {
-                    const timestamp = compressedSnapshot.getTimestampsList()[i];
+            for (let snapshot of compressedSnapshots) {
+                for (let i = 0; i < snapshot.getTimestampsList().length; i++) {
+                    const timestamp = snapshot.getTimestampsList()[i];
                     snapshots.push({
                         time: timestamp.toDate().getTime(),
-                        noteCount: compressedSnapshot.getNoteCount(),
-                        addedActors: i === 0 ? compressedSnapshot.getAddedActorsList().map(a => a.getName()) : [],
-                        removedActors: i === 0 ? compressedSnapshot.getRemovedActorsList().map(a => a.getName()) : [],
+                        noteCount: snapshot.getNoteCount(),
+                        addedActors: i === 0 ? snapshot.getAddedActorsList().map(a => a.getName()) : [],
+                        removedActors: i === 0 ? snapshot.getRemovedActorsList().map(a => a.getName()) : [],
+                    });
+                }
+
+                if (actorsUlDom.length > 0) {
+                    [...snapshot.getAddedActorsList(), ...snapshot.getRemovedActorsList()].forEach(a => {
+                        if (actorNames.has(a.getId())) return;
+                        actorNames.set(a.getId(), a.getName());
+                        actorsUlDom[0].appendChild(htmlToElement(`
+                            <li><a href="/actors/${a.getName()}/${a.getId()}">${a.getName()}</a>*</li>`));
                     });
                 }
             }
@@ -356,8 +365,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
     function userPage() {
         const favoriteActorsDom = document.getElementsByClassName('gb_actors_list')[0] || document.getElementsByClassName('favorite_actor')[0];
         if (favoriteActorsDom) {
-            const actorIds: string[] = [];
-            const actorNames: Record<string, string> = {};
+            const actorNames = new Map<string, string>();
 
             const actorDoms = favoriteActorsDom.getElementsByTagName('li');
             for (let i = 0; i < actorDoms.length; i++) {
@@ -365,13 +373,12 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                 const aEl = actorDoms[i].getElementsByTagName('a')[0];
                 const splited = aEl.href.split('/');
                 const actorId = splited[splited.length - 1];
-                actorIds.push(actorId);
-                actorNames[actorId] = aEl.textContent;
+                actorNames.set(actorId, aEl.textContent);
                 aEl.textContent += ` (${count})`;
             }
 
             const containerForCompareActors = document.getElementsByClassName('span8')[0] || document.getElementsByClassName('mod_page')[0];
-            if (actorIds.length <= renderActorsMax && containerForCompareActors) {
+            if (actorNames.size <= renderActorsMax && containerForCompareActors) {
                 containerForCompareActors.appendChild(htmlToElement(`
                     <div>
                         <button class="btn btn-block" type="button" id="td_user_compare_actors">Compare Favorites</button>
@@ -380,7 +387,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
                 const buttonEl = document.getElementById("td_user_compare_actors");
                 buttonEl.addEventListener('click', () => {
-                    compareActors(document.getElementById("td_user_actor_favorites_chart_container"), actorIds, actorNames, () => buttonEl.remove());
+                    compareActors(document.getElementById("td_user_actor_favorites_chart_container"), actorNames, () => buttonEl.remove());
                 });
             }
         }
@@ -426,8 +433,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         const contentDom = document.getElementsByClassName('gb_ad_footer').length > 0 ? document.getElementsByClassName('gb_ad_footer')[0].previousElementSibling : document.getElementById('container');
         contentDom.replaceWith(tdDom);
 
-        const selectedActors: string[] = [];
-        const actorNames: Record<string, string> = {};
+        const actorNames = new Map<string, string>();
         const selectedActorsDom = document.getElementById('td_selected_actors');
         const searchActorResultDom = document.getElementById('td_search_actor_result');
         const actorFavoritesChartContainerDom = document.getElementById('td_actor_favorites_chart_container');
@@ -439,13 +445,12 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         });
 
         document.getElementById('td_compare_actors').addEventListener('click', () =>
-            compareActors(actorFavoritesChartContainerDom, selectedActors, actorNames));
+            compareActors(actorFavoritesChartContainerDom, actorNames));
         document.getElementById('td_run_query').addEventListener('click', runQuery);
 
         function addActor(id: string, name: string) {
-            if (selectedActors.some(i => i === id)) return;
-            selectedActors.push(id);
-            actorNames[id] = name;
+            if (actorNames.has(id)) return;
+            actorNames.set(id, name);
 
             const buttonDom = htmlToElement(`
                 <button class="btn" type="button"><i class="icon-minus"></i> ${name}</button>`) as HTMLButtonElement;
@@ -457,11 +462,9 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         }
 
         function removeActor(id: string, el: HTMLElement) {
-            const index = selectedActors.indexOf(id);
-            if (index > -1) {
-                selectedActors.splice(index, 1);
-                el.remove();
-            }
+            if (!actorNames.has(id)) return;
+            actorNames.delete(id);
+            el.remove();
         }
 
         function searchActor(keyword: string) {
@@ -491,12 +494,12 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                 eventListContainerDom.removeChild(eventListContainerDom.firstChild);
             }
             const filter = new pb.QueryEventsRequest.EventFilter()
-            selectedActors.forEach(a => filter.addActorIds(a));
+            actorNames.forEach((_, a) => filter.addActorIds(a));
             createEventList(filter, undefined, eventListContainerDom, true);
         }
     }
 
-    function compareActors(containerDom: HTMLElement, actorIds: string[], actorNames: Record<string, string>, callback?: () => void) {
+    function compareActors(containerDom: HTMLElement, actorNames: Map<string, string>, callback?: () => void) {
         while (containerDom.firstChild) {
             containerDom.removeChild(containerDom.firstChild);
         }
@@ -504,13 +507,13 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         containerDom.appendChild(htmlToElement(`<div id="td_chart_compare_actors"></div>`));
 
         const request = new pb.RenderActorsRequest();
-        actorIds.forEach(i => request.addId(i));
+        actorNames.forEach((_, i) => request.addId(i));
 
         treeDiagramService.renderActors(request, null).then(response => {
             const series: { name: string, type: 'spline', data: [number, number][] }[] = [];
             for (const [actorId, res] of response.getItemsMap().entries()) {
                 series.push({
-                    name: `${actorNames[actorId]}`,
+                    name: `${actorNames.get(actorId)}`,
                     type: 'spline',
                     data: actorSnapshotsToDataPoints(res.getSnapshotsList()),
                 });
