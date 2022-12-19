@@ -233,6 +233,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                             <a href="/events/${e.getId()}" target="_blank">${e.getName()}</a>
                         </td>
                         <td>${e.getLastNoteCount()}</td>
+                        <td>${e.getActorCount()}</td>
                     </tr>`) as HTMLTableRowElement;
 
                     const liveDate = convertToJsDate(e.getDate(), 15); // next day 0:00 JST.

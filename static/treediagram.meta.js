@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        TreeDiagram
-// @version     0.2.4.0
+// @version     0.2.5.0
 // @author      SSHZ.ORG
 // @description Make Eventernote Better
 // @match       https://www.eventernote.com/*
