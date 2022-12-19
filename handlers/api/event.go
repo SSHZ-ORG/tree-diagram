@@ -75,6 +75,7 @@ func (t treeDiagramService) QueryEvents(ctx context.Context, req *pb.QueryEvents
 			Name:          &e.Name,
 			Date:          utils.ToProtoDate(civil.DateOf(e.Date)),
 			LastNoteCount: proto.Int32(int32(e.LastNoteCount)),
+			ActorCount:    proto.Int32(int32(len(e.Actors))),
 		})
 	}
 	return resp, nil

@@ -3392,7 +3392,8 @@ proto.treediagram.pb.QueryEventsResponse.Event.toObject = function(includeInstan
     id: (f = jspb.Message.getField(msg, 1)) == null ? undefined : f,
     name: (f = jspb.Message.getField(msg, 2)) == null ? undefined : f,
     date: (f = msg.getDate()) && proto.treediagram.pb.Date.toObject(includeInstance, f),
-    lastNoteCount: (f = jspb.Message.getField(msg, 5)) == null ? undefined : f
+    lastNoteCount: (f = jspb.Message.getField(msg, 5)) == null ? undefined : f,
+    actorCount: (f = jspb.Message.getField(msg, 7)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -3445,6 +3446,10 @@ proto.treediagram.pb.QueryEventsResponse.Event.deserializeBinaryFromReader = fun
     case 5:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setLastNoteCount(value);
+      break;
+    case 7:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setActorCount(value);
       break;
     default:
       reader.skipField();
@@ -3501,6 +3506,13 @@ proto.treediagram.pb.QueryEventsResponse.Event.serializeBinaryToWriter = functio
   if (f != null) {
     writer.writeInt32(
       5,
+      f
+    );
+  }
+  f = /** @type {number} */ (jspb.Message.getField(message, 7));
+  if (f != null) {
+    writer.writeInt32(
+      7,
       f
     );
   }
@@ -3649,6 +3661,42 @@ proto.treediagram.pb.QueryEventsResponse.Event.prototype.clearLastNoteCount = fu
  */
 proto.treediagram.pb.QueryEventsResponse.Event.prototype.hasLastNoteCount = function() {
   return jspb.Message.getField(this, 5) != null;
+};
+
+
+/**
+ * optional int32 actor_count = 7;
+ * @return {number}
+ */
+proto.treediagram.pb.QueryEventsResponse.Event.prototype.getActorCount = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 7, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.treediagram.pb.QueryEventsResponse.Event} returns this
+ */
+proto.treediagram.pb.QueryEventsResponse.Event.prototype.setActorCount = function(value) {
+  return jspb.Message.setField(this, 7, value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.treediagram.pb.QueryEventsResponse.Event} returns this
+ */
+proto.treediagram.pb.QueryEventsResponse.Event.prototype.clearActorCount = function() {
+  return jspb.Message.setField(this, 7, undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.treediagram.pb.QueryEventsResponse.Event.prototype.hasActorCount = function() {
+  return jspb.Message.getField(this, 7) != null;
 };
 
 

@@ -519,9 +519,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                 });
             }
             const lastValue = (l: [number, number][]) => l.length > 0 ? l[l.length - 1][1] : 0;
-            series.sort(function (a, b) {
-                return lastValue(a.data) - lastValue(b.data);
-            });
+            series.sort((a, b) => lastValue(a.data) - lastValue(b.data));
             series.reverse();
 
             Highcharts.chart('td_chart_compare_actors', {

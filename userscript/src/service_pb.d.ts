@@ -423,6 +423,11 @@ export namespace QueryEventsResponse {
     hasLastNoteCount(): boolean;
     clearLastNoteCount(): Event;
 
+    getActorCount(): number;
+    setActorCount(value: number): Event;
+    hasActorCount(): boolean;
+    clearActorCount(): Event;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Event.AsObject;
     static toObject(includeInstance: boolean, msg: Event): Event.AsObject;
@@ -437,6 +442,7 @@ export namespace QueryEventsResponse {
       name?: string,
       date?: Date.AsObject,
       lastNoteCount?: number,
+      actorCount?: number,
     }
   }
 
