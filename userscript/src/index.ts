@@ -61,25 +61,14 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
         const actorsUlDom = document.getElementsByClassName("actors");
         const actorNames = new Map<string, string>();
-        if (actorsUlDom.length > 0 && actorsUlDom[0].children.length <= renderActorsMax) {
-            // Support only desktop layout.
-            // Note that if we find more actors from the RPC call below, the renderActorsMax check might be wrong.
-            actorsUlDom[0].parentElement.appendChild(htmlToElement(`
-            <div>
-                <button class="btn btn-block" type="button" id="td_event_compare_actors">Compare Favorites</button>
-                <div id="td_event_actor_favorites_chart_container"></div>
-            </div>`));
+        const isDesktopLayout = actorsUlDom.length > 0;
 
+        if (isDesktopLayout) {
             for (let liDom of actorsUlDom[0].children) {
                 const aDom = liDom.children[0] as HTMLAnchorElement;
                 const actorId = aDom.href.substring(aDom.href.lastIndexOf("/") + 1);
                 actorNames.set(actorId, aDom.text);
             }
-
-            const buttonEl = document.getElementById("td_event_compare_actors");
-            buttonEl.addEventListener('click', () => {
-                compareActors(document.getElementById("td_event_actor_favorites_chart_container"), actorNames, () => buttonEl.remove());
-            });
         }
 
         const request = new pb.RenderEventRequest().setId(eventId);
@@ -118,7 +107,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                     });
                 }
 
-                if (actorsUlDom.length > 0) {
+                if (isDesktopLayout) {
                     [...snapshot.getAddedActorsList(), ...snapshot.getRemovedActorsList()].forEach(a => {
                         if (actorNames.has(a.getId())) return;
                         actorNames.set(a.getId(), a.getName());
@@ -187,6 +176,22 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                     },
                 ],
             } as Options);
+
+            if (isDesktopLayout && actorNames.size <= renderActorsMax) {
+                actorsUlDom[0].parentElement.appendChild(htmlToElement(`
+                    <div>
+                        <button class="btn btn-block" type="button" id="td_event_compare_actors">Compare Favorites (${actorNames.size})</button>
+                        <div id="td_event_actor_favorites_chart_container"></div>
+                    </div>`));
+
+                const buttonEl = document.getElementById("td_event_compare_actors") as HTMLButtonElement;
+                buttonEl.addEventListener('click', () => {
+                    buttonEl.disabled = true;
+                    compareActors(document.getElementById("td_event_actor_favorites_chart_container"),
+                        actorNames, () => buttonEl.remove(),
+                        [{label: "This Event", time: convertToJsDate(response.getDate(), 3)}]);
+                });
+            }
         });
     }
 
@@ -500,12 +505,16 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         }
     }
 
-    function compareActors(containerDom: HTMLElement, actorNames: Map<string, string>, callback?: () => void) {
+    function compareActors(containerDom: HTMLElement, actorNames: Map<string, string>, callback?: () => void, extraVerticalLines?: { label: string, time: Date }[]) {
         while (containerDom.firstChild) {
             containerDom.removeChild(containerDom.firstChild);
         }
 
         containerDom.appendChild(htmlToElement(`<div id="td_chart_compare_actors"></div>`));
+
+        const plotLines = extraVerticalLines.map(e => {
+            return {value: e.time.getTime(), dashStyle: 'Dash', label: {text: e.label},}
+        });
 
         const request = new pb.RenderActorsRequest();
         actorNames.forEach((_, i) => request.addId(i));
@@ -525,7 +534,10 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
             Highcharts.chart('td_chart_compare_actors', {
                 chart: {zoomType: 'x'},
-                xAxis: {type: 'datetime'},
+                xAxis: {
+                    type: 'datetime',
+                    plotLines: plotLines,
+                },
                 yAxis: {title: {text: undefined}},
                 series: series,
                 tooltip: {xDateFormat: '%Y-%m-%d', shared: true},
