@@ -99,7 +99,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
             const compressedSnapshots = response.getCompressedSnapshotsList();
 
-            const liveDate = response.hasDate() ? convertToJsDate(response.getDate(), 3) : undefined; // JST noon.)
+            const liveDate = response.hasDate() ? convertToJsDate(response.getDate(), 3) : null; // JST noon.
             if (liveDate && compressedSnapshots.length > 0 && compressedSnapshots[0].getTimestampsList()[0].toDate() <= liveDate) {
                 plotLines.push({
                     value: liveDate.getTime(),
@@ -388,7 +388,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
             const actorDoms = favoriteActorsDom.getElementsByTagName('li');
             for (let i = 0; i < actorDoms.length; i++) {
-                let count = actorDoms[i].className.match(/c(\d+)/)[1];
+                let count = actorDoms[i].className.match(/c(\d+)/)?.[1] ?? '0';
                 const aEl = actorDoms[i].getElementsByTagName('a')[0];
                 const splited = aEl.href.split('/');
                 const actorId = splited[splited.length - 1];
