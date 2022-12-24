@@ -59,12 +59,25 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         const entryAreaDom = document.getElementById('entry_area') || document.getElementsByClassName('mod_events_detail')[0];
         entryAreaDom.parentNode.insertBefore(tdDom, entryAreaDom.nextSibling);
 
-        const actorsUlDom = document.getElementsByClassName("actors");
+        let actorsUlDom = document.getElementsByClassName("actors")[0];
         const actorNames = new Map<string, string>();
-        const isDesktopLayout = actorsUlDom.length > 0;
+        if (!actorsUlDom) {
+            // Check if it's the desktop layout. If it is, the event has no current actors. Make our own element.
+            const tableContainerEl = document.getElementsByClassName('gb_events_info_table')[0];
+            if (tableContainerEl) {
+                for (let trEl of tableContainerEl.getElementsByTagName('tbody')[0].children) {
+                    if (trEl.children[0].textContent === '出演者') {
+                        trEl.children[1].appendChild(
+                            htmlToElement('<div class="gb_listview"><ul class="actors inline unstyled"></ul></div>'));
+                        actorsUlDom = document.getElementsByClassName("actors")[0];
+                        break;
+                    }
+                }
+            }
+        }
 
-        if (isDesktopLayout) {
-            for (let liDom of actorsUlDom[0].children) {
+        if (actorsUlDom) {
+            for (let liDom of actorsUlDom.children) {
                 const aDom = liDom.children[0] as HTMLAnchorElement;
                 const actorId = aDom.href.substring(aDom.href.lastIndexOf("/") + 1);
                 actorNames.set(actorId, aDom.text);
@@ -86,8 +99,8 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
             const compressedSnapshots = response.getCompressedSnapshotsList();
 
-            const liveDate = convertToJsDate(response.getDate(), 3); // JST noon.
-            if (compressedSnapshots.length > 0 && compressedSnapshots[0].getTimestampsList()[0].toDate() <= liveDate) {
+            const liveDate = response.hasDate() ? convertToJsDate(response.getDate(), 3) : undefined; // JST noon.)
+            if (liveDate && compressedSnapshots.length > 0 && compressedSnapshots[0].getTimestampsList()[0].toDate() <= liveDate) {
                 plotLines.push({
                     value: liveDate.getTime(),
                     dashStyle: 'LongDashDot',
@@ -107,11 +120,11 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                     });
                 }
 
-                if (isDesktopLayout) {
+                if (actorsUlDom) {
                     [...snapshot.getAddedActorsList(), ...snapshot.getRemovedActorsList()].forEach(a => {
                         if (actorNames.has(a.getId())) return;
                         actorNames.set(a.getId(), a.getName());
-                        actorsUlDom[0].appendChild(htmlToElement(`
+                        actorsUlDom.appendChild(htmlToElement(`
                             <li><a href="/actors/${a.getName()}/${a.getId()}">${a.getName()}</a>*</li>`));
                     });
                 }
@@ -177,8 +190,8 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                 ],
             } as Options);
 
-            if (isDesktopLayout && actorNames.size <= renderActorsMax) {
-                actorsUlDom[0].parentElement.appendChild(htmlToElement(`
+            if (actorsUlDom && actorNames.size <= renderActorsMax) {
+                actorsUlDom.parentElement.appendChild(htmlToElement(`
                     <div>
                         <button class="btn btn-block" type="button" id="td_event_compare_actors">Compare Favorites (${actorNames.size})</button>
                         <div id="td_event_actor_favorites_chart_container"></div>
@@ -189,7 +202,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                     buttonEl.disabled = true;
                     compareActors(document.getElementById("td_event_actor_favorites_chart_container"),
                         actorNames, () => buttonEl.remove(),
-                        [{label: "This Event", time: convertToJsDate(response.getDate(), 3)}]);
+                        liveDate ? [{label: "This Event", time: liveDate}] : []);
                 });
             }
         });
