@@ -38,6 +38,18 @@ func RegisterCron(r *httprouter.Router) {
 func dailyCron(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
 
+	tc, err := scheduler.NormalDateQueue.CurrentTaskCount(ctx)
+	if err != nil {
+		log.Errorf(ctx, "EventDateQueue.CurrentTaskCount: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if tc > 0 {
+		log.Warningf(ctx, "NormalDateQueue not empty. Skipping dailyCron.")
+		return
+	}
+
 	today := utils.JSTToday()
 
 	if err := scheduler.NormalDateQueue.EnqueueDateRange(ctx, today.AddDays(dailyToReviveDate), today.AddDays(dailyEndDate), false); err != nil {
@@ -108,6 +120,18 @@ func cleanupCron(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 func dailyActorCron(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ctx := appengine.NewContext(r)
+
+	ht, err := scheduler.ActorQueueHasTask(ctx)
+	if err != nil {
+		log.Errorf(ctx, "scheduler.ActorQueueHasTask: %+v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if ht {
+		log.Warningf(ctx, "ActorQueue has task. Skipping dailyActorCron.")
+		return
+	}
 
 	if err := scheduler.ScheduleCrawlActorPage(ctx, 1); err != nil {
 		log.Errorf(ctx, "scheduler.ScheduleCrawlActorPage: %+v", err)

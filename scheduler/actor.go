@@ -21,3 +21,13 @@ func ScheduleCrawlActorPage(ctx context.Context, offset int) error {
 	_, err := taskqueue.Add(ctx, task, actorQueueName)
 	return errors.Wrap(err, "taskqueue.Add failed")
 }
+
+// Errors wrapped.
+func ActorQueueHasTask(ctx context.Context) (bool, error) {
+	s, err := taskqueue.QueueStats(ctx, []string{actorQueueName})
+	if err != nil {
+		return false, errors.Wrap(err, "taskqueue.QueueStats failed")
+	}
+
+	return s[0].Tasks > 0, nil
+}
