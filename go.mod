@@ -13,6 +13,7 @@ require (
 	github.com/scylladb/go-set v1.0.2
 	github.com/tidwall/gjson v1.14.4
 	golang.org/x/oauth2 v0.4.0
+	golang.org/x/sync v0.1.0
 	google.golang.org/api v0.109.0
 	google.golang.org/appengine/v2 v2.0.2
 	google.golang.org/grpc v1.52.3

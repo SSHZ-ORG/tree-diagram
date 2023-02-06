@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/qedus/nds"
 	"github.com/scylladb/go-set/strset"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/appengine/v2"
 	"google.golang.org/appengine/v2/datastore"
 	"google.golang.org/appengine/v2/log"
@@ -334,42 +335,29 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*pb.Render
 	}
 	response.Date = utils.ToProtoDate(civil.DateOf(e.Date))
 
-	var errTotal, errFinished error
-	wg := sync.WaitGroup{}
-	wg.Add(2)
+	g, gctx := errgroup.WithContext(ctx)
 	baseQuery := datastore.NewQuery(eventKind).Filter("Place =", e.Place)
 	finishedQuery := baseQuery.Filter("Finished =", true)
-
-	go func() {
-		defer wg.Done()
-		if t, err := baseQuery.Count(ctx); err == nil {
-			response.PlaceStatsTotal.Total = proto.Int32(int32(t))
-		} else {
-			errTotal = errors.Wrap(err, "Count total total failed")
-			return
-		}
-		if r, err := baseQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(ctx); err == nil {
-			response.PlaceStatsTotal.Rank = proto.Int32(int32(r))
-		} else {
-			errTotal = errors.Wrap(err, "Count total rank failed")
-			return
-		}
-	}()
-	go func() {
-		defer wg.Done()
-		if t, err := finishedQuery.Count(ctx); err == nil {
-			response.PlaceStatsFinished.Total = proto.Int32(int32(t))
-		} else {
-			errFinished = errors.Wrap(err, "Count finished total failed")
-			return
-		}
-		if r, err := finishedQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(ctx); err == nil {
-			response.PlaceStatsFinished.Rank = proto.Int32(int32(r))
-		} else {
-			errFinished = errors.Wrap(err, "Count finished rank failed")
-			return
-		}
-	}()
+	g.Go(func() error {
+		t, err := baseQuery.Count(gctx)
+		response.PlaceStatsTotal.Total = proto.Int32(int32(t))
+		return errors.Wrap(err, "Count total total failed")
+	})
+	g.Go(func() error {
+		r, err := baseQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(gctx)
+		response.PlaceStatsTotal.Rank = proto.Int32(int32(r))
+		return errors.Wrap(err, "Count total rank failed")
+	})
+	g.Go(func() error {
+		t, err := finishedQuery.Count(gctx)
+		response.PlaceStatsFinished.Total = proto.Int32(int32(t))
+		return errors.Wrap(err, "Count finished total failed")
+	})
+	g.Go(func() error {
+		r, err := finishedQuery.Filter("LastNoteCount >", e.LastNoteCount).Count(gctx)
+		response.PlaceStatsFinished.Rank = proto.Int32(int32(r))
+		return errors.Wrap(err, "Count finished rank failed")
+	})
 
 	compressedSnapshots, err := getCompressedSnapshots(ctx, key)
 	if err != nil {
@@ -437,12 +425,8 @@ func PrepareRenderEventResponse(ctx context.Context, eventID string) (*pb.Render
 		response.CompressedSnapshots = append(response.CompressedSnapshots, item)
 	}
 
-	wg.Wait()
-	if errTotal != nil {
-		return nil, errTotal
-	}
-	if errFinished != nil {
-		return nil, errFinished
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 
 	return response, nil
