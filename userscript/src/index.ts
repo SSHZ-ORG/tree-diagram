@@ -1,6 +1,7 @@
 import * as pb from "./service_pb";
 import Highcharts, {Options, PointOptionsObject} from "highcharts";
-import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
+import {createGrpcWebTransport, createPromiseClient} from "@bufbuild/connect-web";
+import {TreeDiagramService} from "./service_connectweb";
 
 (function () {
     'use strict';
@@ -20,19 +21,21 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         accessibility: {enabled: false},
     });
 
-    const treeDiagramService = new TreeDiagramServiceClient('https://treediagram.sshz.org');
+    const treeDiagramService = createPromiseClient(TreeDiagramService, createGrpcWebTransport({
+        baseUrl: "https://treediagram.sshz.org",
+    }));
     const renderActorsMax = 100;
 
     const header = '<h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>';
 
     function formatDate(date: pb.Date): string {
-        return `${date.getYear()}-${date.getMonth().toString().padStart(2, '0')}-${date.getDay().toString().padStart(2, '0')}`;
+        return `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
     }
 
     function convertToJsDate(date: pb.Date, utcHours: number): Date {
         // This explodes if date.year is between 0 and 99.
         // Empty value in BE can cause year to be 0001, so we will wrongly think it's some time in 1901 here.
-        return new Date(Date.UTC(date.getYear(), date.getMonth() - 1, date.getDay(), utcHours));
+        return new Date(Date.UTC(date.year, date.month - 1, date.day, utcHours));
     }
 
     function htmlToElement(html: string) {
@@ -84,12 +87,12 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
             }
         }
 
-        const request = new pb.RenderEventRequest().setId(eventId);
+        const request = new pb.RenderEventRequest({id: eventId});
         treeDiagramService.renderEvent(request, null).then(response => {
             const totalStatsSpan = document.getElementById('td_place_stats_total');
-            totalStatsSpan.innerHTML = `${response.getPlaceStatsTotal().getRank()}/${response.getPlaceStatsTotal().getTotal()}`;
+            totalStatsSpan.innerHTML = `${response.placeStatsTotal.rank}/${response.placeStatsTotal.total}`;
             const finishedStatsSpan = document.getElementById('td_place_stats_finished');
-            finishedStatsSpan.innerHTML = `${response.getPlaceStatsFinished().getRank()}/${response.getPlaceStatsFinished().getTotal()}`;
+            finishedStatsSpan.innerHTML = `${response.placeStatsFinished.rank}/${response.placeStatsFinished.total}`;
 
             const plotLines = [{
                 value: new Date().getTime(),
@@ -97,10 +100,10 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                 label: {text: 'Now'},
             }];
 
-            const compressedSnapshots = response.getCompressedSnapshotsList();
+            const compressedSnapshots = response.compressedSnapshots;
 
-            const liveDate = response.hasDate() ? convertToJsDate(response.getDate(), 3) : null; // JST noon.
-            if (liveDate && compressedSnapshots.length > 0 && compressedSnapshots[0].getTimestampsList()[0].toDate() <= liveDate) {
+            const liveDate = response.date ? convertToJsDate(response.date, 3) : null; // JST noon.
+            if (liveDate && compressedSnapshots.length > 0 && compressedSnapshots[0].timestamps[0].toDate() <= liveDate) {
                 plotLines.push({
                     value: liveDate.getTime(),
                     dashStyle: 'LongDashDot',
@@ -110,22 +113,22 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
             const snapshots: { time: number, noteCount: number, addedActors: string[], removedActors: string[] }[] = [];
             for (let snapshot of compressedSnapshots) {
-                for (let i = 0; i < snapshot.getTimestampsList().length; i++) {
-                    const timestamp = snapshot.getTimestampsList()[i];
+                for (let i = 0; i < snapshot.timestamps.length; i++) {
+                    const timestamp = snapshot.timestamps[i];
                     snapshots.push({
                         time: timestamp.toDate().getTime(),
-                        noteCount: snapshot.getNoteCount(),
-                        addedActors: i === 0 ? snapshot.getAddedActorsList().map(a => a.getName()) : [],
-                        removedActors: i === 0 ? snapshot.getRemovedActorsList().map(a => a.getName()) : [],
+                        noteCount: snapshot.noteCount,
+                        addedActors: i === 0 ? snapshot.addedActors.map(a => a.name) : [],
+                        removedActors: i === 0 ? snapshot.removedActors.map(a => a.name) : [],
                     });
                 }
 
                 if (actorsUlDom) {
-                    [...snapshot.getAddedActorsList(), ...snapshot.getRemovedActorsList()].forEach(a => {
-                        if (actorNames.has(a.getId())) return;
-                        actorNames.set(a.getId(), a.getName());
+                    [...snapshot.addedActors, ...snapshot.removedActors].forEach(a => {
+                        if (actorNames.has(a.id)) return;
+                        actorNames.set(a.id, a.name);
                         actorsUlDom.appendChild(htmlToElement(`
-                            <li><a href="/actors/${a.getName()}/${a.getId()}">${a.getName()}</a>*</li>`));
+                            <li><a href="/actors/${a.name}/${a.id}">${a.name}</a>*</li>`));
                     });
                 }
             }
@@ -155,7 +158,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                                 }
                                 p.dataLabels = {
                                     enabled: true,
-                                    color: 'white',
+                                    style: {color: 'white'},
                                     backgroundColor: 'rgba(97, 191, 153, 0.5)', // #61BF99
                                     borderRadius: 5,
                                     format: label,
@@ -208,7 +211,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         });
     }
 
-    function createEventList(filter: pb.QueryEventsRequest.EventFilter, totalCount: number | undefined, domToAppend: HTMLElement, autoLoadFirstPage: boolean) {
+    function createEventList(filter: pb.QueryEventsRequest_EventFilter, totalCount: number | undefined, domToAppend: HTMLElement, autoLoadFirstPage: boolean) {
         let loadedCount = 0;
 
         const eventListDom = htmlToElement(`
@@ -239,22 +242,22 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
             }
 
             loadMoreButtonDom.disabled = true;
-            const request = new pb.QueryEventsRequest().setOffset(loadedCount).setFilter(filter);
+            const request = new pb.QueryEventsRequest({offset: loadedCount, filter: filter});
             treeDiagramService.queryEvents(request, null).then(response => {
-                response.getEventsList().forEach(e => {
+                response.events.forEach(e => {
                     const trDom = htmlToElement(`
                     <tr>
                         <td>${loadedCount + 1}</td>
-                        <td nowrap>${formatDate(e.getDate())}</td>
+                        <td nowrap>${formatDate(e.date)}</td>
                         <td>
-                            <a href="/events/${e.getId()}"><i class="icon icon-screenshot"></i></a>
-                            <a href="/events/${e.getId()}" target="_blank">${e.getName()}</a>
+                            <a href="/events/${e.id}"><i class="icon icon-screenshot"></i></a>
+                            <a href="/events/${e.id}" target="_blank">${e.name}</a>
                         </td>
-                        <td>${e.getLastNoteCount()}</td>
-                        <td>${e.getActorCount()}</td>
+                        <td>${e.lastNoteCount}</td>
+                        <td>${e.actorCount}</td>
                     </tr>`) as HTMLTableRowElement;
 
-                    const liveDate = convertToJsDate(e.getDate(), 15); // next day 0:00 JST.
+                    const liveDate = convertToJsDate(e.date, 15); // next day 0:00 JST.
                     if (liveDate > new Date()) {
                         trDom.classList.add('warning');
                     }
@@ -265,7 +268,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
                 loadedIndicatorDom.innerText = loadedCount.toString();
 
-                if (response.getHasNext()) {
+                if (response.hasNext) {
                     enableLoadMoreButton();
                 } else {
                     totalIndicatorDom.innerText = loadedCount.toString();
@@ -291,19 +294,19 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
         const placeDetailsTableDom = document.getElementsByClassName('gb_place_detail_table')[0] || document.getElementsByClassName('mod_places_detail')[0];
         placeDetailsTableDom.parentNode.insertBefore(tdDom, placeDetailsTableDom.nextSibling);
 
-        const request = new pb.RenderPlaceRequest().setId(placeId);
+        const request = new pb.RenderPlaceRequest({id: placeId});
         treeDiagramService.renderPlace(request, null).then(response => {
-            createEventList(new pb.QueryEventsRequest.EventFilter().setPlaceId(placeId), response.getKnownEventCount(), tdDom, false);
+            createEventList(new pb.QueryEventsRequest_EventFilter({placeId: placeId}), response.knownEventCount, tdDom, false);
         });
     }
 
-    function actorSnapshotsToDataPoints(snapshots: pb.RenderActorsResponse.ResponseItem.Snapshot[]): [number, number][] {
+    function actorSnapshotsToDataPoints(snapshots: pb.RenderActorsResponse_ResponseItem_Snapshot[]): [number, number][] {
         if (snapshots.length === 0) {
             return [];
         }
 
         // JST 6am.
-        const dates = snapshots.map(s => convertToJsDate(s.getDate(), -3));
+        const dates = snapshots.map(s => convertToJsDate(s.date, -3));
 
         const dataPoints: [number, number][] = [];
         const copy = snapshots.slice();
@@ -311,7 +314,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
         for (let date = dates[0]; date < new Date(); date.setDate(date.getDate() + 1)) {
             if (copy.length > 0 && date >= dates[0]) {
-                lastFavoriteCount = copy[0].getFavoriteCount();
+                lastFavoriteCount = copy[0].favoriteCount;
                 dates.shift();
                 copy.shift();
             }
@@ -322,12 +325,12 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
     }
 
     function renderActorPage(actorId: string, renderChartTo: string, eventListDom?: HTMLElement) {
-        const request = new pb.RenderActorsRequest().addId(actorId);
+        const request = new pb.RenderActorsRequest({id: [actorId]});
         treeDiagramService.renderActors(request, null).then(response => {
-            const data = response.getItemsMap().get(actorId);
+            const data = response.items[actorId];
 
             if (eventListDom) {
-                createEventList(new pb.QueryEventsRequest.EventFilter().addActorIds(actorId), data.getKnownEventCount(), eventListDom, false);
+                createEventList(new pb.QueryEventsRequest_EventFilter({actorIds: [actorId]}), data.knownEventCount, eventListDom, false);
             }
 
             Highcharts.chart(renderChartTo, {
@@ -339,7 +342,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
                 series: [{
                     name: 'FavoriteCount',
                     type: 'areaspline',
-                    data: actorSnapshotsToDataPoints(data.getSnapshotsList()),
+                    data: actorSnapshotsToDataPoints(data.snapshots),
                 }],
             } as Options);
         });
@@ -512,8 +515,7 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
             if (eventListContainerDom.firstChild) {
                 eventListContainerDom.removeChild(eventListContainerDom.firstChild);
             }
-            const filter = new pb.QueryEventsRequest.EventFilter()
-            actorNames.forEach((_, a) => filter.addActorIds(a));
+            const filter = new pb.QueryEventsRequest_EventFilter({actorIds: [...actorNames.keys()]});
             createEventList(filter, undefined, eventListContainerDom, true);
         }
     }
@@ -525,20 +527,19 @@ import {TreeDiagramServiceClient} from "./ServiceServiceClientPb";
 
         containerDom.appendChild(htmlToElement(`<div id="td_chart_compare_actors"></div>`));
 
-        const plotLines = extraVerticalLines.map(e => {
+        const plotLines = (extraVerticalLines ?? []).map(e => {
             return {value: e.time.getTime(), dashStyle: 'Dash', label: {text: e.label},}
         });
 
-        const request = new pb.RenderActorsRequest();
-        actorNames.forEach((_, i) => request.addId(i));
+        const request = new pb.RenderActorsRequest({id: [...actorNames.keys()]});
 
         treeDiagramService.renderActors(request, null).then(response => {
             const series: { name: string, type: 'spline', data: [number, number][] }[] = [];
-            for (const [actorId, res] of response.getItemsMap().entries()) {
+            for (const [actorId, res] of Object.entries(response.items)) {
                 series.push({
                     name: `${actorNames.get(actorId)}`,
                     type: 'spline',
-                    data: actorSnapshotsToDataPoints(res.getSnapshotsList()),
+                    data: actorSnapshotsToDataPoints(res.snapshots),
                 });
             }
             const lastValue = (l: [number, number][]) => l.length > 0 ? l[l.length - 1][1] : 0;
