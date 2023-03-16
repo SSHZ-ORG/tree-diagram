@@ -42,7 +42,7 @@ type Event struct {
 	LastUpdateTime time.Time
 }
 
-func (e Event) debugName() string {
+func (e *Event) debugName() string {
 	return fmt.Sprintf("[%s] %s", e.ID, e.Name)
 }
 

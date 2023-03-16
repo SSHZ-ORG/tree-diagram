@@ -27,7 +27,7 @@ type Actor struct {
 	ModelVersion int
 }
 
-func (a Actor) debugName() string {
+func (a *Actor) debugName() string {
 	return fmt.Sprintf("[%s] %s", a.ID, a.Name)
 }
 

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 
@@ -11,8 +10,6 @@ import (
 	"github.com/SSHZ-ORG/tree-diagram/scheduler"
 	"github.com/SSHZ-ORG/tree-diagram/utils"
 	"github.com/julienschmidt/httprouter"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/datastore/v1"
 	"google.golang.org/appengine/v2"
 	"google.golang.org/appengine/v2/log"
 )
@@ -31,7 +28,6 @@ func RegisterCron(r *httprouter.Router) {
 	r.GET(paths.CronUndeadPath, undeadCron)
 	r.GET(paths.CronCleanupPath, cleanupCron)
 	r.GET(paths.CronDailyActorPath, dailyActorCron)
-	r.GET(paths.CronExportPath, exportCron)
 	r.GET(paths.CronOneOff, oneOffCron)
 }
 
@@ -136,42 +132,6 @@ func dailyActorCron(w http.ResponseWriter, r *http.Request, _ httprouter.Params)
 	if err := scheduler.ScheduleCrawlActorPage(ctx, 1); err != nil {
 		log.Errorf(ctx, "scheduler.ScheduleCrawlActorPage: %+v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func exportCron(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	ctx := appengine.NewContext(r)
-
-	client, err := google.DefaultClient(ctx, datastore.DatastoreScope)
-	if err != nil {
-		log.Errorf(ctx, "google.DefaultClient: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	service, err := datastore.New(client)
-	if err != nil {
-		log.Errorf(ctx, "datastore.New: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	appID := appengine.AppID(ctx)
-	bucketName := appID + ".appspot.com"
-
-	resp, err := service.Projects.Export(appID, &datastore.GoogleDatastoreAdminV1ExportEntitiesRequest{
-		OutputUrlPrefix: fmt.Sprintf("gs://%s/td-datastore/%s/", bucketName, utils.JSTToday().String()),
-		EntityFilter:    &datastore.GoogleDatastoreAdminV1EntityFilter{Kinds: models.KindsToExport},
-	}).Do()
-	if err != nil {
-		log.Errorf(ctx, "service.Projects.Export: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if resp.HTTPStatusCode != http.StatusOK {
-		log.Errorf(ctx, "service.Projects.Export returned error: %v", resp.Error.Message)
-		http.Error(w, resp.Error.Message, resp.HTTPStatusCode)
 		return
 	}
 }
