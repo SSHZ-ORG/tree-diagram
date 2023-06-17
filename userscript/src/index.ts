@@ -1,6 +1,7 @@
 import * as pb from "./service_pb";
 import Highcharts, {Options, PointOptionsObject} from "highcharts";
-import {createGrpcWebTransport, createPromiseClient} from "@bufbuild/connect-web";
+import {createGrpcWebTransport} from "@bufbuild/connect-web";
+import {createPromiseClient} from "@bufbuild/connect";
 import {TreeDiagramService} from "./service_connectweb";
 
 (function () {
@@ -27,6 +28,8 @@ import {TreeDiagramService} from "./service_connectweb";
     const renderActorsMax = 100;
 
     const header = '<h2><ruby>樹形図の設計者<rt>ツリーダイアグラム</rt></ruby></h2>';
+
+    const currentDate = new Date();
 
     function formatDate(date: pb.Date): string {
         return `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
@@ -95,7 +98,7 @@ import {TreeDiagramService} from "./service_connectweb";
             finishedStatsSpan.innerHTML = `${response.placeStatsFinished.rank}/${response.placeStatsFinished.total}`;
 
             const plotLines = [{
-                value: new Date().getTime(),
+                value: currentDate.getTime(),
                 dashStyle: 'Dash',
                 label: {text: 'Now'},
             }];
@@ -258,7 +261,7 @@ import {TreeDiagramService} from "./service_connectweb";
                     </tr>`) as HTMLTableRowElement;
 
                     const liveDate = convertToJsDate(e.date, 15); // next day 0:00 JST.
-                    if (liveDate > new Date()) {
+                    if (liveDate > currentDate) {
                         trDom.classList.add('warning');
                     }
 
@@ -312,7 +315,8 @@ import {TreeDiagramService} from "./service_connectweb";
         const copy = snapshots.slice();
         let lastFavoriteCount = 0;
 
-        for (let date = dates[0]; date < new Date(); date.setDate(date.getDate() + 1)) {
+        // Cannot be date.setDate(date.getDate() + 1) because that breaks if the browser timezone has DST.
+        for (let date = dates[0]; date < currentDate; date.setUTCDate(date.getUTCDate() + 1)) {
             if (copy.length > 0 && date >= dates[0]) {
                 lastFavoriteCount = copy[0].favoriteCount;
                 dates.shift();

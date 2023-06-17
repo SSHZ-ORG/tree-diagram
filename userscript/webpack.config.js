@@ -1,7 +1,8 @@
 const path = require('path')
-const WebpackUserscript = require('webpack-userscript')
+const { UserscriptPlugin } = require('webpack-userscript')
 const ClosurePlugin = require('closure-webpack-plugin')
 const dev = process.env.NODE_ENV === 'development'
+const version = require('./package.json').version
 
 module.exports = {
     mode: dev ? 'development' : 'production',
@@ -23,13 +24,15 @@ module.exports = {
         filename: 'treediagram.user.js'
     },
     devServer: {
-        contentBase: path.join(__dirname, 'dist')
+        static: {
+            directory: path.join(__dirname, 'dist'),
+        },
     },
     plugins: [
-        new WebpackUserscript({
+        new UserscriptPlugin({
             headers: {
                 name: dev ? 'TreeDiagram-dev' : 'TreeDiagram',
-                version: dev ? `[version]-build.[buildNo]` : `[version]`,
+                version: dev ? `${version}-build.[buildNo]` : `${version}`,
                 namespace: 'https://www.sshz.org/',
                 description: 'Make Eventernote Better',
                 match: 'https://www.eventernote.com/*',
