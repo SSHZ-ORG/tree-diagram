@@ -2,7 +2,7 @@ import * as pb from "./service_pb";
 import Highcharts, {Options, PointOptionsObject} from "highcharts";
 import {createGrpcWebTransport} from "@bufbuild/connect-web";
 import {createPromiseClient} from "@bufbuild/connect";
-import {TreeDiagramService} from "./service_connectweb";
+import {TreeDiagramService} from "./service_connect";
 
 (function () {
     'use strict';
@@ -524,7 +524,8 @@ import {TreeDiagramService} from "./service_connectweb";
         }
     }
 
-    function compareActors(containerDom: HTMLElement, actorNames: Map<string, string>, callback?: () => void, extraVerticalLines?: { label: string, time: Date }[]) {
+    function compareActors(containerDom: HTMLElement, actorNames: Map<string, string>, callback?: () => void,
+                           extraVerticalLines?: { label: string, time: Date }[]) {
         while (containerDom.firstChild) {
             containerDom.removeChild(containerDom.firstChild);
         }
