@@ -13,6 +13,3 @@
 
 .DS_Store
 /.idea/
-
-/userscript/node_modules/
-/userscript/dist/
