@@ -720,3 +720,114 @@ export class QueryEventsResponse_Event extends Message<QueryEventsResponse_Event
   }
 }
 
+/**
+ * @generated from message treediagram.pb.ListActorsRequest
+ */
+export class ListActorsRequest extends Message<ListActorsRequest> {
+  /**
+   * @generated from field: repeated string id = 1;
+   */
+  id: string[] = [];
+
+  constructor(data?: PartialMessage<ListActorsRequest>) {
+    super();
+    proto2.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto2 = proto2;
+  static readonly typeName = "treediagram.pb.ListActorsRequest";
+  static readonly fields: FieldList = proto2.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListActorsRequest {
+    return new ListActorsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListActorsRequest {
+    return new ListActorsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListActorsRequest {
+    return new ListActorsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListActorsRequest | PlainMessage<ListActorsRequest> | undefined, b: ListActorsRequest | PlainMessage<ListActorsRequest> | undefined): boolean {
+    return proto2.util.equals(ListActorsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message treediagram.pb.ListActorsResponse
+ */
+export class ListActorsResponse extends Message<ListActorsResponse> {
+  /**
+   * @generated from field: map<string, treediagram.pb.ListActorsResponse.ResponseItem> items = 1;
+   */
+  items: { [key: string]: ListActorsResponse_ResponseItem } = {};
+
+  constructor(data?: PartialMessage<ListActorsResponse>) {
+    super();
+    proto2.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto2 = proto2;
+  static readonly typeName = "treediagram.pb.ListActorsResponse";
+  static readonly fields: FieldList = proto2.util.newFieldList(() => [
+    { no: 1, name: "items", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ListActorsResponse_ResponseItem} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListActorsResponse {
+    return new ListActorsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListActorsResponse {
+    return new ListActorsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListActorsResponse {
+    return new ListActorsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListActorsResponse | PlainMessage<ListActorsResponse> | undefined, b: ListActorsResponse | PlainMessage<ListActorsResponse> | undefined): boolean {
+    return proto2.util.equals(ListActorsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message treediagram.pb.ListActorsResponse.ResponseItem
+ */
+export class ListActorsResponse_ResponseItem extends Message<ListActorsResponse_ResponseItem> {
+  /**
+   * @generated from field: optional int32 favorite_count = 1;
+   */
+  favoriteCount?: number;
+
+  constructor(data?: PartialMessage<ListActorsResponse_ResponseItem>) {
+    super();
+    proto2.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto2 = proto2;
+  static readonly typeName = "treediagram.pb.ListActorsResponse.ResponseItem";
+  static readonly fields: FieldList = proto2.util.newFieldList(() => [
+    { no: 1, name: "favorite_count", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListActorsResponse_ResponseItem {
+    return new ListActorsResponse_ResponseItem().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListActorsResponse_ResponseItem {
+    return new ListActorsResponse_ResponseItem().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListActorsResponse_ResponseItem {
+    return new ListActorsResponse_ResponseItem().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListActorsResponse_ResponseItem | PlainMessage<ListActorsResponse_ResponseItem> | undefined, b: ListActorsResponse_ResponseItem | PlainMessage<ListActorsResponse_ResponseItem> | undefined): boolean {
+    return proto2.util.equals(ListActorsResponse_ResponseItem, a, b);
+  }
+}
+

@@ -92,3 +92,25 @@ func (t treeDiagramService) RenderActors(ctx context.Context, req *pb.RenderActo
 	}
 	return &pb.RenderActorsResponse{Items: res}, nil
 }
+
+func (t treeDiagramService) ListActors(ctx context.Context, req *pb.ListActorsRequest) (*pb.ListActorsResponse, error) {
+	for _, id := range req.GetId() {
+		if id == "" {
+			return nil, status.Error(codes.InvalidArgument, "Empty id")
+		}
+	}
+
+	m, err := models.GetActorMap(ctx, req.GetId())
+	if err != nil {
+		log.Errorf(ctx, "models.GetActorMap: %+v", err)
+		return nil, internalError
+	}
+
+	resp := &pb.ListActorsResponse{Items: make(map[string]*pb.ListActorsResponse_ResponseItem)}
+	for _, a := range m {
+		resp.GetItems()[a.ID] = &pb.ListActorsResponse_ResponseItem{
+			FavoriteCount: proto.Int32(int32(a.LastFavoriteCount)),
+		}
+	}
+	return resp, nil
+}

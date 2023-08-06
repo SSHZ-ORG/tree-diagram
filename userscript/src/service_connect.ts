@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { QueryEventsRequest, QueryEventsResponse, RenderActorsRequest, RenderActorsResponse, RenderEventRequest, RenderEventResponse, RenderPlaceRequest, RenderPlaceResponse } from "./service_pb";
+import { ListActorsRequest, ListActorsResponse, QueryEventsRequest, QueryEventsResponse, RenderActorsRequest, RenderActorsResponse, RenderEventRequest, RenderEventResponse, RenderPlaceRequest, RenderPlaceResponse } from "./service_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -46,6 +46,15 @@ export const TreeDiagramService = {
       name: "QueryEvents",
       I: QueryEventsRequest,
       O: QueryEventsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc treediagram.pb.TreeDiagramService.ListActors
+     */
+    listActors: {
+      name: "ListActors",
+      I: ListActorsRequest,
+      O: ListActorsResponse,
       kind: MethodKind.Unary,
     },
   }

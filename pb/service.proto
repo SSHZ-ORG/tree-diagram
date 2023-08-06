@@ -100,9 +100,21 @@ message QueryEventsResponse {
     optional bool has_next = 2;
 }
 
+message ListActorsRequest {
+    repeated string id = 1;
+}
+
+message ListActorsResponse {
+    message ResponseItem {
+        optional int32 favorite_count = 1;
+    }
+    map<string, ResponseItem> items = 1;
+}
+
 service TreeDiagramService {
     rpc RenderEvent (RenderEventRequest) returns (RenderEventResponse) {}
     rpc RenderPlace (RenderPlaceRequest) returns (RenderPlaceResponse) {}
     rpc RenderActors (RenderActorsRequest) returns (RenderActorsResponse) {}
     rpc QueryEvents (QueryEventsRequest) returns (QueryEventsResponse) {}
+    rpc ListActors (ListActorsRequest) returns (ListActorsResponse) {}
 }

@@ -127,8 +127,8 @@ function eventPage(eventId: string) {
                 [...snapshot.addedActors, ...snapshot.removedActors].forEach(a => {
                     if (actorNames.has(a.id)) return;
                     actorNames.set(a.id, a.name);
-                    actorsUlDom.appendChild(htmlToElement(`
-                            <li><a href="/actors/${a.name}/${a.id}">${a.name}</a>*</li>`));
+                    actorsUlDom.appendChild(htmlToElement(
+                        `<li><a href="/actors/${a.name}/${a.id}">${a.name}</a>*</li>`));
                 });
             }
         }
@@ -194,26 +194,56 @@ function eventPage(eventId: string) {
         } as Options);
 
         if (actorsUlDom) {
-            if (actorNames.size <= renderActorsMax) {
-                actorsUlDom.parentElement.appendChild(htmlToElement(`
-                    <div>
-                        <button class="btn btn-block" type="button" id="td_event_compare_actors">Compare Favorites (${actorNames.size})</button>
-                        <div id="td_event_actor_favorites_chart_container"></div>
-                    </div>`));
+            const containerEl = actorsUlDom.parentElement;
 
-                const buttonEl = document.getElementById("td_event_compare_actors") as HTMLButtonElement;
+            if (actorNames.size <= renderActorsMax) {
+                const buttonEl = htmlToElement(
+                    `<button class="btn btn-block" type="button">Favorites Graph</button>`) as HTMLButtonElement;
+                containerEl.appendChild(buttonEl);
                 buttonEl.addEventListener('click', () => {
                     buttonEl.disabled = true;
-                    compareActors(document.getElementById("td_event_actor_favorites_chart_container"),
-                        actorNames, () => buttonEl.remove(),
+                    const chartContainerEl = htmlToElement(`<div id="td_event_actor_favorites_chart_container"></div>`);
+                    containerEl.appendChild(chartContainerEl);
+                    compareActors(chartContainerEl, actorNames, () => buttonEl.remove(),
                         liveDate ? [{label: "This Event", time: liveDate}] : []);
                 });
             }
 
-            actorsUlDom.parentElement.appendChild(htmlToElement(`
-                <button class="btn btn-block" type="button" id="td_event_navigate">Copy to TreeDiagram Page</button>`));
-            document.getElementById('td_event_navigate').addEventListener('click', () => {
+            const navigateButtonEl = htmlToElement(
+                `<button class="btn btn-block" type="button">Copy to TreeDiagram Page</button>`);
+            containerEl.appendChild(navigateButtonEl);
+            navigateButtonEl.addEventListener('click', () => {
                 treeDiagramPage(actorNames);
+            });
+
+            const compareFavoritesButtonEl = htmlToElement(
+                `<button class="btn btn-block" type="button">Compare Favorites (${actorNames.size})</button>`) as HTMLButtonElement;
+            containerEl.appendChild(compareFavoritesButtonEl);
+            compareFavoritesButtonEl.addEventListener('click', () => {
+                compareFavoritesButtonEl.disabled = true;
+                treeDiagramService.listActors(new pb.ListActorsRequest({id: [...actorNames.keys()]}))
+                    .then(response => {
+                        compareFavoritesButtonEl.remove();
+
+                        const tbodyEl = htmlToElement(`<tbody></tbody>`);
+                        const tableEl = htmlToElement(
+                            `<table class="table table-hover s" style="margin-top: 5px;"></table>`);
+                        tableEl.appendChild(tbodyEl);
+
+                        const actors: { id: string, name: string, favoriteCount: number }[] = [];
+                        for (const [actorId, res] of Object.entries(response.items)) {
+                            actors.push({
+                                id: actorId,
+                                name: `${actorNames.get(actorId)}`,
+                                favoriteCount: res.favoriteCount,
+                            });
+                        }
+                        actors.sort((a, b) => b.favoriteCount - a.favoriteCount);
+                        actors.forEach(a => tbodyEl.appendChild(htmlToElement(
+                            `<tr><td><a href="/actors/${a.name}/${a.id}">${a.name}</a></td><td>${a.favoriteCount}</td></tr>`)));
+
+                        containerEl.appendChild(tableEl);
+                    });
             });
         }
     });
@@ -293,11 +323,7 @@ function createEventList(filter: pb.QueryEventsRequest_EventFilter, totalCount: 
 }
 
 function placePage(placeId: string) {
-    const tdDom = htmlToElement(`
-        <div>
-            ${header}
-            <h3>Top Event List</h3>
-        </div>`) as HTMLDivElement;
+    const tdDom = htmlToElement(`<div>${header}<h3>Top Event List</h3></div>`) as HTMLDivElement;
 
     const placeDetailsTableDom = document.getElementsByClassName('gb_place_detail_table')[0] || document.getElementsByClassName('mod_places_detail')[0];
     placeDetailsTableDom.parentNode.insertBefore(tdDom, placeDetailsTableDom.nextSibling);
@@ -358,19 +384,12 @@ function renderActorPage(actorId: string, renderChartTo: string, eventListDom?: 
 }
 
 function actorPage(actorId: string) {
-    const tdDom = htmlToElement(`
-        <div>
-            ${header}
-            <h3>Top Event List</h3>
-        </div>`) as HTMLDivElement;
+    const tdDom = htmlToElement(`<div>${header}<h3>Top Event List</h3></div>`) as HTMLDivElement;
 
     const actorTitleDom = document.getElementsByClassName('gb_actors_title')[0] || document.getElementsByClassName('gb_blur_title')[0];
     actorTitleDom.parentNode.insertBefore(tdDom, actorTitleDom.nextSibling);
 
-    const graphDom = htmlToElement(`
-        <div>
-            <div id="td_chart"></div>
-        </div>`);
+    const graphDom = htmlToElement(`<div><div id="td_chart"></div></div>`);
     const favoriteUsersDom = document.getElementsByClassName('gb_users_icon')[0] || document.getElementsByClassName('gb_listusericon')[0];
     favoriteUsersDom.parentNode.insertBefore(graphDom, favoriteUsersDom);
 
@@ -378,10 +397,7 @@ function actorPage(actorId: string) {
 }
 
 function actorEventsPage(actorId: string) {
-    const graphDom = htmlToElement(`
-        <div>
-            <div id="td_chart"></div>
-        </div>`);
+    const graphDom = htmlToElement(`<div><div id="td_chart"></div></div>`);
 
     const sidebarContentDom = document.getElementsByClassName('gb_ad_lrec')[0];
     if (sidebarContentDom) {
@@ -395,7 +411,8 @@ function actorEventsPage(actorId: string) {
 
 function userPage() {
     const favoriteActorsDom = document.getElementsByClassName('gb_actors_list')[0] || document.getElementsByClassName('favorite_actor')[0];
-    if (favoriteActorsDom) {
+    // Verify that we are not on a page that is similar to /users/favorite_actors/edit
+    if (favoriteActorsDom && favoriteActorsDom.id !== 'selected_actors') {
         const actorNames = new Map<string, string>();
 
         const actorDoms = favoriteActorsDom.getElementsByTagName('li');
@@ -410,28 +427,40 @@ function userPage() {
 
         const containerForCompareActors = document.getElementsByClassName('span8')[0] || document.getElementsByClassName('mod_page')[0];
         if (actorNames.size <= renderActorsMax && containerForCompareActors) {
-            containerForCompareActors.appendChild(htmlToElement(`
-                    <div>
-                        <button class="btn btn-block" type="button" id="td_user_compare_actors">Compare Favorites</button>
-                        <div id="td_user_actor_favorites_chart_container"></div>
-                    </div>`));
-
-            const buttonEl = document.getElementById("td_user_compare_actors");
+            const buttonEl = htmlToElement(
+                `<button class="btn btn-block" type="button">Compare Favorites (${actorNames.size})</button>`) as HTMLButtonElement;
+            containerForCompareActors.appendChild(buttonEl);
             buttonEl.addEventListener('click', () => {
-                compareActors(document.getElementById("td_user_actor_favorites_chart_container"), actorNames, () => buttonEl.remove());
+                buttonEl.disabled = true;
+                const containerEl = htmlToElement(`<div></div>`);
+                containerForCompareActors.appendChild(containerEl);
+                compareActors(containerEl, actorNames, () => buttonEl.remove());
             });
         }
     }
 }
 
 function treeDiagramPage(initActorNames?: Map<string, string>) {
+    const originalContentEl = (document.getElementsByClassName('gb_ad_footer').length > 0 ?
+        document.getElementsByClassName('gb_ad_footer')[0].previousElementSibling :
+        document.getElementById('container')) as HTMLElement;
+    originalContentEl.hidden = true;
+
+    const existingTdEl = document.getElementById('td_page_container');
+    if (existingTdEl) {
+        existingTdEl.hidden = false;
+        return;
+    }
+
     const tdDom = htmlToElement(`
-        <div class="container">
+        <div class="container" id="td_page_container">
             <div class="row">
                 <div class="page span8">
-                    <div class="page-header">${header}</div>
+                    <div class="page-header">
+                        ${header}
+                        <button class="btn btn-block" type="button" id="td_page_back">Close</button>
+                    </div>
                     <div>
-                        <h2>Advanced Event Search</h2>
                         <div class="gb_form">
                         <table class="table table-bordered table-striped">
                         <tbody>
@@ -461,8 +490,12 @@ function treeDiagramPage(initActorNames?: Map<string, string>) {
                 </div>
             </div>
         </div>`);
-    const contentDom = document.getElementsByClassName('gb_ad_footer').length > 0 ? document.getElementsByClassName('gb_ad_footer')[0].previousElementSibling : document.getElementById('container');
-    contentDom.replaceWith(tdDom);
+    originalContentEl.parentElement.insertBefore(tdDom, originalContentEl);
+
+    document.getElementById('td_page_back').addEventListener('click', () => {
+        tdDom.hidden = true;
+        originalContentEl.hidden = false;
+    });
 
     const actorNames = new Map<string, string>();
     const selectedActorsDom = document.getElementById('td_selected_actors');
@@ -487,8 +520,8 @@ function treeDiagramPage(initActorNames?: Map<string, string>) {
         if (actorNames.has(id)) return;
         actorNames.set(id, name);
 
-        const buttonDom = htmlToElement(`
-                <button class="btn" type="button"><i class="icon-minus"></i> ${name}</button>`) as HTMLButtonElement;
+        const buttonDom = htmlToElement(
+            `<button class="btn" type="button"><i class="icon-minus"></i> ${name}</button>`) as HTMLButtonElement;
         selectedActorsDom.appendChild(buttonDom);
 
         buttonDom.addEventListener('click', () => {
@@ -513,8 +546,8 @@ function treeDiagramPage(initActorNames?: Map<string, string>) {
                 }
                 if (data.results) {
                     data.results.forEach((item: { name: string, id: number }) => {
-                        const itemDom = htmlToElement(`
-                                <button class="btn" type="button"><i class="icon-plus"></i> ${item.name}</button>`);
+                        const itemDom = htmlToElement(
+                            `<button class="btn" type="button"><i class="icon-plus"></i> ${item.name}</button>`);
                         itemDom.addEventListener('click', () => {
                             addActor(item.id.toString(), item.name);
                         });
